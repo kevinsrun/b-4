@@ -5,6 +5,10 @@ description: >-
   Experiment-planning step. Converts candidates and hypotheses into concrete
   ExperimentSpec objects for the simulation backend, choosing the conditions
   that discriminate between competing explanations.
+executor:
+  type: omnigent
+  config:
+    harness: codex
 # No os_env: this step reasons over what it is given and returns specs. It has
 # no reason to touch the filesystem, and withholding that keeps a model from
 # editing the repository instead of answering.

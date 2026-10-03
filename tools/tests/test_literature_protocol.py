@@ -60,6 +60,8 @@ async def main() -> int:
             check("question is required", "question" in schema.get("required", []))
             check("retrieval controls advertised", "max_results" in properties)
             check("source document input advertised", "source_documents" in properties)
+            source_schema = json.dumps(properties["source_documents"])
+            check("source document schema is typed", "SourceDocument" in source_schema)
             check("trust warning advertised", "never chooses" in (tool.description or ""))
 
             payload = payload_of(
