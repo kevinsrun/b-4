@@ -1,0 +1,1740 @@
+[
+ {
+  "plan": {
+   "agent": "experiment_planner",
+   "artifacts": {
+    "budget_after": {
+     "compute_budget": null,
+     "estimated_cost_of_proposal": 1.0,
+     "remaining_experiments": 3
+    },
+    "candidate_experiment_counts": {
+     "cand_nisin": 0,
+     "cand_pediocin": 0,
+     "cand_sakacin": 0
+    },
+    "hypothesis_posterior": [
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_ph",
+      "posterior": 0.4516,
+      "prior": 0.7,
+      "template": "ph_window"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_inoc",
+      "posterior": 0.3548,
+      "prior": 0.55,
+      "template": "inoculum_effect"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_null_no_context_effect",
+      "posterior": 0.1935,
+      "prior": 0.3,
+      "template": "null"
+     }
+    ],
+    "input_digest_sha256": "6b3f1c4a307b788185bff4709caa3848981fbb156cf2a8391df5cf34b9067d93",
+    "model_version": "experiment_planner-0.1.0+scoring-v1",
+    "reference_conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "scoring_formula": "uncertainty x relevance x (discrimination + 0.15*uncertainty + baseline_bonus(0.05, untested candidate at reference)) / cost",
+    "top_alternatives": [
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.51976,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.51976,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.4931,
+      "relevance": 0.97,
+      "score": 0.49576,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.46976,
+      "uncertainty": 1.0,
+      "value": 0.1,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.46976,
+      "uncertainty": 1.0,
+      "value": 0.3,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.46976,
+      "uncertainty": 1.0,
+      "value": 10.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.46976,
+      "uncertainty": 1.0,
+      "value": 3.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5068,
+      "relevance": 1.0,
+      "score": 0.46976,
+      "uncertainty": 1.0,
+      "value": 6.0,
+      "variable": "ph"
+     }
+    ]
+   },
+   "batch": [
+    {
+     "candidate_id": "cand_pediocin",
+     "competing_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "confidence": 0.703,
+     "estimated_cost": 1.0,
+     "expected_information_gain": 0.5068,
+     "expected_information_gain_unit": "bits",
+     "experiment_id": "exp_266533cbad31",
+     "experiment_spec": {
+      "candidate_id": "cand_pediocin",
+      "conditions": {
+       "assay_domain": "simulated_in_vitro",
+       "bacteriocin_concentration": 1.0,
+       "growth_phase": null,
+       "incubation_time": 24.0,
+       "ionic_conditions": {},
+       "medium": null,
+       "ph": 6.75,
+       "producer_cell_density": null,
+       "target_cell_density": 100000000.0,
+       "temperature_c": 37
+      },
+      "experiment_id": "exp_266533cbad31",
+      "hypothesis_id": "hyp_inoc",
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      }
+     },
+     "experiment_spec_flat": {
+      "assay_domain": "simulated_in_vitro",
+      "bacteriocin_concentration": 1.0,
+      "incubation_time": 24.0,
+      "medium": null,
+      "ph": 6.75,
+      "producer_cell_density": null,
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      },
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37
+     },
+     "hypothesis_id": "hyp_inoc",
+     "predicted_possible_outcomes": [
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_inoc"
+       ],
+       "consistent_templates": [
+        "inoculum_effect"
+       ],
+       "interpretation": "Would favour inoculum_effect (current combined posterior 0.35 -> 0.86); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.857,
+        "hyp_null_no_context_effect": 0.043,
+        "hyp_ph": 0.1
+       },
+       "predicted_inhibition_fraction": 0.28
+      },
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_ph",
+        "hyp_null_no_context_effect"
+       ],
+       "consistent_templates": [
+        "ph_window",
+        "null"
+       ],
+       "interpretation": "Would favour ph_window, null (current combined posterior 0.65 -> 0.95); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.048,
+        "hyp_null_no_context_effect": 0.286,
+        "hyp_ph": 0.666
+       },
+       "predicted_inhibition_fraction": 0.7
+      }
+     ],
+     "score": 0.51976,
+     "variables_changed": [],
+     "variables_held_constant": [
+      {
+       "value": 1.0,
+       "variable": "bacteriocin_concentration"
+      },
+      {
+       "value": 100000000.0,
+       "variable": "target_cell_density"
+      },
+      {
+       "value": 6.75,
+       "variable": "ph"
+      },
+      {
+       "value": 37,
+       "variable": "temperature_c"
+      },
+      {
+       "value": 24.0,
+       "variable": "incubation_time"
+      }
+     ],
+     "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.35) predicts inhibition ~0.28 for Pediocin PA-1 at the reference conditions, whereas hyp_ph (ph_window, posterior 0.45) predicts ~0.70. Holding all variables at reference values separates them: expected information gain 0.51 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+    }
+   ],
+   "candidate_id": "cand_pediocin",
+   "confidence": 0.703,
+   "decision": {
+    "evidence_type_of_expected_result": "simulation-derived",
+    "n_experiments": 1,
+    "status": "propose_experiment"
+   },
+   "evidence": [],
+   "expected_information_gain": 0.5068,
+   "experiment_id": "exp_266533cbad31",
+   "experiment_spec": {
+    "candidate_id": "cand_pediocin",
+    "conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "experiment_id": "exp_266533cbad31",
+    "hypothesis_id": "hyp_inoc",
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    }
+   },
+   "experiment_spec_flat": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "incubation_time": 24.0,
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    },
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "hypothesis_id": "hyp_inoc",
+   "predicted_possible_outcomes": [
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_inoc"
+     ],
+     "consistent_templates": [
+      "inoculum_effect"
+     ],
+     "interpretation": "Would favour inoculum_effect (current combined posterior 0.35 -> 0.86); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.857,
+      "hyp_null_no_context_effect": 0.043,
+      "hyp_ph": 0.1
+     },
+     "predicted_inhibition_fraction": 0.28
+    },
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "consistent_templates": [
+      "ph_window",
+      "null"
+     ],
+     "interpretation": "Would favour ph_window, null (current combined posterior 0.65 -> 0.95); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.048,
+      "hyp_null_no_context_effect": 0.286,
+      "hyp_ph": 0.666
+     },
+     "predicted_inhibition_fraction": 0.7
+    }
+   ],
+   "recommended_next_action": {
+    "agent": "simulation_runner",
+    "inputs": {
+     "experiment_specs": [
+      {
+       "candidate_id": "cand_pediocin",
+       "conditions": {
+        "assay_domain": "simulated_in_vitro",
+        "bacteriocin_concentration": 1.0,
+        "growth_phase": null,
+        "incubation_time": 24.0,
+        "ionic_conditions": {},
+        "medium": null,
+        "ph": 6.75,
+        "producer_cell_density": null,
+        "target_cell_density": 100000000.0,
+        "temperature_c": 37
+       },
+       "experiment_id": "exp_266533cbad31",
+       "hypothesis_id": "hyp_inoc",
+       "target": {
+        "species": "Listeria monocytogenes",
+        "strain": "ATCC 19115"
+       }
+      }
+     ]
+    },
+    "reason": "Run the proposed experiment_spec(s) via run_experiment and return ExperimentResult objects; re-invoke the planner with them appended to previous_experiments."
+   },
+   "schema_version": "experiment_planner.v1",
+   "uncertainties": [
+    "Hypothesis prediction models are simple heuristic priors, not mechanistic simulators; information gain is relative to those models.",
+    "Bacteriocin concentration is in unspecified relative units unless constraints.reference_conditions sets it.",
+    "Activity ceilings are fitted per hypothesis from sparse data and shrunk toward the candidate's prior confidence.",
+    "No previous experiments: hypothesis posteriors equal their priors.",
+    "No hypothesis currently dominates the posterior."
+   ],
+   "variables_changed": [],
+   "variables_held_constant": [
+    {
+     "value": 1.0,
+     "variable": "bacteriocin_concentration"
+    },
+    {
+     "value": 100000000.0,
+     "variable": "target_cell_density"
+    },
+    {
+     "value": 6.75,
+     "variable": "ph"
+    },
+    {
+     "value": 37,
+     "variable": "temperature_c"
+    },
+    {
+     "value": 24.0,
+     "variable": "incubation_time"
+    }
+   ],
+   "warnings": [],
+   "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.35) predicts inhibition ~0.28 for Pediocin PA-1 at the reference conditions, whereas hyp_ph (ph_window, posterior 0.45) predicts ~0.70. Holding all variables at reference values separates them: expected information gain 0.51 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+  },
+  "result": {
+   "candidate_id": "cand_pediocin",
+   "conditions": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "growth_phase": null,
+    "incubation_time": 24.0,
+    "ionic_conditions": {},
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "evidence_type": "simulation-derived",
+   "experiment_id": "exp_266533cbad31",
+   "hypothesis_id": "hyp_inoc",
+   "important_factors": [],
+   "measurement": {
+    "predicted_activity": 0.3114,
+    "predicted_inhibition_fraction": 0.3114,
+    "predicted_survival_fraction": 0.6886,
+    "uncertainty": 0.05
+   },
+   "model_version": "toy_sim-0.1",
+   "result_id": "res_266533cbad31",
+   "warnings": [
+    "toy simulator; not a validated model"
+   ]
+  }
+ },
+ {
+  "plan": {
+   "agent": "experiment_planner",
+   "artifacts": {
+    "budget_after": {
+     "compute_budget": null,
+     "estimated_cost_of_proposal": 1.0,
+     "remaining_experiments": 2
+    },
+    "candidate_experiment_counts": {
+     "cand_nisin": 0,
+     "cand_pediocin": 1,
+     "cand_sakacin": 0
+    },
+    "hypothesis_posterior": [
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_ph",
+      "posterior": 0.4244,
+      "prior": 0.7,
+      "template": "ph_window"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_inoc",
+      "posterior": 0.3937,
+      "prior": 0.55,
+      "template": "inoculum_effect"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_null_no_context_effect",
+      "posterior": 0.1819,
+      "prior": 0.3,
+      "template": "null"
+     }
+    ],
+    "input_digest_sha256": "9bbfa282023dba2dafda6a8a7b1b2d21610b84ca1fae01f1209606a79197d0dd",
+    "model_version": "experiment_planner-0.1.0+scoring-v1",
+    "reference_conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "scoring_formula": "uncertainty x relevance x (discrimination + 0.15*uncertainty + baseline_bonus(0.05, untested candidate at reference)) / cost",
+    "top_alternatives": [
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.53074,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5101,
+      "relevance": 0.97,
+      "score": 0.50618,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 0.1,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 0.3,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 10.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 3.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 6.0,
+      "variable": "ph"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5242,
+      "relevance": 1.0,
+      "score": 0.48074,
+      "uncertainty": 1.0,
+      "value": 6.5,
+      "variable": "ph"
+     }
+    ]
+   },
+   "batch": [
+    {
+     "candidate_id": "cand_sakacin",
+     "competing_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "confidence": 0.71,
+     "estimated_cost": 1.0,
+     "expected_information_gain": 0.5242,
+     "expected_information_gain_unit": "bits",
+     "experiment_id": "exp_35fa68f8943c",
+     "experiment_spec": {
+      "candidate_id": "cand_sakacin",
+      "conditions": {
+       "assay_domain": "simulated_in_vitro",
+       "bacteriocin_concentration": 1.0,
+       "growth_phase": null,
+       "incubation_time": 24.0,
+       "ionic_conditions": {},
+       "medium": null,
+       "ph": 6.75,
+       "producer_cell_density": null,
+       "target_cell_density": 100000000.0,
+       "temperature_c": 37
+      },
+      "experiment_id": "exp_35fa68f8943c",
+      "hypothesis_id": "hyp_inoc",
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      }
+     },
+     "experiment_spec_flat": {
+      "assay_domain": "simulated_in_vitro",
+      "bacteriocin_concentration": 1.0,
+      "incubation_time": 24.0,
+      "medium": null,
+      "ph": 6.75,
+      "producer_cell_density": null,
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      },
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37
+     },
+     "hypothesis_id": "hyp_inoc",
+     "predicted_possible_outcomes": [
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_inoc"
+       ],
+       "consistent_templates": [
+        "inoculum_effect"
+       ],
+       "interpretation": "Would favour inoculum_effect (current combined posterior 0.39 -> 0.88); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.876,
+        "hyp_null_no_context_effect": 0.037,
+        "hyp_ph": 0.087
+       },
+       "predicted_inhibition_fraction": 0.28
+      },
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_ph",
+        "hyp_null_no_context_effect"
+       ],
+       "consistent_templates": [
+        "ph_window",
+        "null"
+       ],
+       "interpretation": "Would favour ph_window, null (current combined posterior 0.61 -> 0.94); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.056,
+        "hyp_null_no_context_effect": 0.283,
+        "hyp_ph": 0.661
+       },
+       "predicted_inhibition_fraction": 0.7
+      }
+     ],
+     "score": 0.53074,
+     "variables_changed": [],
+     "variables_held_constant": [
+      {
+       "value": 1.0,
+       "variable": "bacteriocin_concentration"
+      },
+      {
+       "value": 100000000.0,
+       "variable": "target_cell_density"
+      },
+      {
+       "value": 6.75,
+       "variable": "ph"
+      },
+      {
+       "value": 37,
+       "variable": "temperature_c"
+      },
+      {
+       "value": 24.0,
+       "variable": "incubation_time"
+      }
+     ],
+     "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.39) predicts inhibition ~0.28 for Sakacin P at the reference conditions, whereas hyp_ph (ph_window, posterior 0.42) predicts ~0.70. Holding all variables at reference values separates them: expected information gain 0.52 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+    }
+   ],
+   "candidate_id": "cand_sakacin",
+   "confidence": 0.71,
+   "decision": {
+    "evidence_type_of_expected_result": "simulation-derived",
+    "n_experiments": 1,
+    "status": "propose_experiment"
+   },
+   "evidence": [
+    {
+     "candidate_id": "cand_pediocin",
+     "evidence_id": "res_266533cbad31",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    }
+   ],
+   "expected_information_gain": 0.5242,
+   "experiment_id": "exp_35fa68f8943c",
+   "experiment_spec": {
+    "candidate_id": "cand_sakacin",
+    "conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "experiment_id": "exp_35fa68f8943c",
+    "hypothesis_id": "hyp_inoc",
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    }
+   },
+   "experiment_spec_flat": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "incubation_time": 24.0,
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    },
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "hypothesis_id": "hyp_inoc",
+   "predicted_possible_outcomes": [
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_inoc"
+     ],
+     "consistent_templates": [
+      "inoculum_effect"
+     ],
+     "interpretation": "Would favour inoculum_effect (current combined posterior 0.39 -> 0.88); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.876,
+      "hyp_null_no_context_effect": 0.037,
+      "hyp_ph": 0.087
+     },
+     "predicted_inhibition_fraction": 0.28
+    },
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "consistent_templates": [
+      "ph_window",
+      "null"
+     ],
+     "interpretation": "Would favour ph_window, null (current combined posterior 0.61 -> 0.94); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.056,
+      "hyp_null_no_context_effect": 0.283,
+      "hyp_ph": 0.661
+     },
+     "predicted_inhibition_fraction": 0.7
+    }
+   ],
+   "recommended_next_action": {
+    "agent": "simulation_runner",
+    "inputs": {
+     "experiment_specs": [
+      {
+       "candidate_id": "cand_sakacin",
+       "conditions": {
+        "assay_domain": "simulated_in_vitro",
+        "bacteriocin_concentration": 1.0,
+        "growth_phase": null,
+        "incubation_time": 24.0,
+        "ionic_conditions": {},
+        "medium": null,
+        "ph": 6.75,
+        "producer_cell_density": null,
+        "target_cell_density": 100000000.0,
+        "temperature_c": 37
+       },
+       "experiment_id": "exp_35fa68f8943c",
+       "hypothesis_id": "hyp_inoc",
+       "target": {
+        "species": "Listeria monocytogenes",
+        "strain": "ATCC 19115"
+       }
+      }
+     ]
+    },
+    "reason": "Run the proposed experiment_spec(s) via run_experiment and return ExperimentResult objects; re-invoke the planner with them appended to previous_experiments."
+   },
+   "schema_version": "experiment_planner.v1",
+   "uncertainties": [
+    "Hypothesis prediction models are simple heuristic priors, not mechanistic simulators; information gain is relative to those models.",
+    "Bacteriocin concentration is in unspecified relative units unless constraints.reference_conditions sets it.",
+    "Activity ceilings are fitted per hypothesis from sparse data and shrunk toward the candidate's prior confidence.",
+    "No hypothesis currently dominates the posterior."
+   ],
+   "variables_changed": [],
+   "variables_held_constant": [
+    {
+     "value": 1.0,
+     "variable": "bacteriocin_concentration"
+    },
+    {
+     "value": 100000000.0,
+     "variable": "target_cell_density"
+    },
+    {
+     "value": 6.75,
+     "variable": "ph"
+    },
+    {
+     "value": 37,
+     "variable": "temperature_c"
+    },
+    {
+     "value": 24.0,
+     "variable": "incubation_time"
+    }
+   ],
+   "warnings": [],
+   "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.39) predicts inhibition ~0.28 for Sakacin P at the reference conditions, whereas hyp_ph (ph_window, posterior 0.42) predicts ~0.70. Holding all variables at reference values separates them: expected information gain 0.52 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+  },
+  "result": {
+   "candidate_id": "cand_sakacin",
+   "conditions": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "growth_phase": null,
+    "incubation_time": 24.0,
+    "ionic_conditions": {},
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "evidence_type": "simulation-derived",
+   "experiment_id": "exp_35fa68f8943c",
+   "hypothesis_id": "hyp_inoc",
+   "important_factors": [],
+   "measurement": {
+    "predicted_activity": 0.287,
+    "predicted_inhibition_fraction": 0.287,
+    "predicted_survival_fraction": 0.713,
+    "uncertainty": 0.05
+   },
+   "model_version": "toy_sim-0.1",
+   "result_id": "res_35fa68f8943c",
+   "warnings": [
+    "toy simulator; not a validated model"
+   ]
+  }
+ },
+ {
+  "plan": {
+   "agent": "experiment_planner",
+   "artifacts": {
+    "budget_after": {
+     "compute_budget": null,
+     "estimated_cost_of_proposal": 1.0,
+     "remaining_experiments": 1
+    },
+    "candidate_experiment_counts": {
+     "cand_nisin": 0,
+     "cand_pediocin": 1,
+     "cand_sakacin": 1
+    },
+    "hypothesis_posterior": [
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_ph",
+      "posterior": 0.3912,
+      "prior": 0.7,
+      "template": "ph_window"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_inoc",
+      "posterior": 0.4411,
+      "prior": 0.55,
+      "template": "inoculum_effect"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_null_no_context_effect",
+      "posterior": 0.1677,
+      "prior": 0.3,
+      "template": "null"
+     }
+    ],
+    "input_digest_sha256": "b0f9ccd330b06ebc3df63ad4e5cf75f08f31fa3abe4d534ef3186af476376512",
+    "model_version": "experiment_planner-0.1.0+scoring-v1",
+    "reference_conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "scoring_formula": "uncertainty x relevance x (discrimination + 0.15*uncertainty + baseline_bonus(0.05, untested candidate at reference)) / cost",
+    "top_alternatives": [
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.51444,
+      "uncertainty": 1.0,
+      "value": null,
+      "variable": null
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 0.1,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 0.3,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 10.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 3.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 6.0,
+      "variable": "ph"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.97,
+      "score": 0.46594,
+      "uncertainty": 1.0,
+      "value": 6.5,
+      "variable": "ph"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.5236,
+      "relevance": 0.821,
+      "score": 0.39441,
+      "uncertainty": 1.0,
+      "value": 5.5,
+      "variable": "ph"
+     }
+    ]
+   },
+   "batch": [
+    {
+     "candidate_id": "cand_nisin",
+     "competing_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "confidence": 0.709,
+     "estimated_cost": 1.0,
+     "expected_information_gain": 0.5236,
+     "expected_information_gain_unit": "bits",
+     "experiment_id": "exp_548aa3751b4a",
+     "experiment_spec": {
+      "candidate_id": "cand_nisin",
+      "conditions": {
+       "assay_domain": "simulated_in_vitro",
+       "bacteriocin_concentration": 1.0,
+       "growth_phase": null,
+       "incubation_time": 24.0,
+       "ionic_conditions": {},
+       "medium": null,
+       "ph": 6.75,
+       "producer_cell_density": null,
+       "target_cell_density": 100000000.0,
+       "temperature_c": 37
+      },
+      "experiment_id": "exp_548aa3751b4a",
+      "hypothesis_id": "hyp_inoc",
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      }
+     },
+     "experiment_spec_flat": {
+      "assay_domain": "simulated_in_vitro",
+      "bacteriocin_concentration": 1.0,
+      "incubation_time": 24.0,
+      "medium": null,
+      "ph": 6.75,
+      "producer_cell_density": null,
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      },
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37
+     },
+     "hypothesis_id": "hyp_inoc",
+     "predicted_possible_outcomes": [
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_inoc"
+       ],
+       "consistent_templates": [
+        "inoculum_effect"
+       ],
+       "interpretation": "Would favour inoculum_effect (current combined posterior 0.44 -> 0.89); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.886,
+        "hyp_null_no_context_effect": 0.034,
+        "hyp_ph": 0.08
+       },
+       "predicted_inhibition_fraction": 0.274
+      },
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_ph",
+        "hyp_null_no_context_effect"
+       ],
+       "consistent_templates": [
+        "ph_window",
+        "null"
+       ],
+       "interpretation": "Would favour ph_window, null (current combined posterior 0.56 -> 0.93); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.074,
+        "hyp_null_no_context_effect": 0.278,
+        "hyp_ph": 0.648
+       },
+       "predicted_inhibition_fraction": 0.685
+      }
+     ],
+     "score": 0.51444,
+     "variables_changed": [],
+     "variables_held_constant": [
+      {
+       "value": 1.0,
+       "variable": "bacteriocin_concentration"
+      },
+      {
+       "value": 100000000.0,
+       "variable": "target_cell_density"
+      },
+      {
+       "value": 6.75,
+       "variable": "ph"
+      },
+      {
+       "value": 37,
+       "variable": "temperature_c"
+      },
+      {
+       "value": 24.0,
+       "variable": "incubation_time"
+      }
+     ],
+     "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.44) predicts inhibition ~0.27 for Nisin A at the reference conditions, whereas hyp_ph (ph_window, posterior 0.39) predicts ~0.69. Holding all variables at reference values separates them: expected information gain 0.52 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+    }
+   ],
+   "candidate_id": "cand_nisin",
+   "confidence": 0.709,
+   "decision": {
+    "evidence_type_of_expected_result": "simulation-derived",
+    "n_experiments": 1,
+    "status": "propose_experiment"
+   },
+   "evidence": [
+    {
+     "candidate_id": "cand_pediocin",
+     "evidence_id": "res_266533cbad31",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    },
+    {
+     "candidate_id": "cand_sakacin",
+     "evidence_id": "res_35fa68f8943c",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    }
+   ],
+   "expected_information_gain": 0.5236,
+   "experiment_id": "exp_548aa3751b4a",
+   "experiment_spec": {
+    "candidate_id": "cand_nisin",
+    "conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "experiment_id": "exp_548aa3751b4a",
+    "hypothesis_id": "hyp_inoc",
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    }
+   },
+   "experiment_spec_flat": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "incubation_time": 24.0,
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    },
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "hypothesis_id": "hyp_inoc",
+   "predicted_possible_outcomes": [
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_inoc"
+     ],
+     "consistent_templates": [
+      "inoculum_effect"
+     ],
+     "interpretation": "Would favour inoculum_effect (current combined posterior 0.44 -> 0.89); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.886,
+      "hyp_null_no_context_effect": 0.034,
+      "hyp_ph": 0.08
+     },
+     "predicted_inhibition_fraction": 0.274
+    },
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_ph",
+      "hyp_null_no_context_effect"
+     ],
+     "consistent_templates": [
+      "ph_window",
+      "null"
+     ],
+     "interpretation": "Would favour ph_window, null (current combined posterior 0.56 -> 0.93); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.074,
+      "hyp_null_no_context_effect": 0.278,
+      "hyp_ph": 0.648
+     },
+     "predicted_inhibition_fraction": 0.685
+    }
+   ],
+   "recommended_next_action": {
+    "agent": "simulation_runner",
+    "inputs": {
+     "experiment_specs": [
+      {
+       "candidate_id": "cand_nisin",
+       "conditions": {
+        "assay_domain": "simulated_in_vitro",
+        "bacteriocin_concentration": 1.0,
+        "growth_phase": null,
+        "incubation_time": 24.0,
+        "ionic_conditions": {},
+        "medium": null,
+        "ph": 6.75,
+        "producer_cell_density": null,
+        "target_cell_density": 100000000.0,
+        "temperature_c": 37
+       },
+       "experiment_id": "exp_548aa3751b4a",
+       "hypothesis_id": "hyp_inoc",
+       "target": {
+        "species": "Listeria monocytogenes",
+        "strain": "ATCC 19115"
+       }
+      }
+     ]
+    },
+    "reason": "Run the proposed experiment_spec(s) via run_experiment and return ExperimentResult objects; re-invoke the planner with them appended to previous_experiments."
+   },
+   "schema_version": "experiment_planner.v1",
+   "uncertainties": [
+    "Hypothesis prediction models are simple heuristic priors, not mechanistic simulators; information gain is relative to those models.",
+    "Bacteriocin concentration is in unspecified relative units unless constraints.reference_conditions sets it.",
+    "Activity ceilings are fitted per hypothesis from sparse data and shrunk toward the candidate's prior confidence.",
+    "No hypothesis currently dominates the posterior."
+   ],
+   "variables_changed": [],
+   "variables_held_constant": [
+    {
+     "value": 1.0,
+     "variable": "bacteriocin_concentration"
+    },
+    {
+     "value": 100000000.0,
+     "variable": "target_cell_density"
+    },
+    {
+     "value": 6.75,
+     "variable": "ph"
+    },
+    {
+     "value": 37,
+     "variable": "temperature_c"
+    },
+    {
+     "value": 24.0,
+     "variable": "incubation_time"
+    }
+   ],
+   "warnings": [],
+   "why_this_experiment": "Hypothesis hyp_inoc (inoculum_effect, posterior 0.44) predicts inhibition ~0.27 for Nisin A at the reference conditions, whereas hyp_ph (ph_window, posterior 0.39) predicts ~0.69. Holding all variables at reference values separates them: expected information gain 0.52 bits; model uncertainty 1.00; 0 prior experiment(s) on this candidate; relative cost 1.0."
+  },
+  "result": {
+   "candidate_id": "cand_nisin",
+   "conditions": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "growth_phase": null,
+    "incubation_time": 24.0,
+    "ionic_conditions": {},
+    "medium": null,
+    "ph": 6.75,
+    "producer_cell_density": null,
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "evidence_type": "simulation-derived",
+   "experiment_id": "exp_548aa3751b4a",
+   "hypothesis_id": "hyp_inoc",
+   "important_factors": [],
+   "measurement": {
+    "predicted_activity": 0.4813,
+    "predicted_inhibition_fraction": 0.4813,
+    "predicted_survival_fraction": 0.5187,
+    "uncertainty": 0.05
+   },
+   "model_version": "toy_sim-0.1",
+   "result_id": "res_548aa3751b4a",
+   "warnings": [
+    "toy simulator; not a validated model"
+   ]
+  }
+ },
+ {
+  "plan": {
+   "agent": "experiment_planner",
+   "artifacts": {
+    "budget_after": {
+     "compute_budget": null,
+     "estimated_cost_of_proposal": 1.0,
+     "remaining_experiments": 0
+    },
+    "candidate_experiment_counts": {
+     "cand_nisin": 1,
+     "cand_pediocin": 1,
+     "cand_sakacin": 1
+    },
+    "hypothesis_posterior": [
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_ph",
+      "posterior": 0.4341,
+      "prior": 0.7,
+      "template": "ph_window"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_inoc",
+      "posterior": 0.3798,
+      "prior": 0.55,
+      "template": "inoculum_effect"
+     },
+     {
+      "has_model": true,
+      "hypothesis_id": "hyp_null_no_context_effect",
+      "posterior": 0.1861,
+      "prior": 0.3,
+      "template": "null"
+     }
+    ],
+    "input_digest_sha256": "c97c40ef951a8f35f9c1b63b3137954b2ed0ce3803d254e6fd63bd53711dcc2f",
+    "model_version": "experiment_planner-0.1.0+scoring-v1",
+    "reference_conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 6.75,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "scoring_formula": "uncertainty x relevance x (discrimination + 0.15*uncertainty + baseline_bonus(0.05, untested candidate at reference)) / cost",
+    "top_alternatives": [
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.2609,
+      "relevance": 0.695,
+      "score": 0.16252,
+      "uncertainty": 0.815,
+      "value": 8.5,
+      "variable": "ph"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.3188,
+      "relevance": 0.513,
+      "score": 0.15153,
+      "uncertainty": 0.884,
+      "value": 1000000.0,
+      "variable": "target_cell_density"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.3183,
+      "relevance": 0.513,
+      "score": 0.1514,
+      "uncertainty": 0.884,
+      "value": 1000000.0,
+      "variable": "target_cell_density"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.1756,
+      "relevance": 0.97,
+      "score": 0.14399,
+      "uncertainty": 0.692,
+      "value": 0.1,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.1756,
+      "relevance": 0.97,
+      "score": 0.14399,
+      "uncertainty": 0.692,
+      "value": 10.0,
+      "variable": "bacteriocin_concentration"
+     },
+     {
+      "candidate_id": "cand_nisin",
+      "cost": 1.0,
+      "information_gain_bits": 0.3027,
+      "relevance": 0.498,
+      "score": 0.14252,
+      "uncertainty": 0.884,
+      "value": 1000000.0,
+      "variable": "target_cell_density"
+     },
+     {
+      "candidate_id": "cand_sakacin",
+      "cost": 1.0,
+      "information_gain_bits": 0.3188,
+      "relevance": 0.4,
+      "score": 0.14039,
+      "uncertainty": 1.0,
+      "value": 10000.0,
+      "variable": "target_cell_density"
+     },
+     {
+      "candidate_id": "cand_pediocin",
+      "cost": 1.0,
+      "information_gain_bits": 0.3183,
+      "relevance": 0.4,
+      "score": 0.14028,
+      "uncertainty": 1.0,
+      "value": 10000.0,
+      "variable": "target_cell_density"
+     }
+    ]
+   },
+   "batch": [
+    {
+     "candidate_id": "cand_nisin",
+     "competing_hypothesis_ids": [
+      "hyp_null_no_context_effect",
+      "hyp_inoc"
+     ],
+     "confidence": 0.567,
+     "estimated_cost": 1.0,
+     "expected_information_gain": 0.2609,
+     "expected_information_gain_unit": "bits",
+     "experiment_id": "exp_16f14e5ff7c2",
+     "experiment_spec": {
+      "candidate_id": "cand_nisin",
+      "conditions": {
+       "assay_domain": "simulated_in_vitro",
+       "bacteriocin_concentration": 1.0,
+       "growth_phase": null,
+       "incubation_time": 24.0,
+       "ionic_conditions": {},
+       "medium": null,
+       "ph": 8.5,
+       "producer_cell_density": null,
+       "target_cell_density": 100000000.0,
+       "temperature_c": 37
+      },
+      "experiment_id": "exp_16f14e5ff7c2",
+      "hypothesis_id": "hyp_ph",
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      }
+     },
+     "experiment_spec_flat": {
+      "assay_domain": "simulated_in_vitro",
+      "bacteriocin_concentration": 1.0,
+      "incubation_time": 24.0,
+      "medium": null,
+      "ph": 8.5,
+      "producer_cell_density": null,
+      "target": {
+       "species": "Listeria monocytogenes",
+       "strain": "ATCC 19115"
+      },
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37
+     },
+     "hypothesis_id": "hyp_ph",
+     "predicted_possible_outcomes": [
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_ph"
+       ],
+       "consistent_templates": [
+        "ph_window"
+       ],
+       "interpretation": "Would favour ph_window (current combined posterior 0.43 -> 0.57); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.38,
+        "hyp_null_no_context_effect": 0.046,
+        "hyp_ph": 0.574
+       },
+       "predicted_inhibition_fraction": 0.189
+      },
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_inoc"
+       ],
+       "consistent_templates": [
+        "inoculum_effect"
+       ],
+       "interpretation": "Would favour inoculum_effect (current combined posterior 0.38 -> 0.47); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.468,
+        "hyp_null_no_context_effect": 0.127,
+        "hyp_ph": 0.405
+       },
+       "predicted_inhibition_fraction": 0.332
+      },
+      {
+       "consistent_hypothesis_ids": [
+        "hyp_null_no_context_effect"
+       ],
+       "consistent_templates": [
+        "null"
+       ],
+       "interpretation": "Would favour null (current combined posterior 0.19 -> 0.39); simulated evidence, not validation.",
+       "posterior_if_observed": {
+        "hyp_inoc": 0.441,
+        "hyp_null_no_context_effect": 0.389,
+        "hyp_ph": 0.17
+       },
+       "predicted_inhibition_fraction": 0.541
+      }
+     ],
+     "score": 0.16252,
+     "variables_changed": [
+      {
+       "from": 6.75,
+       "to": 8.5,
+       "variable": "ph"
+      }
+     ],
+     "variables_held_constant": [
+      {
+       "value": 1.0,
+       "variable": "bacteriocin_concentration"
+      },
+      {
+       "value": 100000000.0,
+       "variable": "target_cell_density"
+      },
+      {
+       "value": 37,
+       "variable": "temperature_c"
+      },
+      {
+       "value": 24.0,
+       "variable": "incubation_time"
+      }
+     ],
+     "why_this_experiment": "Hypothesis hyp_ph (ph_window, posterior 0.43) predicts inhibition ~0.19 for Nisin A with ph changed from 6.75 to 8.5, whereas hyp_null_no_context_effect (null, posterior 0.19) predicts ~0.54. Holding all other variables at reference values separates them: expected information gain 0.26 bits; model uncertainty 0.82; 1 prior experiment(s) on this candidate; relative cost 1.0."
+    }
+   ],
+   "candidate_id": "cand_nisin",
+   "confidence": 0.567,
+   "decision": {
+    "evidence_type_of_expected_result": "simulation-derived",
+    "n_experiments": 1,
+    "status": "propose_experiment"
+   },
+   "evidence": [
+    {
+     "candidate_id": "cand_pediocin",
+     "evidence_id": "res_266533cbad31",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    },
+    {
+     "candidate_id": "cand_sakacin",
+     "evidence_id": "res_35fa68f8943c",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    },
+    {
+     "candidate_id": "cand_nisin",
+     "evidence_id": "res_548aa3751b4a",
+     "evidence_type": "simulation-derived",
+     "used_for": "hypothesis posterior and coverage estimate"
+    }
+   ],
+   "expected_information_gain": 0.2609,
+   "experiment_id": "exp_16f14e5ff7c2",
+   "experiment_spec": {
+    "candidate_id": "cand_nisin",
+    "conditions": {
+     "assay_domain": "simulated_in_vitro",
+     "bacteriocin_concentration": 1.0,
+     "growth_phase": null,
+     "incubation_time": 24.0,
+     "ionic_conditions": {},
+     "medium": null,
+     "ph": 8.5,
+     "producer_cell_density": null,
+     "target_cell_density": 100000000.0,
+     "temperature_c": 37
+    },
+    "experiment_id": "exp_16f14e5ff7c2",
+    "hypothesis_id": "hyp_ph",
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    }
+   },
+   "experiment_spec_flat": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "incubation_time": 24.0,
+    "medium": null,
+    "ph": 8.5,
+    "producer_cell_density": null,
+    "target": {
+     "species": "Listeria monocytogenes",
+     "strain": "ATCC 19115"
+    },
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "hypothesis_id": "hyp_ph",
+   "predicted_possible_outcomes": [
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_ph"
+     ],
+     "consistent_templates": [
+      "ph_window"
+     ],
+     "interpretation": "Would favour ph_window (current combined posterior 0.43 -> 0.57); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.38,
+      "hyp_null_no_context_effect": 0.046,
+      "hyp_ph": 0.574
+     },
+     "predicted_inhibition_fraction": 0.189
+    },
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_inoc"
+     ],
+     "consistent_templates": [
+      "inoculum_effect"
+     ],
+     "interpretation": "Would favour inoculum_effect (current combined posterior 0.38 -> 0.47); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.468,
+      "hyp_null_no_context_effect": 0.127,
+      "hyp_ph": 0.405
+     },
+     "predicted_inhibition_fraction": 0.332
+    },
+    {
+     "consistent_hypothesis_ids": [
+      "hyp_null_no_context_effect"
+     ],
+     "consistent_templates": [
+      "null"
+     ],
+     "interpretation": "Would favour null (current combined posterior 0.19 -> 0.39); simulated evidence, not validation.",
+     "posterior_if_observed": {
+      "hyp_inoc": 0.441,
+      "hyp_null_no_context_effect": 0.389,
+      "hyp_ph": 0.17
+     },
+     "predicted_inhibition_fraction": 0.541
+    }
+   ],
+   "recommended_next_action": {
+    "agent": "simulation_runner",
+    "inputs": {
+     "experiment_specs": [
+      {
+       "candidate_id": "cand_nisin",
+       "conditions": {
+        "assay_domain": "simulated_in_vitro",
+        "bacteriocin_concentration": 1.0,
+        "growth_phase": null,
+        "incubation_time": 24.0,
+        "ionic_conditions": {},
+        "medium": null,
+        "ph": 8.5,
+        "producer_cell_density": null,
+        "target_cell_density": 100000000.0,
+        "temperature_c": 37
+       },
+       "experiment_id": "exp_16f14e5ff7c2",
+       "hypothesis_id": "hyp_ph",
+       "target": {
+        "species": "Listeria monocytogenes",
+        "strain": "ATCC 19115"
+       }
+      }
+     ]
+    },
+    "reason": "Run the proposed experiment_spec(s) via run_experiment and return ExperimentResult objects; re-invoke the planner with them appended to previous_experiments."
+   },
+   "schema_version": "experiment_planner.v1",
+   "uncertainties": [
+    "Hypothesis prediction models are simple heuristic priors, not mechanistic simulators; information gain is relative to those models.",
+    "Bacteriocin concentration is in unspecified relative units unless constraints.reference_conditions sets it.",
+    "Activity ceilings are fitted per hypothesis from sparse data and shrunk toward the candidate's prior confidence.",
+    "No hypothesis currently dominates the posterior."
+   ],
+   "variables_changed": [
+    {
+     "from": 6.75,
+     "to": 8.5,
+     "variable": "ph"
+    }
+   ],
+   "variables_held_constant": [
+    {
+     "value": 1.0,
+     "variable": "bacteriocin_concentration"
+    },
+    {
+     "value": 100000000.0,
+     "variable": "target_cell_density"
+    },
+    {
+     "value": 37,
+     "variable": "temperature_c"
+    },
+    {
+     "value": 24.0,
+     "variable": "incubation_time"
+    }
+   ],
+   "warnings": [],
+   "why_this_experiment": "Hypothesis hyp_ph (ph_window, posterior 0.43) predicts inhibition ~0.19 for Nisin A with ph changed from 6.75 to 8.5, whereas hyp_null_no_context_effect (null, posterior 0.19) predicts ~0.54. Holding all other variables at reference values separates them: expected information gain 0.26 bits; model uncertainty 0.82; 1 prior experiment(s) on this candidate; relative cost 1.0."
+  },
+  "result": {
+   "candidate_id": "cand_nisin",
+   "conditions": {
+    "assay_domain": "simulated_in_vitro",
+    "bacteriocin_concentration": 1.0,
+    "growth_phase": null,
+    "incubation_time": 24.0,
+    "ionic_conditions": {},
+    "medium": null,
+    "ph": 8.5,
+    "producer_cell_density": null,
+    "target_cell_density": 100000000.0,
+    "temperature_c": 37
+   },
+   "evidence_type": "simulation-derived",
+   "experiment_id": "exp_16f14e5ff7c2",
+   "hypothesis_id": "hyp_ph",
+   "important_factors": [],
+   "measurement": {
+    "predicted_activity": 0.0072,
+    "predicted_inhibition_fraction": 0.0072,
+    "predicted_survival_fraction": 0.9928,
+    "uncertainty": 0.05
+   },
+   "model_version": "toy_sim-0.1",
+   "result_id": "res_16f14e5ff7c2",
+   "warnings": [
+    "toy simulator; not a validated model"
+   ]
+  }
+ }
+]
