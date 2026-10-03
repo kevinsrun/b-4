@@ -1,0 +1,47 @@
+{
+  "research_objective": {
+    "goal": "identify conditions under which a nisin-like bacteriocin controls Listeria monocytogenes in a dairy-like matrix",
+    "objective_id": "obj-0001"
+  },
+  "research_state": {"iteration": 4, "n_candidates_screened": 11},
+  "constraints": {"max_experiments": 8},
+  "previous_results": [],
+  "evidence": [],
+  "metadata": {"requested_by": "omnigent", "planner_version": "0.3.0"},
+  "candidate_registry": {
+    "cand-nisin-a": {
+      "candidate_id": "cand-nisin-a",
+      "name": "nisin A",
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK",
+      "bacteriocin_class": "class_I_lantibiotic"
+    }
+  },
+  "experiment_specs": [
+    {
+      "experiment_id": "exp-0101",
+      "hypothesis_id": "hyp-0007",
+      "candidate_id": "cand-nisin-a",
+      "target": {"species": "Listeria monocytogenes"},
+      "conditions": {
+        "bacteriocin_concentration": {"value": 1.0, "unit": "uM"},
+        "target_cell_density": {"value": 1000000.0, "unit": "cfu_per_ml"},
+        "ph": 6.6, "temperature_c": 8.0, "medium": "skim_milk",
+        "incubation_time": 24.0, "growth_phase": "exponential",
+        "assay_domain": "simulated_in_vitro", "assay_type": "time_kill"
+      }
+    },
+    {
+      "experiment_id": "exp-0102",
+      "hypothesis_id": "hyp-0007",
+      "candidate_id": "cand-nisin-a",
+      "target": {"species": "Listeria monocytogenes"},
+      "conditions": {
+        "bacteriocin_concentration": {"value": 10.0, "unit": "uM"},
+        "target_cell_density": {"value": 1000000.0, "unit": "cfu_per_ml"},
+        "ph": 6.6, "temperature_c": 8.0, "medium": "skim_milk",
+        "incubation_time": 24.0, "growth_phase": "exponential",
+        "assay_domain": "simulated_in_vitro", "assay_type": "time_kill"
+      }
+    }
+  ]
+}

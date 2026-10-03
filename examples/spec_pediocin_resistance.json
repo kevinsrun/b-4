@@ -1,0 +1,50 @@
+[
+  {
+    "experiment_id": "exp-0010",
+    "hypothesis_id": "hyp-0003",
+    "candidate_id": "cand-pediocin-pa1",
+    "candidate": {
+      "name": "pediocin PA-1",
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC",
+      "bacteriocin_class": "class_IIa_pediocin_like"
+    },
+    "target": {"species": "Listeria monocytogenes", "strain": "wild type"},
+    "conditions": {
+      "bacteriocin_concentration": {"value": 0.5, "unit": "uM"},
+      "target_cell_density": {"value": 1000000.0, "unit": "cfu_per_ml"},
+      "ph": 6.5, "temperature_c": 30.0, "medium": "bhi",
+      "incubation_time": 8.0, "growth_phase": "exponential",
+      "assay_domain": "simulated_in_vitro"
+    }
+  },
+  {
+    "experiment_id": "exp-0011",
+    "hypothesis_id": "hyp-0003",
+    "candidate_id": "cand-pediocin-pa1",
+    "candidate": {
+      "name": "pediocin PA-1",
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC",
+      "bacteriocin_class": "class_IIa_pediocin_like"
+    },
+    "target": {
+      "species": "Listeria monocytogenes",
+      "strain": "mptC deletion mutant",
+      "resistance_factors": [
+        {
+          "name": "man_pts_loss",
+          "effect": "resistance",
+          "evidence_type": "literature-derived",
+          "evidence_id": "ev-lit-0042",
+          "notes": "loss of the mannose PTS receptor abolishes class IIa uptake"
+        }
+      ]
+    },
+    "conditions": {
+      "bacteriocin_concentration": {"value": 0.5, "unit": "uM"},
+      "target_cell_density": {"value": 1000000.0, "unit": "cfu_per_ml"},
+      "ph": 6.5, "temperature_c": 30.0, "medium": "bhi",
+      "incubation_time": 8.0, "growth_phase": "exponential",
+      "assay_domain": "simulated_in_vitro"
+    }
+  }
+]
