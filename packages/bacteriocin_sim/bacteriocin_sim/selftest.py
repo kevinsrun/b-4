@@ -64,10 +64,25 @@ def _conditions(**kwargs: Any) -> dict[str, Any]:
 #: each check returns ``(passed, detail)``
 CHECKS: dict[str, Callable[[], tuple[bool, str]]] = {}
 
+#: Invariants that are *correct as written* but that the model currently
+#: violates -- open defects, not wrong tests.
+#:
+#: They are registered rather than weakened because an invariant that passes
+#: while the model is wrong is worse than no invariant at all: it certifies
+#: the defect. Keeping the real statement here means the check flips to
+#: ``unexpectedly_fixed`` the moment someone repairs the model, so nobody has
+#: to remember to come back and tighten it.
+#:
+#: A known failure does not fail the run. It is reported, loudly, as an open
+#: defect so it cannot block unrelated work while the fix is being decided.
+KNOWN_FAILURES: dict[str, str] = {}
 
-def check(name: str):
+
+def check(name: str, *, known_failure: str | None = None):
     def register(fn: Callable[[], tuple[bool, str]]):
         CHECKS[name] = fn
+        if known_failure:
+            KNOWN_FAILURES[name] = known_failure
         return fn
 
     return register
@@ -212,21 +227,93 @@ def _determinism() -> tuple[bool, str]:
     return a == b, "two identical runs produced identical results (excluding timestamp)"
 
 
-@check("uncertainty_grows_when_inputs_are_unknown")
-def _uncertainty() -> tuple[bool, str]:
-    known = run_experiment(spec())
-    unknown = run_experiment(
-        {
-            "experiment_id": "selftest-unknown",
-            "candidate_id": "cand-mystery",
-            "target": {"species": "Nocardiopsis mysteriosa"},
-            "conditions": {"assay_domain": "simulated_in_vitro"},
-        }
+#: Doses spanning the response curve: well below the MIC, across the
+#: transition, and saturating above it.
+_UNCERTAINTY_DOSES_UM = (0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0)
+
+#: Readout times spanning kill, plateau and regrowth. Both axes are required:
+#: the violation occupies a *region* of the dose-time plane (roughly 0.25-1 uM
+#: at 8-24 h), so a sweep over dose alone at the reference 6 h readout passes
+#: cleanly while the model is wrong.
+_UNCERTAINTY_HOURS = (6.0, 12.0, 24.0)
+
+
+def _blind_spec(dose_um: float) -> dict[str, Any]:
+    """The reference experiment with the candidate and organism withheld.
+
+    Every *condition* is still specified and identical to :func:`spec`, so the
+    only difference is what the model knows about the peptide and the target.
+    That isolation matters: leaving conditions unspecified too would add
+    ``imputed_conditions`` variance and let the invariant pass for a reason
+    that has nothing to do with the ignorance being tested.
+    """
+    s = spec(
+        experiment_id="selftest-blind",
+        conditions={"bacteriocin_concentration": {"value": dose_um, "unit": "uM"}},
     )
-    a = known.measurement.sigma_logit_inhibition or 0.0
-    b = unknown.measurement.sigma_logit_inhibition or 0.0
-    return b > a, (
-        f"sigma(logit) fully-specified={a:.3f} vs unknown candidate and organism={b:.3f}"
+    s.pop("candidate", None)
+    s["candidate_id"] = "cand-mystery"
+    s["target"] = {"species": "Nocardiopsis mysteriosa"}
+    return s
+
+
+@check(
+    "uncertainty_grows_when_inputs_are_unknown",
+    known_failure=(
+        "the sigma budget is dominated by target_potency_prior, a secant of the "
+        "response curve at +/-1 sigma of the MIC prior. With the candidate and "
+        "organism unknown the model falls back to a weak-peptide prior, which "
+        "places the prediction far below the MIC on the flat floor of the "
+        "sigmoid; the secant there collapses faster than the ignorance terms "
+        "(no_candidate_sequence, unknown_target_organism) grow, so total sigma "
+        "FALLS. Fixing it is a modelling decision -- floor the budget by the "
+        "ignorance terms, or widen the secant until it leaves the plateau -- "
+        "and it changes published numbers, so it is not applied here."
+    ),
+)
+def _uncertainty() -> tuple[bool, str]:
+    """Knowing less must never make the model more certain.
+
+    Swept over dose *and* readout time rather than tested at one point. The
+    violation occupies a bounded region of that plane -- around the MIC, once
+    enough time has passed for kill and regrowth to compete -- so a check at a
+    single hard-coded point reports whatever that point happens to sit on. The
+    original version of this invariant tested one dose at the 6 h reference
+    readout, which lies just outside the region, and so certified the model as
+    sound while it was not.
+    """
+    violations: list[str] = []
+    n_points = 0
+    for hours in _UNCERTAINTY_HOURS:
+        for dose in _UNCERTAINTY_DOSES_UM:
+            n_points += 1
+            informed = run_experiment(
+                spec(
+                    conditions={
+                        "bacteriocin_concentration": {"value": dose, "unit": "uM"},
+                        "incubation_time": hours,
+                    }
+                )
+            )
+            blind_spec = _blind_spec(dose)
+            blind_spec["conditions"]["incubation_time"] = hours
+            blind = run_experiment(blind_spec)
+            a = informed.measurement.sigma_logit_inhibition or 0.0
+            b = blind.measurement.sigma_logit_inhibition or 0.0
+            if b < a:
+                violations.append(f"{dose:g}uM/{hours:g}h: informed={a:.3f} > blind={b:.3f}")
+
+    if violations:
+        shown = "; ".join(violations[:4])
+        more = f" (+{len(violations) - 4} more)" if len(violations) > 4 else ""
+        return False, (
+            f"withholding the candidate sequence and the organism LOWERED "
+            f"sigma(logit) at {len(violations)}/{n_points} dose-time points "
+            f"[{shown}{more}] -- the model reports more certainty when it knows less"
+        )
+    return True, (
+        f"sigma(logit) never fell when inputs were withheld, across {n_points} "
+        f"dose-time points spanning the response curve and the regrowth window"
     )
 
 
@@ -242,17 +329,62 @@ def _provenance() -> tuple[bool, str]:
 
 
 def run_selftest() -> dict[str, Any]:
-    """Run every invariant check and return a JSON-compatible report."""
+    """Run every invariant check and return a JSON-compatible report.
+
+    Each check gets a ``status``:
+
+    ``pass``
+        The invariant holds.
+    ``fail``
+        The invariant is violated and that is news. The run fails.
+    ``known_failure``
+        A violation already recorded in :data:`KNOWN_FAILURES`, with the
+        reason. Reported but does not fail the run, so an open modelling
+        defect does not block unrelated work.
+    ``unexpectedly_fixed``
+        A known failure that now passes. Does not fail the run, but says so
+        plainly: somebody repaired the model and this entry should be retired
+        from :data:`KNOWN_FAILURES`.
+    """
     checks: list[dict[str, Any]] = []
     for name, fn in CHECKS.items():
         try:
             passed, detail = fn()
         except Exception as exc:  # a crash is a failure
             passed, detail = False, f"raised {type(exc).__name__}: {exc}"
-        checks.append({"check": name, "passed": bool(passed), "detail": detail})
-    return {
-        "passed": all(c["passed"] for c in checks),
+        known = KNOWN_FAILURES.get(name)
+        if known is None:
+            status = "pass" if passed else "fail"
+        else:
+            status = "unexpectedly_fixed" if passed else "known_failure"
+        entry: dict[str, Any] = {
+            "check": name,
+            "passed": bool(passed),
+            "status": status,
+            "detail": detail,
+        }
+        if known is not None:
+            entry["known_failure_reason"] = known
+        checks.append(entry)
+
+    n_known = sum(1 for c in checks if c["status"] == "known_failure")
+    n_fixed = sum(1 for c in checks if c["status"] == "unexpectedly_fixed")
+    n_failed = sum(1 for c in checks if c["status"] == "fail")
+    report: dict[str, Any] = {
+        "passed": n_failed == 0,
         "n_checks": len(checks),
-        "n_failed": sum(1 for c in checks if not c["passed"]),
+        "n_failed": n_failed,
+        "n_known_failures": n_known,
         "checks": checks,
     }
+    if n_known:
+        report["note"] = (
+            f"{n_known} invariant(s) are known to be violated: open defects in the "
+            f"model, not wrong tests. See each check's known_failure_reason."
+        )
+    if n_fixed:
+        report["n_unexpectedly_fixed"] = n_fixed
+        report["note_fixed"] = (
+            f"{n_fixed} known failure(s) now pass -- retire them from KNOWN_FAILURES."
+        )
+    return report
