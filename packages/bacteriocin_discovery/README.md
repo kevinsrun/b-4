@@ -22,7 +22,7 @@ Requires Python 3.11+ and Pydantic 2.
 
 ```bash
 pip install -e ".[dev]"
-pytest                                        # 168 tests
+pytest                                        # 233 tests (168 candidate agent + 65 result analysis)
 python3 examples/generate_candidates.py       # five worked scenarios
 ```
 
@@ -202,8 +202,15 @@ src/bacteriocin_discovery/
     hypotheses.py          Falsifiable hypothesis generation
     design.py              Conservative variants (stretch goal)
     knowledge.py           Pluggable knowledge sources
+  result_analysis_agent/   Interprets ExperimentResults (see below)
+    agent.py               Orchestration, provenance guard, tool interface
+    comparison.py          Controlled series against previous experiments
+    hypothesis.py          supported / weakened / inconclusive
+    adapters.py            Accepts the simulator's richer result shape
+    schema.py              Request and finding models
   data/seed_bacteriocins.json   Example dataset (unverified)
 docs/
+  result-analysis-agent.md      Result Analysis Agent reference
   omnigent-integration.md       How to wire this in
   proposed-contract-changes.md  Nine requested contract changes
 ```
@@ -248,9 +255,23 @@ and exploitation terms are separately addressable, and `ScoreBreakdown` keeps th
 components so a reviewer who disagrees with the weighting can recombine them
 without re-running anything.
 
+## Result Analysis Agent
+
+The second specialist in this package. It reads an `ExperimentResult` and says what it means: whether the hypothesis it tested is **supported, weakened or inconclusive**, how it compares with earlier experiments (controlled comparisons only), which variables drove it, what was unexpected, and how confident the reading is. It never runs experiments and never calls a simulation-derived result experimentally validated. It accepts both contract-shaped results and the real `bacteriocin_sim` result shape.
+
+```python
+from bacteriocin_discovery.result_analysis_agent import analyze_result
+
+analyze_result({"result": {...}, "previous_results": [...],
+                "hypothesis": {"hypothesis_id": "hyp_...",
+                               "expected_relationship": {"variable": "target_cell_density", "direction": "negative"}}})
+```
+
+Details, method and limits: [docs/result-analysis-agent.md](docs/result-analysis-agent.md).
+
 ## Tests
 
-168 tests. The ones that matter most defend behaviour rather than output shape:
+233 tests (168 candidate agent, 65 result analysis; two result-analysis tests generate results live from `bacteriocin_sim` and run under the repository-root `pytest`, which puts it on the path). For the candidate agent, the ones that matter most defend behaviour rather than output shape:
 
 - information gain peaks at `p = 0.5` and is symmetric about it
 - a candidate satisfying *some* hypotheses beats one satisfying *all*

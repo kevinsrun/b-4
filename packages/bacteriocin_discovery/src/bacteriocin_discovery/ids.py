@@ -28,6 +28,7 @@ _PREFIXES = {
     "evidence": "ev",
     "hypothesis": "hyp",
     "result": "res",
+    "finding": "find",
     "run": "run",
 }
 
@@ -100,9 +101,26 @@ def evidence_id(*, claim: str, source: str | None, evidence_type: str) -> str:
     )
 
 
+def finding_id(*, experiment_id: str, hypothesis_id: str | None, result_id: str, model_version: str) -> str:
+    """ID for one analysis of one result against one hypothesis.
+
+    Includes ``model_version`` so a re-analysis by changed logic is a new finding
+    rather than silently overwriting the old interpretation.
+    """
+    return content_id(
+        "finding",
+        {
+            "experiment_id": experiment_id,
+            "hypothesis_id": hypothesis_id or "",
+            "result_id": result_id,
+            "model_version": model_version,
+        },
+    )
+
+
 def run_id(payload: Any) -> str:
     """ID for one invocation of an agent, keyed on its full request."""
     return content_id("run", payload)
 
 
-__all__ = ["candidate_id", "content_id", "evidence_id", "hypothesis_id", "run_id"]
+__all__ = ["candidate_id", "content_id", "evidence_id", "finding_id", "hypothesis_id", "run_id"]
