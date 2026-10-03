@@ -1,0 +1,39 @@
+# EXAMPLE ONLY -- not loaded by Omnigent.
+#
+# Run `python3 integrations/omnigent/simulation/install.py` to generate the
+# real bacteriocin-sim.yaml next to this file, with absolute paths resolved
+# for your machine. That file is gitignored because Omnigent does not expand
+# ${VAR} in `command` or `args` (its parser documents those as literals), so
+# the paths have to be written out and are therefore machine-specific.
+
+name: bacteriocin-sim
+transport: stdio
+description: >-
+  Computational simulation backend of an autonomous bacteriocin-discovery
+  system. Predicts a continuous, uncertainty-quantified antimicrobial response
+  from a peptide, a target organism and a set of conditions, and reports which
+  conditions the prediction is most sensitive to. Simulation-derived only --
+  never experimental evidence.
+
+# Absolute path to an interpreter with the `mcp` SDK and pydantic 2 installed.
+# Both SDK majors work: Omnigent 0.16 bundles mcp 1.30, a fresh install
+# resolves 2.x, and the server supports either.
+command: "/absolute/path/to/python"
+args:
+  - "/absolute/path/to/repo/integrations/omnigent/simulation/mcp_server.py"
+
+env:
+  PYTHONPATH: "/absolute/path/to/repo"
+  # stdio is the MCP channel, so logs must stay off stdout.
+  BACTERIOCIN_LOG_LEVEL: "WARNING"
+
+tools:
+  - capabilities
+  - get_schema
+  - run_experiment
+  - run_experiments
+  - run_agent
+  - describe
+  - selftest
+
+timeout: 300

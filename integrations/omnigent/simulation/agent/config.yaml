@@ -1,0 +1,31 @@
+# Orchestration-side bundle for the simulation experiment backend.
+#
+# The backend executes experiments and nothing else: it does not form
+# hypotheses, design candidates, or decide what to run next. This bundle is
+# the piece that reasons. The backend is attached over MCP, declared in
+# tools/mcp/bacteriocin-sim.yaml (generated -- run install.py first).
+#
+#   python3 integrations/omnigent/simulation/install.py
+#   omnigent run integrations/omnigent/simulation/agent
+#
+# See this directory's README for consolidating this tool and the candidate
+# generator behind a single orchestrator.
+
+spec_version: 1
+
+name: bacteriocin-sim-lead
+description: >-
+  Orchestration-side harness for the simulation experiment backend. Plans
+  condition sweeps, reads the backend's uncertainty and sensitivity output,
+  and iterates toward the conditions that discriminate between hypotheses --
+  without ever restating a simulated prediction as an experimental finding.
+
+# No executor/llm block on purpose: the model comes from `omnigent config` or
+# `--model`, so the bundle stays portable across whatever credential is
+# configured.
+
+# Read-only by design. This agent reads the backend's output; it has no reason
+# to write files or run commands, and withholding that keeps a model from
+# "fixing" an inconvenient scientific result by editing the repository.
+tools:
+  timeout: 300

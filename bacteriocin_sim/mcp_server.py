@@ -30,6 +30,9 @@ Requires the optional ``mcp`` extra::
 
 from __future__ import annotations
 
+import logging
+import os
+import sys
 from typing import Any
 
 from . import __version__
@@ -42,13 +45,27 @@ from .registry import describe_backends
 from .schemas import AgentInput, AgentOutput, ExperimentResult, ExperimentSpec
 from .selftest import run_selftest
 
+# Both major versions of the MCP SDK are supported, deliberately. Omnigent
+# 0.16's own bundled interpreter ships mcp 1.30 (where the server class is
+# ``FastMCP``), while a fresh install resolves mcp 2.x (where it was renamed
+# ``MCPServer``). The installer may legitimately pick either interpreter, so
+# pinning one API would make the server crash on the other. The two classes
+# agree on ``tool()``, ``run()`` and ``list_tools()``; only the constructor
+# differs, in that 1.x has no ``version`` parameter.
 try:
-    from mcp.server.mcpserver import MCPServer
-except ModuleNotFoundError as exc:  # pragma: no cover - depends on the extra
-    raise ModuleNotFoundError(
-        "the MCP server needs the optional 'mcp' extra: "
-        'uv pip install -e ".[mcp]"'
-    ) from exc
+    from mcp.server.mcpserver import MCPServer as _ServerClass  # mcp >= 2
+
+    _VERSION_KWARG = {"version": __version__}
+except ModuleNotFoundError:
+    try:
+        from mcp.server.fastmcp import FastMCP as _ServerClass  # mcp 1.x
+
+        _VERSION_KWARG = {}
+    except ModuleNotFoundError as exc:  # pragma: no cover - depends on the extra
+        raise ModuleNotFoundError(
+            "the MCP server needs the optional 'mcp' extra: "
+            'uv pip install -e ".[mcp]"'
+        ) from exc
 
 #: The schemas a caller can request by name, mirroring the ``schema`` CLI
 #: subcommand so the two interfaces never disagree about what exists.
@@ -83,10 +100,10 @@ Three things to know when reading a result:
    that is the most actionable thing this backend reports.
 """
 
-server = MCPServer(
+server = _ServerClass(
     name="bacteriocin-sim",
-    version=__version__,
     instructions=INSTRUCTIONS,
+    **_VERSION_KWARG,
 )
 
 
@@ -240,7 +257,18 @@ def selftest() -> dict[str, Any]:
 
 
 def main() -> None:
-    """Serve over stdio. This is the entry point the agent config spawns."""
+    """Serve over stdio. This is the entry point the agent config spawns.
+
+    Logging is pinned to stderr first. On the stdio transport, stdout *is* the
+    protocol channel: one stray ``print`` or a logging handler that defaults to
+    stdout corrupts the JSON-RPC stream, and the failure surfaces as an opaque
+    parse error rather than as the log line that caused it.
+    """
+    logging.basicConfig(
+        stream=sys.stderr,
+        level=os.environ.get("BACTERIOCIN_LOG_LEVEL", "WARNING").upper(),
+        force=True,
+    )
     server.run(transport="stdio")
 
 

@@ -103,7 +103,8 @@ rather than registered as an agent in its own right.
 
 ```bash
 uv pip install -e ".[mcp]"
-python -m bacteriocin_sim.mcp_server        # stdio transport
+python3 integrations/omnigent/simulation/install.py   # resolve absolute paths
+omnigent run integrations/omnigent/simulation/agent
 ```
 
 Tools: `capabilities` · `get_schema` · `run_experiment` · `run_experiments` ·
@@ -112,17 +113,15 @@ its structured payload rather than as a protocol error, so the caller keeps
 the distinction between a bad spec, an unavailable backend and a numerical
 failure.
 
-`omnigent/bacteriocin-lab/` is a ready-to-run agent bundle that attaches this
-server and supplies the orchestrating prompt — the part that plans
-experiments, reads the uncertainty output and decides what to run next:
+Both MCP SDK majors are supported: Omnigent 0.16 bundles mcp 1.30 (`FastMCP`),
+a fresh install resolves 2.x (`MCPServer`).
 
-```bash
-omnigent run omnigent/bacteriocin-lab
-```
-
-The server is a transport and nothing else. `tests/test_mcp_server.py`
-asserts a result obtained through MCP is byte-identical to the same result
-obtained from the direct API.
+The server is a transport and nothing else. `tests/test_mcp_server.py` asserts
+a result obtained through MCP is byte-identical to the same result from the
+direct API, and
+[`integrations/omnigent/simulation/`](integrations/omnigent/simulation/README.md)
+covers the wiring, the agent bundle, and why the generated declaration is not
+committed.
 
 ## What the model actually computes
 
@@ -309,6 +308,8 @@ bacteriocin_sim/
     kinetics.py       coupled peptide/population ODEs
     uncertainty.py    variance budget and sensitivity analysis
 
-omnigent/
-  bacteriocin-lab/    agent bundle: orchestrator prompt + this backend as MCP
+integrations/omnigent/simulation/
+  install.py          generates the MCP declaration with absolute paths
+  mcp_server.py       launcher Omnigent spawns
+  agent/              bundle: orchestration instructions + the MCP declaration
 ```

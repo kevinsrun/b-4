@@ -9,7 +9,7 @@ dependencies = ["pydantic>=2.7"]
 dev = ["pytest>=8.0"]
 # The MCP server is a transport, not part of the model. Keeping it optional
 # means the forward model and its tests stay dependency-light.
-mcp = ["mcp>=2.0"]
+mcp = ["mcp>=1.30"]
 
 [project.scripts]
 bacteriocin-sim = "bacteriocin_sim.cli:main"
