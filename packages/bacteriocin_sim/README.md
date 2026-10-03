@@ -265,7 +265,7 @@ Each result carries `spec_hash`, `parameter_set_hash` and `code_version`.
 
 ```bash
 python -m pytest tests -q          # 133 tests (18 need the [mcp] extra; skipped without it)
-python -m bacteriocin_sim selftest # 14 scientific invariants
+python -m bacteriocin_sim selftest # 14 scientific invariants (1 known failure)
 ```
 
 The invariants are *directional* checks — statements true of bacteriocin
@@ -281,8 +281,39 @@ looks:
 * stationary cells are more tolerant than exponential ones
 * peptide-binding media (milk) reduce activity
 * incubation time changes the readout
-* uncertainty grows when inputs are unknown
+* uncertainty grows when inputs are unknown — **currently violated, see below**
 * results are deterministic, and never claim experimental validation
+
+### Known defect: confidence can rise when inputs are withheld
+
+`uncertainty_grows_when_inputs_are_unknown` is registered in
+`selftest.KNOWN_FAILURES`. The invariant is correct; the model violates it.
+
+Withholding both the candidate sequence and the target organism *lowers*
+`sigma_logit_inhibition` at 6 of 27 swept dose–time points — so a prediction
+made in near-total ignorance can report higher `confidence` than a
+fully-specified one. The affected region is roughly **0.25–1 µM at 8–24 h**:
+the MIC transition, which is exactly where the planner is told to concentrate
+experiments.
+
+The cause is that the budget is dominated by `target_potency_prior`, a secant
+of the response curve at ±1σ of the MIC prior. With the candidate and organism
+unknown the model falls back to a weak-peptide prior; that places the
+prediction far below the MIC on the flat floor of the sigmoid, where the
+secant collapses faster than the ignorance terms grow. It is the same false
+precision the secant was introduced to avoid, reappearing at a different scale
+— the secant only helps when one sigma is enough to leave the plateau.
+
+Two candidate fixes, both changing published numbers, so neither is applied
+unilaterally: floor the total by the ignorance terms so withholding
+information can never reduce sigma, or widen the secant until it leaves the
+plateau. Until then `confidence` should not be used to rank a well-specified
+result against a poorly-specified one.
+
+A known failure is reported but does not fail the run, so an open modelling
+decision does not block unrelated work. If someone repairs the model the check
+reports `unexpectedly_fixed` and the pytest guard fails until the entry is
+retired.
 
 ## Layout
 
