@@ -1,0 +1,32 @@
+# EXAMPLE ONLY -- not loaded by Omnigent.
+#
+# Run `python3 integrations/omnigent/install.py` to generate the real
+# bacteriocin.yaml next to this file, with absolute paths resolved for your
+# machine. That file is gitignored because Omnigent does not expand ${VAR} in
+# `command` or `args` (its parser documents those as literals), so the paths
+# have to be written out and are therefore machine-specific.
+
+name: bacteriocin
+transport: stdio
+description: >
+  Candidate Generation & Design Agent of an autonomous bacteriocin-discovery
+  system. Proposes ranked candidates and falsifiable hypotheses. Proposals
+  only -- never experimental evidence.
+
+# Absolute path to an interpreter with the `mcp` SDK and pydantic 2 installed.
+command: "/absolute/path/to/python"
+args:
+  - "/absolute/path/to/repo/integrations/omnigent/mcp_server.py"
+
+env:
+  PYTHONPATH: "/absolute/path/to/repo/src"
+  # stdio is the MCP channel, so logs must stay off stdout.
+  BACTERIOCIN_LOG_LEVEL: "WARNING"
+  # Point this at a curated dataset to replace the UNVERIFIED seed data:
+  # BACTERIOCIN_KNOWLEDGE_PATH: /path/to/bactibase_export.json
+
+tools:
+  - generate_candidates
+  - describe_agent
+
+timeout: 60
