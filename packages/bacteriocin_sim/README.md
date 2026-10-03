@@ -265,7 +265,7 @@ Each result carries `spec_hash`, `parameter_set_hash` and `code_version`.
 
 ```bash
 python -m pytest tests -q          # 133 tests (18 need the [mcp] extra; skipped without it)
-python -m bacteriocin_sim selftest # 14 scientific invariants (1 known failure)
+python -m bacteriocin_sim selftest # 14 scientific invariants
 ```
 
 The invariants are *directional* checks — statements true of bacteriocin
@@ -281,39 +281,34 @@ looks:
 * stationary cells are more tolerant than exponential ones
 * peptide-binding media (milk) reduce activity
 * incubation time changes the readout
-* uncertainty grows when inputs are unknown — **currently violated, see below**
+* uncertainty grows when inputs are unknown
 * results are deterministic, and never claim experimental validation
 
-### Known defect: confidence can rise when inputs are withheld
+### How ignorance enters the budget
 
-`uncertainty_grows_when_inputs_are_unknown` is registered in
-`selftest.KNOWN_FAILURES`. The invariant is correct; the model violates it.
+Not knowing *which peptide* or *which organism* is uncertainty about the
+**MIC**, not about the response, so it widens the MIC prior that gets
+propagated through the model rather than being added to the total afterwards.
+The forward model is re-run at the widened ±σ, exactly as the organism's own
+MIC prior is.
 
-Withholding both the candidate sequence and the target organism *lowers*
-`sigma_logit_inhibition` at 6 of 27 swept dose–time points — so a prediction
-made in near-total ignorance can report higher `confidence` than a
-fully-specified one. The affected region is roughly **0.25–1 µM at 8–24 h**:
-the MIC transition, which is exactly where the planner is told to concentrate
-experiments.
+This is what keeps the budget monotone in information. The response is
+monotone in dose, so a wider window can only widen the secant — withholding
+an input cannot shrink the potency term.
 
-The cause is that the budget is dominated by `target_potency_prior`, a secant
-of the response curve at ±1σ of the MIC prior. With the candidate and organism
-unknown the model falls back to a weak-peptide prior; that places the
-prediction far below the MIC on the flat floor of the sigmoid, where the
-secant collapses faster than the ignorance terms grow. It is the same false
-precision the secant was introduced to avoid, reappearing at a different scale
-— the secant only helps when one sigma is enough to leave the plateau.
+It did once. An earlier arrangement added these terms in logit space *beside*
+a secant that was free to collapse: with the candidate and organism unknown
+the model fell back to a weak-peptide prior, which placed the prediction on
+the flat floor of the sigmoid where the secant shrank faster than the
+ignorance terms grew. A blind prediction could then report higher
+`confidence` than a fully-specified one, in the MIC transition region
+specifically. `uncertainty_grows_when_inputs_are_unknown` now sweeps 9 doses
+× 3 readout times to pin this down; a single-point check, or a sweep over
+dose alone, passes against the broken model.
 
-Two candidate fixes, both changing published numbers, so neither is applied
-unilaterally: floor the total by the ignorance terms so withholding
-information can never reduce sigma, or widen the secant until it leaves the
-plateau. Until then `confidence` should not be used to rank a well-specified
-result against a poorly-specified one.
-
-A known failure is reported but does not fail the run, so an open modelling
-decision does not block unrelated work. If someone repairs the model the check
-reports `unexpectedly_fixed` and the pytest guard fails until the entry is
-retired.
+The two MIC-decade constants (`sigma_generic_peptide_log10_mic`,
+`sigma_unknown_target_log10_mic`) are coarse like every other prior here and
+are overridable through `parameter_overrides`.
 
 ## Layout
 

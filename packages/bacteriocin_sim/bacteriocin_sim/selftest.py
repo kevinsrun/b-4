@@ -257,30 +257,21 @@ def _blind_spec(dose_um: float) -> dict[str, Any]:
     return s
 
 
-@check(
-    "uncertainty_grows_when_inputs_are_unknown",
-    known_failure=(
-        "the sigma budget is dominated by target_potency_prior, a secant of the "
-        "response curve at +/-1 sigma of the MIC prior. With the candidate and "
-        "organism unknown the model falls back to a weak-peptide prior, which "
-        "places the prediction far below the MIC on the flat floor of the "
-        "sigmoid; the secant there collapses faster than the ignorance terms "
-        "(no_candidate_sequence, unknown_target_organism) grow, so total sigma "
-        "FALLS. Fixing it is a modelling decision -- floor the budget by the "
-        "ignorance terms, or widen the secant until it leaves the plateau -- "
-        "and it changes published numbers, so it is not applied here."
-    ),
-)
+@check("uncertainty_grows_when_inputs_are_unknown")
 def _uncertainty() -> tuple[bool, str]:
     """Knowing less must never make the model more certain.
 
-    Swept over dose *and* readout time rather than tested at one point. The
-    violation occupies a bounded region of that plane -- around the MIC, once
-    enough time has passed for kill and regrowth to compete -- so a check at a
-    single hard-coded point reports whatever that point happens to sit on. The
-    original version of this invariant tested one dose at the 6 h reference
-    readout, which lies just outside the region, and so certified the model as
-    sound while it was not.
+    Swept over dose *and* readout time rather than tested at one point. This
+    invariant was violated until the MIC-space ignorance terms were introduced
+    (see ``SimulationAdapter._build_budget``), and the violation occupied a
+    bounded region of that plane -- around the MIC, once enough time had
+    passed for kill and regrowth to compete. A check at a single hard-coded
+    point reports whatever that point happens to sit on: the original version
+    tested one dose at the 6 h reference readout, which lies just outside the
+    region, and so certified the model as sound while it was not.
+
+    Both axes are load-bearing. A sweep over dose alone at 6 h also passes
+    against the broken model. Do not narrow this grid.
     """
     violations: list[str] = []
     n_points = 0

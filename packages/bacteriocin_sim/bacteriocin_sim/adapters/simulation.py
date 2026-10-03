@@ -713,14 +713,42 @@ class SimulationAdapter(ExperimentAdapter):
             )
 
         sigma_log10_mic = float(target_params.get("sigma_log10_mic", 0.8))
-        potency_sigma, potency_rationale = self._potency_sigma_logit(ctx, sigma_log10_mic)
+
+        # Ignorance about *which peptide* and *which organism* is uncertainty
+        # about the MIC, so it widens the prior that gets propagated through
+        # the model rather than being added to the total afterwards.
+        #
+        # This is what keeps the budget monotone in information. The response
+        # is monotone in dose, so a wider +/-sigma window can only widen the
+        # secant: withholding an input cannot now shrink the potency term. The
+        # previous arrangement added these in logit space *beside* a secant
+        # that was free to collapse, which is how a blind prediction could
+        # come out more confident than an informed one.
+        target_is_fallback = ctx["target_source"] == ParameterSource.FALLBACK_GENERIC
+        peptide_is_generic = descriptors.is_generic_fallback
+        mic_ignorance = [sigma_log10_mic]
+        if peptide_is_generic:
+            mic_ignorance.append(self.store.g("sigma_generic_peptide_log10_mic"))
+        if target_is_fallback:
+            mic_ignorance.append(self.store.g("sigma_unknown_target_log10_mic"))
+        effective_sigma_log10_mic = math.sqrt(sum(s * s for s in mic_ignorance))
+
+        potency_sigma, potency_rationale = self._potency_sigma_logit(
+            ctx, effective_sigma_log10_mic
+        )
+        if effective_sigma_log10_mic > sigma_log10_mic:
+            potency_rationale += (
+                f"; the prior was widened from {sigma_log10_mic:.2f} to "
+                f"{effective_sigma_log10_mic:.2f} decades because the MIC estimate "
+                "rests on a generic peptide and/or an uncurated organism"
+            )
 
         return unc.build_budget(
             store=self.store,
-            target_sigma_log10_mic=sigma_log10_mic,
+            target_sigma_log10_mic=effective_sigma_log10_mic,
             target_confidence=float(target_params.get("confidence", 0.3)),
-            target_is_fallback=ctx["target_source"] == ParameterSource.FALLBACK_GENERIC,
-            peptide_is_generic=descriptors.is_generic_fallback,
+            target_is_fallback=target_is_fallback,
+            peptide_is_generic=peptide_is_generic,
             class_is_unknown=ctx["bacteriocin_class"] == BacteriocinClass.UNKNOWN.value,
             class_inference_confidence=descriptors.class_inference_confidence,
             n_imputed_conditions=len(resolved.imputed),
