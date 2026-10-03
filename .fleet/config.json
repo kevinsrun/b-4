@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "B-4",
+    "languages": [
+      "Python"
+    ],
+    "metadata": {
+      "orchestrator": "omnigent"
+    }
+  },
+  "repository": {
+    "provider": "github"
+  },
+  "instructions": {
+    "repository": "AGENTS.md"
+  },
+  "verification": {
+    "stopOnFailure": true,
+    "timeoutMs": 120000,
+    "maxOutputBytes": 100000,
+    "checks": [
+      {
+        "id": "lint-literature-integration",
+        "label": "Lint literature and Omnigent integration",
+        "command": "uv",
+        "args": [
+          "run",
+          "ruff",
+          "check",
+          "packages/b4_literature",
+          "tools/launchers/literature.py",
+          "tools/tests/test_literature_protocol.py",
+          "tools/tests/test_omnigent_manager.py",
+          "scripts/run_omnigent.py",
+          "--config",
+          "packages/b4_literature/pyproject.toml"
+        ],
+        "required": true
+      },
+      {
+        "id": "lint-planner",
+        "label": "Lint experiment planner for syntax and undefined names",
+        "command": "uv",
+        "args": [
+          "run",
+          "ruff",
+          "check",
+          "packages/experiment_planner_agent",
+          "--select",
+          "E9,F63,F7,F82"
+        ],
+        "required": true
+      },
+      {
+        "id": "test",
+        "label": "All monorepo tests",
+        "command": "uv",
+        "args": ["run", "pytest"],
+        "required": true
+      },
+      {
+        "id": "omnigent-config",
+        "label": "Generated Omnigent declarations",
+        "command": "uv",
+        "args": ["run", "python", "install.py", "--check"],
+        "required": true
+      },
+      {
+        "id": "literature-mcp",
+        "label": "Literature MCP protocol",
+        "command": "uv",
+        "args": ["run", "python", "tools/tests/test_literature_protocol.py"],
+        "required": true
+      },
+      {
+        "id": "candidate-mcp",
+        "label": "Candidate MCP protocol",
+        "command": "uv",
+        "args": ["run", "python", "tools/tests/test_candidates_protocol.py"],
+        "required": true
+      },
+      {
+        "id": "runner-mcp",
+        "label": "Simulation MCP protocol",
+        "command": "uv",
+        "args": ["run", "python", "tools/tests/test_runner_protocol.py"],
+        "required": true
+      }
+    ]
+  },
+  "tools": [
+    {
+      "id": "github",
+      "adapter": "github-cli",
+      "enabled": true,
+      "mode": "read-only",
+      "capabilities": [
+        "repository-discovery",
+        "pr-inspect",
+        "ci-inspect",
+        "diff-retrieval"
+      ]
+    }
+  ],
+  "capabilities": {
+    "codex": [
+      "architecture",
+      "implementation",
+      "final-review",
+      "branch-create",
+      "commit",
+      "pr-create",
+      "pr-inspect",
+      "ci-inspect",
+      "task-write",
+      "task-publish",
+      "task-close",
+      "workflow-write",
+      "process-execute",
+      "process-stop",
+      "live-acceptance-record",
+      "policy-override"
+    ],
+    "copilot": [
+      "trace",
+      "test",
+      "audit",
+      "bounded-implementation"
+    ],
+    "gemini": [
+      "independent-review",
+      "large-context-investigation"
+    ],
+    "antigravity": [
+      "independent-review",
+      "adversarial-review",
+      "architecture-investigation",
+      "defect-analysis",
+      "test-gap-analysis",
+      "large-context-investigation"
+    ],
+    "sentry": [
+      "runtime-error-evidence"
+    ],
+    "datadog": [
+      "telemetry-evidence"
+    ],
+    "blackfire": [
+      "performance-evidence"
+    ],
+    "camber": [
+      "compute-job"
+    ]
+  },
+  "deployment": {
+    "environments": [],
+    "productionPolicy": "approval-required",
+    "metadata": {}
+  },
+  "risk": {
+    "paths": [
+      {
+        "pattern": ".github/workflows/**",
+        "level": "high",
+        "reason": "CI and release control plane"
+      },
+      {
+        "pattern": "**/migrations/**",
+        "level": "high",
+        "reason": "Persistent data changes"
+      },
+      {
+        "pattern": "**/*secret*",
+        "level": "high",
+        "reason": "Potential credential material"
+      },
+      {
+        "pattern": "**/auth/**",
+        "level": "high",
+        "reason": "Authentication and authorization boundary"
+      },
+      {
+        "pattern": "**/billing/**",
+        "level": "high",
+        "reason": "Financial behavior"
+      },
+      {
+        "pattern": "**/queues/**",
+        "level": "medium",
+        "reason": "Queue delivery semantics"
+      },
+      {
+        "pattern": "**/adapters/**",
+        "level": "medium",
+        "reason": "Provider abstraction boundary"
+      }
+    ],
+    "operations": {
+      "production-deploy": "approval-required",
+      "destructive-migration": "approval-required",
+      "secret-mutation": "approval-required",
+      "branch-delete": "approval-required",
+      "force-push": "approval-required",
+      "production-data-mutation": "approval-required",
+      "credential-change": "approval-required"
+    }
+  },
+  "context": {
+    "include": [
+      "README.md",
+      "AGENTS.md",
+      "config.yaml",
+      "package.json",
+      "pyproject.toml",
+      ".fleet/config.json",
+      "packages/b4_literature/README.md",
+      "packages/experiment_planner_agent/README.md",
+      "Cargo.toml",
+      "go.mod",
+      "docs/architecture.md"
+    ],
+    "exclude": [
+      "node_modules/**",
+      "dist/**",
+      "coverage/**",
+      ".git/**",
+      ".fleet/state/**",
+      ".codex-tmp/**"
+    ],
+    "maxBytes": 100000
+  },
+  "ci": {
+    "setup": [
+      {
+        "id": "generate-omnigent-mcp",
+        "label": "Generate Omnigent MCP declarations",
+        "command": "uv",
+        "args": ["run", "python", "install.py"]
+      }
+    ]
+  },
+  "integrations": {
+    "checks": []
+  },
+  "processes": [],
+  "telemetry": {
+    "estimatedBytesPerToken": 4
+  }
+}
