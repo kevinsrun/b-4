@@ -1,0 +1,221 @@
+# Managed by Engineering Fleet. Regenerate with: fleet init --ci
+# verification-config-sha256: 6f615037329acbcc6a8c0cdc6f2b4ccb1759f4644a8d3f9b59adf707d3bd0f99
+name: Fleet Verification
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  fleet_lint-literature-integration:
+    name: 'Fleet · Lint literature and Omnigent integration'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Lint literature and Omnigent integration'
+        run: |
+          'uv' 'run' 'ruff' 'check' 'packages/b4_literature' 'tools/launchers/literature.py' 'tools/tests/test_literature_protocol.py' 'tools/tests/test_omnigent_manager.py' 'scripts/run_omnigent.py' '--config' 'packages/b4_literature/pyproject.toml'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: lint-literature-integration" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_lint-planner:
+    name: 'Fleet · Lint experiment planner for syntax and undefined names'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Lint experiment planner for syntax and undefined names'
+        run: |
+          'uv' 'run' 'ruff' 'check' 'packages/experiment_planner_agent' '--select' 'E9,F63,F7,F82'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: lint-planner" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_test:
+    name: 'Fleet · All monorepo tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'All monorepo tests'
+        run: |
+          'uv' 'run' 'pytest'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: test" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_omnigent-config:
+    name: 'Fleet · Generated Omnigent declarations'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Generated Omnigent declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py' '--check'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: omnigent-config" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_literature-mcp:
+    name: 'Fleet · Literature MCP protocol'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Literature MCP protocol'
+        run: |
+          'uv' 'run' 'python' 'tools/tests/test_literature_protocol.py'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: literature-mcp" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_candidate-mcp:
+    name: 'Fleet · Candidate MCP protocol'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Candidate MCP protocol'
+        run: |
+          'uv' 'run' 'python' 'tools/tests/test_candidates_protocol.py'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: candidate-mcp" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  fleet_runner-mcp:
+    name: 'Fleet · Simulation MCP protocol'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.8.22'
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
+      - name: 'Generate Omnigent MCP declarations'
+        run: |
+          'uv' 'run' 'python' 'install.py'
+      - name: 'Simulation MCP protocol'
+        run: |
+          'uv' 'run' 'python' 'tools/tests/test_runner_protocol.py'
+      - name: Record commit binding
+        if: always()
+        run: |
+          echo "Fleet check: runner-mcp" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fleet verification result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

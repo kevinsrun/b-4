@@ -20,7 +20,7 @@ python3 scripts/run_omnigent.py  # run the single Omnigent orchestrator
 ```
 
 ```bash
-pytest                                           # 315 tests across all packages
+pytest                                           # all package tests
 python3 tools/tests/test_literature_protocol.py  # 14 protocol checks
 python3 tools/tests/test_runner_protocol.py      # 17 protocol checks
 python3 tools/tests/test_candidates_protocol.py  # 23 protocol checks
@@ -43,6 +43,7 @@ packages/                the real Python, each independently installable
   b4_literature/         literature retrieval and structured evidence
   bacteriocin_sim/       simulation experiment backend
   bacteriocin_discovery/ candidate generation & design agent
+  experiment_planner_agent/ deterministic active-learning experiment planner
 shared/                  contract types multiple packages agree on
 install.py               generates every MCP declaration
 docs/                    contract notes and integration reference
@@ -121,4 +122,6 @@ still be wrong by a decade.
   candidate scoring, diversity, hypothesis generation.
 - [`packages/b4_literature/README.md`](packages/b4_literature/README.md) —
   bounded retrieval, conservative extraction, provenance, and evidence schemas.
+- [`packages/experiment_planner_agent/README.md`](packages/experiment_planner_agent/README.md) —
+  deterministic active-learning experiment selection and budget-aware planning.
 - [`docs/`](docs/) — the shared contract and agent-team reference.
