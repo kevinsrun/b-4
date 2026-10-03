@@ -40,7 +40,12 @@ from typing import Annotated, Any, Literal
 
 # The bundle may be launched from anywhere, so locate the package relative to
 # this file rather than relying on the caller's cwd.
-_SRC = Path(__file__).resolve().parent.parent.parent / "src"
+_SRC = (
+    Path(__file__).resolve().parent.parent.parent
+    / "packages"
+    / "bacteriocin_discovery"
+    / "src"
+)
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
@@ -357,10 +362,20 @@ def _compact(envelope: dict[str, Any], artifact_path: str | None) -> dict[str, A
 
 
 def build_server():
-    """Construct the FastMCP server with the tools registered."""
-    from mcp.server.fastmcp import FastMCP
+    """Construct the MCP server with the tools registered.
 
-    server = FastMCP(
+    Both SDK majors are supported deliberately. Omnigent 0.16 bundles mcp
+    1.30, where the server class is ``FastMCP``; a fresh install resolves 2.x,
+    where it was renamed ``MCPServer``. The shared installer may pick either
+    interpreter, so pinning one import would crash the server on the other.
+    The two classes agree on ``tool()`` and ``run()``.
+    """
+    try:
+        from mcp.server.mcpserver import MCPServer as _ServerClass  # mcp >= 2
+    except ModuleNotFoundError:
+        from mcp.server.fastmcp import FastMCP as _ServerClass  # mcp 1.x
+
+    server = _ServerClass(
         name="bacteriocin-candidate-generation",
         instructions=(
             "Exposes the Candidate Generation & Design Agent of an autonomous "

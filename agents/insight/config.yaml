@@ -1,0 +1,9 @@
+# Reads accumulated evidence and proposes what is worth asking next.
+spec_version: 1
+name: insight
+description: >-
+  Hypothesis-formation step. Reads accumulated evidence and research state and
+  proposes falsifiable hypotheses worth testing, with the reasoning that
+  motivates each.
+tools:
+  timeout: 300

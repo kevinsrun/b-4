@@ -19,8 +19,22 @@ import json
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent.parent
-SERVER = Path(__file__).resolve().parent / "mcp_server.py"
+REPO = Path(__file__).resolve().parents[2]
+SERVER = REPO / "tools" / "launchers" / "candidates.py"
+PACKAGE_SRC = REPO / "packages" / "bacteriocin_discovery" / "src"
+
+
+def _attr(obj: object, *names: str) -> object:
+    """Read the first attribute that exists.
+
+    The MCP SDK renamed its result fields between majors: 1.x exposes
+    ``serverInfo`` / ``protocolVersion``, 2.x the snake_case spellings. The
+    server supports both SDKs, so this client has to as well.
+    """
+    for name in names:
+        if hasattr(obj, name):
+            return getattr(obj, name)
+    raise AttributeError(f"none of {names} on {type(obj).__name__}")
 
 # Flat arguments, matching the tool's advertised schema. The nested-dict form
 # was replaced after a live run showed the model guessing parameter names.
@@ -62,7 +76,7 @@ async def main() -> int:
     params = StdioServerParameters(
         command=sys.executable,
         args=[str(SERVER)],
-        env={"PYTHONPATH": str(REPO / "src"), "BACTERIOCIN_LOG_LEVEL": "WARNING"},
+        env={"PYTHONPATH": str(PACKAGE_SRC), "BACTERIOCIN_LOG_LEVEL": "WARNING"},
     )
 
     async with stdio_client(params) as (read, write):
@@ -70,13 +84,14 @@ async def main() -> int:
             print("\n[1] initialize")
             init = await session.initialize()
             check("handshake completes", init is not None)
+            info = _attr(init, "server_info", "serverInfo")
             check(
                 "server identifies itself",
-                init.serverInfo.name == "bacteriocin-candidate-generation",
-                f"got {init.serverInfo.name!r}",
+                info.name == "bacteriocin-candidate-generation",
+                f"got {info.name!r}",
             )
-            print(f"       server: {init.serverInfo.name} v{init.serverInfo.version}")
-            print(f"       protocol: {init.protocolVersion}")
+            print(f"       server: {info.name} v{info.version}")
+            print(f"       protocol: {_attr(init, 'protocol_version', 'protocolVersion')}")
 
             print("\n[2] tools/list")
             listing = await session.list_tools()
@@ -84,7 +99,7 @@ async def main() -> int:
             check("generate_candidates exposed", "generate_candidates" in names, f"got {names}")
             check("describe_agent exposed", "describe_agent" in names, f"got {names}")
             for tool in listing.tools:
-                schema = tool.inputSchema or {}
+                schema = _attr(tool, "input_schema", "inputSchema") or {}
                 print(f"       {tool.name}  props={list((schema.get('properties') or {}).keys())}")
             disclaimer = next(
                 (t.description for t in listing.tools if t.name == "generate_candidates"), ""

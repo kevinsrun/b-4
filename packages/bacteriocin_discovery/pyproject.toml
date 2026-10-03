@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bacteriocin-discovery"
+version = "0.1.0"
+description = "Candidate Generation & Design Agent for an Omnigent-orchestrated bacteriocin-discovery system"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.5,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+verify = ["httpx>=0.25"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bacteriocin_discovery = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
