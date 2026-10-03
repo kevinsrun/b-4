@@ -1,0 +1,24 @@
+# EXAMPLE ONLY -- not loaded by Omnigent.
+#
+# Run `python3 install.py` to generate literature.yaml with absolute paths for
+# this machine. The generated file is gitignored.
+
+name: literature
+transport: stdio
+description: >-
+  Literature & Evidence Agent. Retrieves bounded literature metadata and
+  abstracts and conservatively extracts conditions, measurements, provenance,
+  missing variables, and contradictions. Never makes a candidate decision.
+
+command: "/absolute/path/to/python"
+args:
+  - "/absolute/path/to/repo/tools/launchers/literature.py"
+
+env:
+  PYTHONPATH: "/absolute/path/to/repo/packages/b4_literature/src"
+  BACTERIOCIN_LOG_LEVEL: "WARNING"
+
+tools:
+  - literature_evidence
+
+timeout: 90

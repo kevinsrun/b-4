@@ -14,15 +14,16 @@ evidence → hypotheses → candidate selection → experiment planning
 ## Run it
 
 ```bash
-uv sync                  # both packages, editable
+uv sync                  # all packages, editable
 python3 install.py       # generate the MCP declarations (machine-specific paths)
 omnigent run .           # the orchestrator is this directory
 ```
 
 ```bash
-pytest                                  # 301 tests across both packages
-python3 tools/tests/test_runner_protocol.py       # 17 protocol checks
-python3 tools/tests/test_candidates_protocol.py   # 23 protocol checks
+pytest                                           # 315 tests across all packages
+python3 tools/tests/test_literature_protocol.py  # 14 protocol checks
+python3 tools/tests/test_runner_protocol.py      # 17 protocol checks
+python3 tools/tests/test_candidates_protocol.py  # 23 protocol checks
 ```
 
 ## Layout
@@ -39,9 +40,10 @@ tools/
   launchers/             the scripts Omnigent spawns
   tests/                 protocol tests, one per server
 packages/                the real Python, each independently installable
+  b4_literature/         literature retrieval and structured evidence
   bacteriocin_sim/       simulation experiment backend
   bacteriocin_discovery/ candidate generation & design agent
-shared/                  contract types both packages agree on
+shared/                  contract types multiple packages agree on
 install.py               generates every MCP declaration
 docs/                    contract notes and integration reference
 ```
@@ -60,6 +62,7 @@ discovered automatically and listed in `config.yaml`'s `tools.agents`.
 
 | specialist | kind | produces |
 |---|---|---|
+| `literature` | MCP tool | structured literature-derived evidence with provenance |
 | `candidates` | MCP tool | ranked candidates + falsifiable hypotheses — **proposals only** |
 | `runner` | MCP tool | continuous, uncertainty-quantified predictions — **simulation-derived only** |
 | `planner` | sub-agent | `ExperimentSpec`s |
@@ -86,9 +89,12 @@ install resolves 2.x (`MCPServer`), and both servers detect which is present.
 
 ## Provenance discipline
 
-The two backends make different kinds of claim, and the orchestrator must
+The three backends make different kinds of claim, and the orchestrator must
 never merge them:
 
+- The literature agent produces **literature-derived evidence**. A measured
+  value stays distinct from an author's interpretation, and automated
+  extraction is not independent verification.
 - The candidate agent produces **proposals**. Never evidence of activity.
 - The simulator produces **simulation-derived predictions** — hypotheses to
   be tested, never observations. Its schema *rejects* `wet-lab-derived`
@@ -106,4 +112,6 @@ still be wrong by a decade.
   records conformance and proposed schema extensions.
 - [`packages/bacteriocin_discovery/README.md`](packages/bacteriocin_discovery/README.md) —
   candidate scoring, diversity, hypothesis generation.
+- [`packages/b4_literature/README.md`](packages/b4_literature/README.md) —
+  bounded retrieval, conservative extraction, provenance, and evidence schemas.
 - [`docs/`](docs/) — the shared contract and agent-team reference.

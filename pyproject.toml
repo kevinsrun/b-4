@@ -1,28 +1,29 @@
-# Workspace root. The two agents are separate installable packages under
+# Workspace root. The specialist modules are separate installable packages under
 # packages/, each with its own pyproject.toml, dependencies and tests --
 # they are deployed independently and should version independently.
 #
 # This file exists to make the repository installable in one step and to hold
 # the settings that genuinely are repository-wide.
 #
-#   uv sync                                        # both packages, editable
+#   uv sync                                        # all packages, editable
 #   uv pip install -e "packages/bacteriocin_sim[mcp]"
 #   pytest                                         # both test suites
 
 [project]
 name = "bacteriocin-lab"
 version = "0.1.0"
-description = "Autonomous bacteriocin-discovery lab: candidate design and simulated experiment execution"
-# The union of the two packages' floors. bacteriocin_discovery requires 3.11,
+description = "Autonomous bacteriocin-discovery lab: evidence, candidate design, and simulated experiments"
+# The union of the package floors. bacteriocin_discovery requires 3.11,
 # so the workspace cannot claim 3.10 even though bacteriocin_sim supports it.
 requires-python = ">=3.11"
 dependencies = [
     "bacteriocin-sim",
     "bacteriocin-discovery",
+    "b4-literature-evidence",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff>=0.8"]
 mcp = ["mcp>=1.30"]
 
 [tool.uv.workspace]
@@ -31,6 +32,7 @@ members = ["packages/*"]
 [tool.uv.sources]
 bacteriocin-sim = { workspace = true }
 bacteriocin-discovery = { workspace = true }
+b4-literature-evidence = { workspace = true }
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -41,10 +43,18 @@ build-backend = "setuptools.build_meta"
 packages = []
 
 [tool.pytest.ini_options]
-# Both suites run from the root; each package's layout concerns stay inside
+# All suites run from the root; each package's layout concerns stay inside
 # that package.
-testpaths = ["packages/bacteriocin_sim/tests", "packages/bacteriocin_discovery/tests"]
-pythonpath = ["packages/bacteriocin_sim", "packages/bacteriocin_discovery/src"]
+testpaths = [
+    "packages/bacteriocin_sim/tests",
+    "packages/bacteriocin_discovery/tests",
+    "packages/b4_literature/tests",
+]
+pythonpath = [
+    "packages/bacteriocin_sim",
+    "packages/bacteriocin_discovery/src",
+    "packages/b4_literature/src",
+]
 addopts = "-q"
 
 [tool.ruff]

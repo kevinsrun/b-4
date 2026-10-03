@@ -10,8 +10,8 @@ here and gitignored, and only the ``*.yaml.example`` placeholders are
 committed.
 
 One installer rather than one per package: the declarations share interpreter
-detection and all land in the same bundle, and four copies of this logic would
-drift.
+detection and all land in the same bundle, and duplicated copies of this logic
+would drift.
 
 Re-run after moving the repository or changing interpreter.
 
@@ -103,6 +103,21 @@ class Server:
 
 
 SERVERS = [
+    Server(
+        name="literature",
+        launcher="literature.py",
+        pythonpath=REPO / "packages" / "b4_literature" / "src",
+        description=(
+            "Literature & Evidence Agent. Retrieves bounded literature metadata and\n"
+            "  abstracts, then conservatively extracts experimental conditions,\n"
+            "  measurements, provenance, missing variables, and contradictions.\n"
+            "  Literature-derived claims only -- never a candidate decision."
+        ),
+        tools=["literature_evidence"],
+        # Europe PMC calls are explicitly bounded by the tool request. The
+        # process ceiling leaves room for the maximum supported source timeout.
+        timeout=90,
+    ),
     Server(
         name="candidates",
         launcher="candidates.py",

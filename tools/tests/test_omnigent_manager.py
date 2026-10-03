@@ -10,7 +10,7 @@ would decide *when* to call the tool.
 Run with Omnigent's own interpreter::
 
     ~/.local/share/uv/tools/omnigent/bin/python \\
-        integrations/omnigent/test_omnigent_manager.py
+        tools/tests/test_omnigent_manager.py
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import json
 import sys
 from pathlib import Path
 
-BUNDLE = Path(__file__).resolve().parent / "agent"
+BUNDLE = Path(__file__).resolve().parents[2]
 
 passed: list[str] = []
 failed: list[str] = []
@@ -57,27 +57,35 @@ async def main() -> int:
 
     # The MCP declaration is generated, not checked in: it holds machine-specific
     # absolute paths because Omnigent treats `command`/`args` as literals.
-    declaration = BUNDLE / "tools" / "mcp" / "bacteriocin.yaml"
-    if not declaration.is_file():
-        print(
-            f"error: {declaration} is missing.\n"
-            "  Run: python3 integrations/omnigent/install.py"
-        )
+    declarations = [
+        BUNDLE / "tools" / "mcp" / f"{name}.yaml" for name in ("literature", "candidates", "runner")
+    ]
+    missing = [path for path in declarations if not path.is_file()]
+    if missing:
+        print(f"error: generated declarations are missing: {missing}.\n  Run: python3 install.py")
         return 1
 
     print("[1] parse the bundle with Omnigent's parser")
     spec = parse(BUNDLE)
     check("bundle parses", spec.spec_version == 1)
-    check("agent is named", spec.name == "bacteriocin-discovery-lead", f"got {spec.name}")
+    check("agent is named", spec.name == "bacteriocin-lab", f"got {spec.name}")
     check("AGENTS.md loaded as instructions", bool(spec.instructions))
-    check("one MCP server declared", len(spec.mcp_servers) == 1)
-    server = spec.mcp_servers[0]
-    check("stdio transport", server.transport == "stdio")
-    check("command is absolute", Path(server.command or "").is_absolute(), server.command or "")
+    check("three MCP servers declared", len(spec.mcp_servers) == 3)
+    check("all use stdio", all(server.transport == "stdio" for server in spec.mcp_servers))
     check(
-        "tool allowlist set",
-        set(server.tools or []) == {"generate_candidates", "describe_agent"},
-        str(server.tools),
+        "all commands are absolute",
+        all(Path(server.command or "").is_absolute() for server in spec.mcp_servers),
+    )
+    allowlists = {server.name: set(server.tools or []) for server in spec.mcp_servers}
+    check(
+        "literature allowlist set",
+        allowlists.get("literature") == {"literature_evidence"},
+        str(allowlists),
+    )
+    check(
+        "candidate allowlist set",
+        allowlists.get("candidates") == {"generate_candidates", "describe_agent"},
+        str(allowlists),
     )
     print(f"       instructions: {len(spec.instructions or '')} chars")
 
@@ -98,12 +106,18 @@ async def main() -> int:
             str(names),
         )
         check("describe_agent registered", any("describe_agent" in n for n in names), str(names))
+        check(
+            "literature_evidence registered",
+            any("literature_evidence" in n for n in names),
+            str(names),
+        )
         for name in names:
             print(f"       registered: {name}")
 
         # Tool names may be namespaced by server; find the real call names.
         gen_name = next(n for n in names if "generate_candidates" in n)
         desc_name = next(n for n in names if "describe_agent" in n)
+        literature_name = next(n for n in names if "literature_evidence" in n)
 
         print("\n[3] call describe_agent through the manager")
         described = tool_payload(await manager.call_tool(spec, desc_name, {}))
@@ -166,10 +180,46 @@ async def main() -> int:
             )
         print(f"       response size: {len(json.dumps(payload))} bytes")
 
-        print("\n[5] the schema is self-documenting (the live-run defect)")
+        print("\n[5] call literature_evidence through the manager")
+        literature = tool_payload(
+            await manager.call_tool(
+                spec,
+                literature_name,
+                {
+                    "query_id": "omnigent-manager-test",
+                    "question": "What is nisin activity against Listeria monocytogenes?",
+                    "bacteriocin": "nisin",
+                    "target_organism": "Listeria monocytogenes",
+                    "source_documents": [
+                        {
+                            "source": {
+                                "source_id": "doi:10.1000/manager",
+                                "title": "Manager fixture",
+                            },
+                            "text": "Nisin inhibited Listeria monocytogenes in vitro.",
+                            "locator": "abstract",
+                        }
+                    ],
+                },
+            )
+        )
+        check("literature record returned", len(literature["evidence"]) == 1)
+        check(
+            "literature output remains non-decisional",
+            literature["decision"]["candidate_decision"] == "not-performed",
+        )
+        check(
+            "author interpretation is not measured data",
+            literature["evidence"][0]["measurement"]["data_role"] == "author-interpretation",
+        )
+
+        print("\n[6] the schema is self-documenting (the live-run defect)")
         gen_schema = next(
-            (s_ for s_ in schemas
-             if (s_.get("name") if isinstance(s_, dict) else getattr(s_, "name", "")) == gen_name),
+            (
+                s_
+                for s_ in schemas
+                if (s_.get("name") if isinstance(s_, dict) else getattr(s_, "name", "")) == gen_name
+            ),
             None,
         )
         # Omnigent normalises MCP schemas into OpenAI function-calling shape, so
@@ -186,12 +236,15 @@ async def main() -> int:
         check("gram is advertised", "gram" in props)
         print(f"       {len(props)} parameters advertised to the model")
 
-        print("\n[6] tool allowlist is enforced")
-        # `mcp_server.py` registers only these two, and the YAML allowlist names
-        # the same two, so nothing outside the list should be callable.
-        check("no unexpected tools exposed", len(names) == 2, f"got {len(names)}: {names}")
+        print("\n[7] tool allowlists are enforced")
+        expected_count = sum(len(tools) for tools in allowlists.values())
+        check(
+            "no unexpected tools exposed",
+            len(names) == expected_count,
+            f"got {len(names)}: {names}",
+        )
 
-        print("\n[7] error path through the manager")
+        print("\n[8] error path through the manager")
         bad = tool_payload(await manager.call_tool(spec, gen_name, {"organism": "   "}))
         check("invalid request does not raise", "candidates" in bad)
         check("candidates empty", bad["candidates"] == [])
@@ -199,7 +252,7 @@ async def main() -> int:
 
     finally:
         await manager.shutdown()
-        print("\n[8] manager shut down cleanly")
+        print("\n[9] manager shut down cleanly")
         check("shutdown completed", True)
 
     print(f"\n{'=' * 70}")

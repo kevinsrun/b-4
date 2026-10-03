@@ -16,8 +16,9 @@ spec_version: 1
 name: bacteriocin-lab
 description: >-
   Orchestrator for an autonomous bacteriocin-discovery loop. Coordinates
-  candidate design, experiment planning, simulated execution and analysis,
-  and never restates a simulated prediction as an experimental finding.
+  literature evidence, candidate design, experiment planning, simulated
+  execution and analysis, and never restates a literature claim or simulated
+  prediction as an experimental finding.
 
 # No executor/llm block on purpose: the model comes from `omnigent config` or
 # `--model`, so the bundle stays portable across whatever credential is
