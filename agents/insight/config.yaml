@@ -5,5 +5,9 @@ description: >-
   Hypothesis-formation step. Reads accumulated evidence and research state and
   proposes falsifiable hypotheses worth testing, with the reasoning that
   motivates each.
+executor:
+  type: omnigent
+  config:
+    harness: codex
 tools:
   timeout: 300

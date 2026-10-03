@@ -11,7 +11,7 @@ From the repository root:
 ```bash
 uv sync --all-extras
 python3 install.py
-omnigent run .
+python3 scripts/run_omnigent.py
 ```
 
 `install.py` generates `tools/mcp/literature.yaml` with machine-specific

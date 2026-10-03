@@ -19,6 +19,7 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from b4_literature.agent import LiteratureEvidenceAgent  # noqa: E402
+from b4_literature.models import SourceDocument  # noqa: E402
 from pydantic import Field, ValidationError  # noqa: E402
 
 logging.basicConfig(
@@ -49,7 +50,7 @@ def _request(
     retrieval_enabled: bool,
     max_results: int,
     timeout_seconds: float,
-    source_documents: list[dict[str, Any]] | None,
+    source_documents: list[SourceDocument] | None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "question": question,
@@ -59,7 +60,9 @@ def _request(
             "max_results": max_results,
             "timeout_seconds": timeout_seconds,
         },
-        "source_documents": source_documents or [],
+        "source_documents": [
+            document.model_dump(mode="json") for document in (source_documents or [])
+        ],
     }
     for key, value in (
         ("query_id", query_id),
@@ -145,7 +148,7 @@ def build_server():
             Field(ge=1, le=60, description="Per-source retrieval timeout in seconds."),
         ] = 15.0,
         source_documents: Annotated[
-            list[dict[str, Any]] | None,
+            list[SourceDocument] | None,
             Field(
                 description=(
                     "Optional bounded source documents with source metadata, text, and "

@@ -9,7 +9,7 @@
 # paths and are therefore generated, not committed.
 #
 #   python3 install.py
-#   omnigent run .
+#   python3 scripts/run_omnigent.py
 
 spec_version: 1
 
@@ -20,9 +20,12 @@ description: >-
   execution and analysis, and never restates a literature claim or simulated
   prediction as an experimental finding.
 
-# No executor/llm block on purpose: the model comes from `omnigent config` or
-# `--model`, so the bundle stays portable across whatever credential is
-# configured. Established by the candidate agent's bundle; kept here.
+# Omnigent 0.16 requires each reasoning agent to name a harness. The model is
+# intentionally not pinned: operators may still select one with `--model`.
+executor:
+  type: omnigent
+  config:
+    harness: codex
 
 tools:
   # Reasoning steps. Each is a directory under agents/ holding its own
