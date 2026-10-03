@@ -21,6 +21,7 @@ Deterministic backends — MCP tools. Same input, same output, no model:
 
 | tool | role |
 |---|---|
+| `literature_evidence` | retrieve and structure literature-derived evidence |
 | `generate_candidates` | propose ranked candidates + falsifiable hypotheses |
 | `describe_agent` | the candidate agent's scope and refusals |
 | `run_experiment` / `run_experiments` | execute one or many simulated experiments |
@@ -38,17 +39,22 @@ Reasoning steps — sub-agents you dispatch:
 
 ## Running one turn of the loop
 
-1. **Candidates.** Call `generate_candidates` with at least
+1. **Evidence.** Call `literature_evidence` when the objective needs published
+   support or experimental conditions. Preserve its citations, missing fields,
+   contradictions, and measured-vs-interpreted distinction. Literature-derived
+   does not mean independently verified.
+
+2. **Candidates.** Call `generate_candidates` with at least
    `{"target": {"organism": "<species>"}}`. Always pass `gram` when you know
    it — without it the envelope-accessibility reasoning is skipped entirely,
    and a Gram-negative-specific candidate can rank highly against a
    Gram-positive target on information gain alone.
 
-2. **Plan.** Dispatch `planner` with the candidates and the objective. It
+3. **Plan.** Dispatch `planner` with the candidates and the objective. It
    returns `ExperimentSpec`s. Call `get_schema("experiment_spec")` first if
    you are unsure of the shape — do not guess it.
 
-3. **Execute.** Call `run_agent` with the specs rather than `run_experiment`
+4. **Execute.** Call `run_agent` with the specs rather than `run_experiment`
    in a loop: it runs the batch, isolates per-spec failures, and returns
    `recommended_next_action`.
 
@@ -58,7 +64,7 @@ Reasoning steps — sub-agents you dispatch:
    carries them. Without it the model falls back to a generic prior and the
    result is not specific to the candidate you named.
 
-4. **Analyse.** Dispatch `analysis` with the results. Then decide whether to
+5. **Analyse.** Dispatch `analysis` with the results. Then decide whether to
    iterate.
 
 ## Reading simulated results
@@ -99,7 +105,11 @@ predict.
 
 ## Honesty
 
-Two separate claims, and you must never merge them:
+Three separate claims, and you must never merge them:
+
+- The literature agent produces **literature-derived evidence**. It preserves
+  measured data and author interpretation separately; automated extraction is
+  not independent proof.
 
 - The candidate agent produces **proposals**. Never evidence of activity.
 - The simulator produces **simulation-derived predictions** — hypotheses to
