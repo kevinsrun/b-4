@@ -1,0 +1,33 @@
+# The simulation experiment backend, spawned as a local stdio MCP server.
+#
+# `command` is an absolute interpreter path on purpose. The subprocess
+# inherits the parent's environment but not its virtualenv, so naming the
+# venv's own python is what guarantees `bacteriocin_sim` and the `mcp` extra
+# are importable. Change this path if the checkout moves.
+name: bacteriocin-sim
+transport: stdio
+command: /Users/temiralimov/Desktop/b-4/.venv/bin/python
+args: ["-m", "bacteriocin_sim.mcp_server"]
+description: >-
+  Computational simulation backend for bacteriocin activity experiments.
+  Predicts a continuous, uncertainty-quantified antimicrobial response from a
+  peptide, a target organism and a set of conditions, and reports which
+  conditions the prediction is most sensitive to. Deterministic: identical
+  input yields byte-identical output.
+
+# Explicit allow-list rather than exposing whatever the server happens to
+# register. A tool that appears in the model's context without anyone
+# deciding it should be there is how a surface grows unnoticed.
+tools:
+  - capabilities
+  - get_schema
+  - run_experiment
+  - run_experiments
+  - run_agent
+  - describe
+  - selftest
+
+# A dose sweep re-runs the ODE for each point and the agent envelope runs
+# every spec in the batch, so a planner exploring a grid can legitimately sit
+# well past a default timeout.
+timeout: 300

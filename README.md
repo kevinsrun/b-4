@@ -95,6 +95,35 @@ python -m bacteriocin_sim sweep --spec examples/spec_nisin_listeria.json \
 python -m bacteriocin_sim selftest
 ```
 
+### As an MCP server
+
+This module is a *tool*, not an agent: it holds no conversation, runs no
+model and takes no decision. So it is exposed to an orchestrator over MCP
+rather than registered as an agent in its own right.
+
+```bash
+uv pip install -e ".[mcp]"
+python -m bacteriocin_sim.mcp_server        # stdio transport
+```
+
+Tools: `capabilities` · `get_schema` · `run_experiment` · `run_experiments` ·
+`run_agent` · `describe` · `selftest`. A `BacteriocinSimError` comes back as
+its structured payload rather than as a protocol error, so the caller keeps
+the distinction between a bad spec, an unavailable backend and a numerical
+failure.
+
+`omnigent/bacteriocin-lab/` is a ready-to-run agent bundle that attaches this
+server and supplies the orchestrating prompt — the part that plans
+experiments, reads the uncertainty output and decides what to run next:
+
+```bash
+omnigent run omnigent/bacteriocin-lab
+```
+
+The server is a transport and nothing else. `tests/test_mcp_server.py`
+asserts a result obtained through MCP is byte-identical to the same result
+obtained from the direct API.
+
 ## What the model actually computes
 
 ### 1. Potency — additive on the log10 MIC scale
@@ -236,7 +265,7 @@ Each result carries `spec_hash`, `parameter_set_hash` and `code_version`.
 ## Tests
 
 ```bash
-python -m pytest tests -q          # 108 tests
+python -m pytest tests -q          # 133 tests (18 need the [mcp] extra; skipped without it)
 python -m bacteriocin_sim selftest # 14 scientific invariants
 ```
 
@@ -266,6 +295,7 @@ bacteriocin_sim/
   registry.py         backend registration and assay-domain routing
   errors.py           SpecValidation / BackendUnavailable / Simulation
   cli.py              run · sweep · agent · schema · capabilities · selftest
+  mcp_server.py       the same surface over MCP (optional [mcp] extra)
   selftest.py         the scientific invariants
   adapters/
     base.py           ExperimentAdapter: the one interface both backends share
@@ -278,4 +308,7 @@ bacteriocin_sim/
     potency.py        structure-activity log10 MIC model
     kinetics.py       coupled peptide/population ODEs
     uncertainty.py    variance budget and sensitivity analysis
+
+omnigent/
+  bacteriocin-lab/    agent bundle: orchestrator prompt + this backend as MCP
 ```
