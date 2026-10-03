@@ -1,0 +1,41 @@
+# The orchestrator for the autonomous bacteriocin-discovery loop.
+#
+# This is the single bundle Omnigent runs. It holds every specialist:
+#
+#   - deterministic backends as MCP servers  -> tools/mcp/*.yaml (generated)
+#   - reasoning steps as sub-agents          -> agents/*/        (auto-discovered)
+#
+# Run install.py first: the MCP declarations carry machine-specific absolute
+# paths and are therefore generated, not committed.
+#
+#   python3 install.py
+#   omnigent run .
+
+spec_version: 1
+
+name: bacteriocin-lab
+description: >-
+  Orchestrator for an autonomous bacteriocin-discovery loop. Coordinates
+  candidate design, experiment planning, simulated execution and analysis,
+  and never restates a simulated prediction as an experimental finding.
+
+# No executor/llm block on purpose: the model comes from `omnigent config` or
+# `--model`, so the bundle stays portable across whatever credential is
+# configured. Established by the candidate agent's bundle; kept here.
+
+tools:
+  # Reasoning steps. Each is a directory under agents/ holding its own
+  # config.yaml and AGENTS.md; Omnigent discovers them automatically, and
+  # listing them here is what makes them callable.
+  #
+  # Deterministic backends are NOT listed here -- they are MCP servers, not
+  # agents. A pure function given an LLM loop costs a model call and loses
+  # the determinism the backends are built to guarantee.
+  agents:
+    - planner
+    - insight
+    - analysis
+
+  # A dose sweep re-runs the ODE at every point and a batch runs every spec,
+  # so a planner exploring a grid can legitimately sit past a short default.
+  timeout: 300

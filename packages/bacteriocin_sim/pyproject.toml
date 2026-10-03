@@ -1,0 +1,26 @@
+[project]
+name = "bacteriocin-sim"
+version = "0.1.0"
+description = "Computational simulation experiment backend for the bacteriocin-discovery lab"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2.7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+# The MCP server is a transport, not part of the model. Keeping it optional
+# means the forward model and its tests stay dependency-light.
+mcp = ["mcp>=1.30"]
+
+[project.scripts]
+bacteriocin-sim = "bacteriocin_sim.cli:main"
+bacteriocin-sim-mcp = "bacteriocin_sim.mcp_server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bacteriocin_sim*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

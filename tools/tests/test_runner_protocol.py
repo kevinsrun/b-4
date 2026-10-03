@@ -26,14 +26,15 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[2]
+REPO = HERE.parents[1]
 
-sys.path.insert(0, str(HERE))
-import install  # noqa: E402  (sibling module, not a package)
+sys.path.insert(0, str(REPO))
+import install  # noqa: E402  (repo-root module, not a package)
 
-DECLARATION = HERE / "agent" / "tools" / "mcp" / "bacteriocin-sim.yaml"
-LAUNCHER = HERE / "mcp_server.py"
-SPEC = json.loads((REPO / "examples" / "spec_nisin_listeria.json").read_text())
+DECLARATION = REPO / "tools" / "mcp" / "runner.yaml"
+LAUNCHER = REPO / "tools" / "launchers" / "runner.py"
+PACKAGE = REPO / "packages" / "bacteriocin_sim"
+SPEC = json.loads((PACKAGE / "examples" / "spec_nisin_listeria.json").read_text())
 
 EXPECTED_TOOLS = {
     "capabilities",
@@ -81,11 +82,11 @@ def check_declaration() -> None:
     if not DECLARATION.is_file():
         raise SystemExit(
             f"error: {DECLARATION} is missing.\n"
-            "  run: python3 integrations/omnigent/simulation/install.py"
+            "  run: python3 install.py"
         )
     text = DECLARATION.read_text()
     check("names the launcher by absolute path", str(LAUNCHER) in text)
-    check("sets PYTHONPATH to the repository root", f'PYTHONPATH: "{REPO}"' in text)
+    check("sets PYTHONPATH to the package", f'PYTHONPATH: "{PACKAGE}"' in text)
     check("keeps logs off stdout", "BACTERIOCIN_LOG_LEVEL" in text)
     # A ${VAR} left in command/args would be passed through literally by
     # Omnigent and the spawn would fail with a confusing ENOENT. Only the
@@ -112,7 +113,7 @@ async def check_protocol() -> None:
     params = StdioServerParameters(
         command=str(python),
         args=[str(LAUNCHER)],
-        env={"PYTHONPATH": str(REPO), "BACTERIOCIN_LOG_LEVEL": "WARNING"},
+        env={"PYTHONPATH": str(PACKAGE), "BACTERIOCIN_LOG_LEVEL": "WARNING"},
         # Deliberately not the repo: proves the launcher's own path setup works
         # rather than the cwd quietly making the import succeed.
         cwd=str(Path.home()),

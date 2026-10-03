@@ -1,0 +1,9 @@
+# Interprets results and says what was actually learned.
+spec_version: 1
+name: analysis
+description: >-
+  Analysis step. Interprets experiment results against the hypotheses that
+  motivated them, updates confidence, and states what was learned and what
+  remains unresolved.
+tools:
+  timeout: 300

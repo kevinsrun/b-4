@@ -1,26 +1,55 @@
+# Workspace root. The two agents are separate installable packages under
+# packages/, each with its own pyproject.toml, dependencies and tests --
+# they are deployed independently and should version independently.
+#
+# This file exists to make the repository installable in one step and to hold
+# the settings that genuinely are repository-wide.
+#
+#   uv sync                                        # both packages, editable
+#   uv pip install -e "packages/bacteriocin_sim[mcp]"
+#   pytest                                         # both test suites
+
 [project]
-name = "bacteriocin-sim"
+name = "bacteriocin-lab"
 version = "0.1.0"
-description = "Computational simulation experiment backend for the Omnigent bacteriocin-discovery lab"
-requires-python = ">=3.10"
-dependencies = ["pydantic>=2.7"]
+description = "Autonomous bacteriocin-discovery lab: candidate design and simulated experiment execution"
+# The union of the two packages' floors. bacteriocin_discovery requires 3.11,
+# so the workspace cannot claim 3.10 even though bacteriocin_sim supports it.
+requires-python = ">=3.11"
+dependencies = [
+    "bacteriocin-sim",
+    "bacteriocin-discovery",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
-# The MCP server is a transport, not part of the model. Keeping it optional
-# means the forward model and its tests stay dependency-light.
 mcp = ["mcp>=1.30"]
 
-[project.scripts]
-bacteriocin-sim = "bacteriocin_sim.cli:main"
-bacteriocin-sim-mcp = "bacteriocin_sim.mcp_server:main"
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+bacteriocin-sim = { workspace = true }
+bacteriocin-discovery = { workspace = true }
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-include = ["bacteriocin_sim*"]
+[tool.setuptools]
+# The root is a workspace, not a package: nothing to discover here.
+packages = []
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+# Both suites run from the root; each package's layout concerns stay inside
+# that package.
+testpaths = ["packages/bacteriocin_sim/tests", "packages/bacteriocin_discovery/tests"]
+pythonpath = ["packages/bacteriocin_sim", "packages/bacteriocin_discovery/src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
