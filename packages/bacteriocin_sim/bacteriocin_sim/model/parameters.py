@@ -81,6 +81,20 @@ GLOBAL: dict[str, float] = {
     "sigma_generic_peptide_logit": 1.40,
     "sigma_unknown_class_logit": 0.45,
     "sigma_unknown_target_logit": 1.10,
+    # --- ignorance expressed in MIC decades, not logit units ---
+    #
+    # Not knowing which peptide you have, or which organism, is an uncertainty
+    # about the *MIC*, not about the response. Expressing it here lets it be
+    # propagated by re-running the forward model -- the same treatment the
+    # organism's own MIC prior gets -- instead of being bolted onto the total
+    # afterwards. See ``SimulationAdapter._build_budget``.
+    #
+    # Both are coarse, like every prior in this file. Bacteriocin MICs span
+    # four to five decades across the family, so not knowing the peptide is a
+    # large but not total ignorance; the organism term sits on top of the
+    # envelope fallback's own width, which already encodes some of it.
+    "sigma_generic_peptide_log10_mic": 1.20,
+    "sigma_unknown_target_log10_mic": 0.80,
 }
 
 # --------------------------------------------------------------------------
