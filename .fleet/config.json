@@ -233,6 +233,12 @@
   "ci": {
     "setup": [
       {
+        "id": "sync-all-extras",
+        "label": "Install all verification dependencies",
+        "command": "uv",
+        "args": ["sync", "--all-extras", "--frozen"]
+      },
+      {
         "id": "generate-omnigent-mcp",
         "label": "Generate Omnigent MCP declarations",
         "command": "uv",

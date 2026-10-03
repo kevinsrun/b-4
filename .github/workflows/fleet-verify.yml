@@ -24,6 +24,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -51,6 +54,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -78,6 +84,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -105,6 +114,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -132,6 +144,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -159,6 +174,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
@@ -186,6 +204,9 @@ jobs:
           version: '0.8.22'
       - name: Install Python dependencies
         run: uv sync --frozen
+      - name: 'Install all verification dependencies'
+        run: |
+          'uv' 'sync' '--all-extras' '--frozen'
       - name: 'Generate Omnigent MCP declarations'
         run: |
           'uv' 'run' 'python' 'install.py'
