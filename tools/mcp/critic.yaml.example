@@ -1,0 +1,32 @@
+# EXAMPLE ONLY -- not loaded by Omnigent. Run `python3 install.py` to generate
+# Re-run that script after moving the repository or changing interpreter.
+#
+# Omnigent expands ${VAR} in `env` but NOT in `command` or `args` (its parser
+# documents those as literals), so the paths below are resolved absolutes.
+
+name: critic
+transport: stdio
+description: >-
+  Scientific critic / safety agent. Reviews claims BEFORE the loop accepts
+  them: checks that conclusions follow from results, that simulated evidence
+  is never described as experimentally validated, that coverage, controls and
+  uncertainty support the wording, and routes work back when they do not.
+  Does not approve by default.
+
+command: "/absolute/path/to/python"
+args:
+  - "/absolute/path/to/repo/tools/launchers/critic.py"
+
+env:
+  PYTHONPATH: "/absolute/path/to/repo/packages/critic_agent/src"
+  # stdio is the MCP channel, so logs must stay off stdout.
+  BACTERIOCIN_LOG_LEVEL: "WARNING"
+
+# Only these tools reach the model.
+tools:
+  - review_claims
+  - run_agent
+  - describe
+  - get_schema
+
+timeout: 60

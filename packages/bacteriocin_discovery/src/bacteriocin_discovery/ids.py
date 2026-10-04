@@ -30,6 +30,7 @@ _PREFIXES = {
     "result": "res",
     "finding": "find",
     "run": "run",
+    "review": "rev",
 }
 
 
