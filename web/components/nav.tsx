@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/candidates", label: "Candidates" },
   { href: "/design", label: "Design" },
   { href: "/evidence", label: "Evidence" },
+  { href: "/knowledge", label: "State" },
   { href: "/agents", label: "Agents" },
 ];
 
@@ -51,7 +52,7 @@ export function Nav() {
         </Link>
       </div>
       {/* On small screens the section links move below the wordmark rather than
-          collapsing into a menu: there are six of them and the row scrolls. */}
+          collapsing into a menu: there are seven of them and the row scrolls. */}
       <ul className="flex items-center gap-1 overflow-x-auto border-t border-line px-2 md:hidden">
         {LINKS.map((link) => {
           const active = pathname === link.href;

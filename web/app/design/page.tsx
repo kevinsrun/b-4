@@ -26,6 +26,9 @@ import { Empty, Failure, Field, Hairline, Id, Meter, Panel, Status, Uncertaintie
 import { api } from "@/lib/api";
 import { fixed, plain, residueClass, scientific, sig, titleCase } from "@/lib/format";
 import type {
+  CalibratedPrediction,
+  CalibrationFields,
+  CalibrationSummary,
   DesignedCandidate,
   DesignRecommendation,
   DesignScoreComponents,
@@ -33,7 +36,10 @@ import type {
   DesignTier,
   KnownDesignCandidate,
   NaturalVariantCandidate,
+  PtmProfile,
+  ScenarioProfile,
   TargetDesignResult,
+  ValidationExperiment,
 } from "@/lib/types";
 
 const TARGETS = [
@@ -198,6 +204,8 @@ export default function DesignPage() {
           <>
             <Ladder result={result} counts={counts} />
 
+            <CalibrationBanner summary={result.calibration_summary} />
+
             {result.recommendations.length > 0 && (
               <Panel
                 title="What it recommends"
@@ -239,6 +247,19 @@ export default function DesignPage() {
                 {result.designed_candidates.map((candidate) => (
                   <DesignCard key={candidate.candidate_id} candidate={candidate} />
                 ))}
+              </Panel>
+            )}
+
+            {result.recommended_validation_experiment?.candidate_id && (
+              <Panel
+                title="Recommended validation experiment"
+                aside={
+                  <span className="num text-[11px] text-faint">
+                    chosen to reduce uncertainty, not to confirm a winner
+                  </span>
+                }
+              >
+                <ValidationExperimentPanel experiment={result.recommended_validation_experiment} />
               </Panel>
             )}
 
@@ -494,23 +515,104 @@ function Sequence({ sequence }: { sequence: string }) {
   );
 }
 
-/** Predicted figures, always under a simulation tag. */
-function Predictions({ metrics }: { metrics?: DesignSimulationMetrics }) {
-  if (!metrics) return null;
+/**
+ * Predicted figures, always under a simulation tag.
+ *
+ * A calibrated value supersedes the raw one where it exists, and the interval
+ * travels with the score rather than sitting in a tooltip: when the mode is an
+ * uncalibrated prior the interval is most of what the number is worth knowing
+ * about. Where no calibrated value exists the raw one is shown and labelled as
+ * raw, rather than quietly presented as if it had been fitted.
+ */
+function Predictions({
+  metrics,
+  calibration,
+}: {
+  metrics?: DesignSimulationMetrics;
+  calibration?: CalibratedPrediction | null;
+}) {
+  if (!metrics && !calibration) return null;
+  const mic = calibration?.calibrated_mic_um ?? metrics?.predicted_mic_um;
+  const micIsCalibrated =
+    calibration?.calibrated_mic_um !== null && calibration?.calibrated_mic_um !== undefined;
+  const interval = calibration?.uncertainty_interval;
+  const prior = calibration?.calibration_mode === "uncalibrated_prior";
+
   return (
-    <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4">
-      <Field label="predicted inhibition" value={fixed(metrics.predicted_inhibition, 3)} tone="cyan" />
-      <Field label="log₁₀ reduction" value={fixed(metrics.predicted_log10_reduction, 2)} tone="cyan" />
-      <Field
-        label="MIC"
-        value={
-          metrics.predicted_mic_um === null || metrics.predicted_mic_um === undefined
-            ? "—"
-            : `${scientific(metrics.predicted_mic_um)} µM`
-        }
-        tone="cyan"
-      />
-      <Field label="confidence" value={fixed(metrics.confidence, 3)} />
+    <div className="space-y-2.5">
+      <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4">
+        <Field label="predicted inhibition" value={fixed(metrics?.predicted_inhibition, 3)} tone="cyan" />
+        <Field label="log₁₀ reduction" value={fixed(metrics?.predicted_log10_reduction, 2)} tone="cyan" />
+        <Field
+          label={micIsCalibrated ? "MIC (calibrated)" : "MIC (raw)"}
+          value={mic === null || mic === undefined ? "—" : `${scientific(mic)} µM`}
+          tone="cyan"
+          hint={micIsCalibrated ? undefined : "no calibrated value for this target"}
+        />
+        <Field
+          label="confidence"
+          value={fixed(calibration?.confidence ?? metrics?.confidence, 3)}
+        />
+      </div>
+      {interval && (
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-[11px] text-faint">score interval</span>
+          <span className="num text-[12px] text-text">
+            {fixed(interval[0], 3)} – {fixed(interval[1], 3)}
+          </span>
+          {prior && (
+            <span className="text-[11px] text-amber">
+              uncalibrated prior — the width is the point
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The run-level calibration state. An extrapolative prediction is one made
+ * where the model has no observations at all, which matters more than any
+ * single number on the page, so it is stated at the top in the agent's own
+ * words rather than folded into a per-card footnote.
+ */
+function CalibrationBanner({ summary }: { summary?: CalibrationSummary }) {
+  if (!summary) return null;
+  const reasons = summary.extrapolation_reasons ?? [];
+  if (!summary.is_extrapolative) {
+    return (
+      <Panel title="Calibration">
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
+          <Field label="calibrated" value={summary.calibrated ? "true" : "false"} />
+          <Field
+            label="observations"
+            value={String(summary.calibration_observations_count ?? "—")}
+            hint="empirical points behind the calibration"
+          />
+        </div>
+      </Panel>
+    );
+  }
+  return (
+    <div className="border border-amber/35 bg-amber/6 px-4 py-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h3 className="text-[13px] font-medium text-amber">Extrapolative</h3>
+        <span className="num text-[11px] text-amber/80">
+          {summary.calibration_observations_count ?? 0} observations, none for this target
+        </span>
+      </div>
+      <ul className="mt-2 space-y-1">
+        {reasons.map((reason, i) => (
+          <li key={i} className="max-w-[86ch] text-[12.5px] leading-relaxed text-amber/90">
+            {plain(reason)}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 max-w-[86ch] text-[12px] leading-relaxed text-muted">
+        Every number below is a prior carried in from other targets, not an
+        estimate fitted to this one. Read the intervals, not the point values.
+      </p>
     </div>
   );
 }
@@ -552,6 +654,139 @@ function Components({ components }: { components: DesignScoreComponents }) {
         ))}
       </ul>
     </details>
+  );
+}
+
+/**
+ * Post-translational modification.
+ *
+ * This is the one block that can invalidate a sequence outright: a lasso
+ * peptide or a lantibiotic is not its amino-acid string, it is what the
+ * producer's enzymes make of that string. A candidate whose topology is
+ * unconfirmed is a weaker claim than its score suggests, so that is said here
+ * rather than left to be inferred from a class name.
+ */
+function Ptm({ profile }: { profile?: PtmProfile | null }) {
+  if (!profile?.is_ptm_dependent) return null;
+  const sites = profile.modification_sites ?? [];
+  return (
+    <details className="group">
+      <summary className="cursor-pointer text-[11.5px] text-faint transition-colors hover:text-muted">
+        Post-translational modification{" "}
+        <span className="text-amber">
+          {profile.mature_topology_confirmed ? "" : "— mature topology unconfirmed"}
+        </span>
+      </summary>
+      <div className="mt-2.5 space-y-3">
+        <div className="flex flex-wrap gap-x-7 gap-y-3">
+          <Field label="class" value={profile.ptm_class?.replace(/_/g, " ") ?? "—"} />
+          <Field
+            label="structural uncertainty"
+            value={fixed(profile.structural_uncertainty_score, 2)}
+            tone="amber"
+          />
+          <Field
+            label="needs host enzymes"
+            value={profile.requires_enzymatic_machinery ? "true" : "false"}
+            tone={profile.requires_enzymatic_machinery ? "amber" : "default"}
+            hint={
+              profile.requires_enzymatic_machinery
+                ? "the sequence alone is not the molecule"
+                : undefined
+            }
+          />
+        </div>
+        {sites.length > 0 && (
+          <ul className="space-y-1.5">
+            {sites.map((site, i) => (
+              <li key={i} className="flex flex-wrap items-baseline gap-x-2.5">
+                <span className="num text-[12px] text-cyan">
+                  {site.residue}
+                  {site.position}
+                </span>
+                <span className="text-[11px] text-faint">
+                  {site.modification_type.replace(/_/g, " ")}
+                </span>
+                {site.description && (
+                  <span className="max-w-[60ch] text-[11.5px] leading-snug text-muted">
+                    {plain(site.description)}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </details>
+  );
+}
+
+/** How much activity survives each environment the agent modelled. */
+function Scenarios({ profiles }: { profiles?: ScenarioProfile[] }) {
+  if (!profiles?.length) return null;
+  return (
+    <details className="group">
+      <summary className="cursor-pointer text-[11.5px] text-faint transition-colors hover:text-muted">
+        Scenarios ({profiles.length})
+      </summary>
+      <ul className="mt-2.5 space-y-3">
+        {profiles.map((scenario) => {
+          const limits = scenario.limiting_factors ?? [];
+          return (
+            <li key={scenario.scenario_id}>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-[12.5px] text-text">{scenario.scenario_name}</span>
+                <div className="w-24">
+                  <Meter
+                    value={scenario.predicted_activity_retention}
+                    tone={
+                      (scenario.predicted_activity_retention ?? 1) < 0.5 ? "amber" : "cyan"
+                    }
+                    label={`activity retained in ${scenario.scenario_name}`}
+                  />
+                </div>
+                <span className="text-[11px] text-faint">retained</span>
+              </div>
+              {scenario.description && (
+                <p className="mt-0.5 max-w-[76ch] text-[11.5px] leading-snug text-faint">
+                  {plain(scenario.description)}
+                </p>
+              )}
+              {limits.length > 0 && (
+                <p className="mt-0.5 max-w-[76ch] text-[11.5px] leading-snug text-amber/90">
+                  limited by {limits.map((l) => l.replace(/_/g, " ")).join(", ")}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  );
+}
+
+/**
+ * What the active-learning layer says about testing this candidate next.
+ * Acquisition is not a measure of how good the candidate is — it is how much
+ * testing it would teach — so the two are not shown side by side as if they
+ * were comparable.
+ */
+function Acquisition({ candidate }: { candidate: CalibrationFields }) {
+  if (candidate.acquisition_score === null || candidate.acquisition_score === undefined) return null;
+  return (
+    <div className="flex flex-wrap gap-x-7 gap-y-3 border-t border-line pt-3">
+      <Field
+        label="acquisition"
+        value={fixed(candidate.acquisition_score, 3)}
+        hint="how much testing it would teach"
+      />
+      <Field
+        label="epistemic uncertainty"
+        value={fixed(candidate.epistemic_uncertainty, 3)}
+        tone={(candidate.epistemic_uncertainty ?? 0) >= 1 ? "amber" : "default"}
+        hint={(candidate.epistemic_uncertainty ?? 0) >= 1 ? "nothing known for this target" : undefined}
+      />
+    </div>
   );
 }
 
@@ -606,8 +841,11 @@ function KnownCard({ candidate }: { candidate: KnownDesignCandidate }) {
         />
       </div>
       <Sequence sequence={candidate.sequence} />
-      <Predictions metrics={candidate.simulation_metrics} />
+      <Predictions metrics={candidate.simulation_metrics} calibration={candidate.calibrated_prediction} />
+      <Ptm profile={candidate.ptm_profile} />
+      <Scenarios profiles={candidate.scenario_profiles} />
       <Components components={candidate.components} />
+      <Acquisition candidate={candidate} />
     </CardShell>
   );
 }
@@ -634,8 +872,11 @@ function VariantCard({ candidate }: { candidate: NaturalVariantCandidate }) {
         />
       </div>
       <Sequence sequence={candidate.sequence} />
-      <Predictions metrics={candidate.simulation_metrics} />
+      <Predictions metrics={candidate.simulation_metrics} calibration={candidate.calibrated_prediction} />
+      <Ptm profile={candidate.ptm_profile} />
+      <Scenarios profiles={candidate.scenario_profiles} />
       <Components components={candidate.components} />
+      <Acquisition candidate={candidate} />
     </CardShell>
   );
 }
@@ -716,7 +957,9 @@ function DesignCard({ candidate }: { candidate: DesignedCandidate }) {
       )}
 
       <Sequence sequence={candidate.sequence} />
-      <Predictions metrics={metrics} />
+      <Predictions metrics={metrics} calibration={candidate.calibrated_prediction} />
+      <Ptm profile={candidate.ptm_profile} />
+      <Scenarios profiles={candidate.scenario_profiles} />
 
       <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {properties.length > 0 && (
@@ -774,6 +1017,7 @@ function DesignCard({ candidate }: { candidate: DesignedCandidate }) {
       )}
 
       <Components components={candidate.components} />
+      <Acquisition candidate={candidate} />
     </CardShell>
   );
 }
@@ -801,6 +1045,50 @@ function NextExperiment({
           <div className="text-[11px] text-faint">Suggested concentrations (µM)</div>
           <div className="num mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-text">
             {concentrations.map((value, i) => (
+              <span key={i}>{sig(value, 3)}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The validation experiment the active-learning layer picked.
+ *
+ * It answers a different question from the dose-response sweep above: not
+ * "what should we look at next" but "which single measurement would most
+ * reduce what we do not know". Its own rationale states the acquisition
+ * arithmetic, so it is shown verbatim rather than summarised.
+ */
+function ValidationExperimentPanel({ experiment }: { experiment: ValidationExperiment }) {
+  const series = experiment.dilution_series_um ?? [];
+  return (
+    <div className="space-y-3.5">
+      <div className="flex flex-wrap gap-x-7 gap-y-3">
+        <Field label="candidate" value={experiment.candidate_name ?? experiment.candidate_id ?? "—"} />
+        <Field label="rung" value={String(experiment.tier ?? "—").replace(/_/g, " ")} />
+        <Field label="assay" value={experiment.recommended_assay?.replace(/_/g, " ") ?? "—"} />
+        <Field
+          label="anchor MIC"
+          value={
+            experiment.anchor_mic_um === null || experiment.anchor_mic_um === undefined
+              ? "—"
+              : `${scientific(experiment.anchor_mic_um)} µM`
+          }
+        />
+      </div>
+      {experiment.information_gain_rationale && (
+        <p className="max-w-[88ch] text-[12.5px] leading-relaxed text-muted">
+          {plain(experiment.information_gain_rationale)}
+        </p>
+      )}
+      {series.length > 0 && (
+        <div>
+          <div className="text-[11px] text-faint">Dilution series (µM)</div>
+          <div className="num mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-text">
+            {series.map((value, i) => (
               <span key={i}>{sig(value, 3)}</span>
             ))}
           </div>

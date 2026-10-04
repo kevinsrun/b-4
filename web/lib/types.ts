@@ -475,7 +475,7 @@ export interface DesignScoreComponents {
   [key: string]: number | undefined;
 }
 
-export interface KnownDesignCandidate {
+export interface KnownDesignCandidate extends CalibrationFields {
   candidate_id: string;
   name: string;
   sequence: string;
@@ -490,7 +490,7 @@ export interface KnownDesignCandidate {
   simulation_metrics?: DesignSimulationMetrics;
 }
 
-export interface NaturalVariantCandidate {
+export interface NaturalVariantCandidate extends CalibrationFields {
   candidate_id: string;
   parent_candidate_id: string;
   name: string;
@@ -519,7 +519,7 @@ export interface DesignMutation {
   rationale?: string | null;
 }
 
-export interface DesignedCandidate {
+export interface DesignedCandidate extends CalibrationFields {
   candidate_id: string;
   parent_candidate_id: string;
   sequence: string;
@@ -579,6 +579,9 @@ export interface TargetDesignResult {
   limitations: string[];
   provenance: Record<string, unknown>;
   recommendations: DesignRecommendation[];
+  calibration_summary?: CalibrationSummary;
+  recommended_validation_experiment?: ValidationExperiment;
+  iteration?: number;
   /** Explicitly non-operational: no wet-lab or engineering instructions. */
   future_production_concept: {
     status?: string;
@@ -586,4 +589,136 @@ export interface TargetDesignResult {
     producer_compatibility?: string;
     notes?: string[];
   };
+}
+
+/* --- calibration, PTM and scenarios (added with the active-learning pass) ---
+ *
+ * These qualify the predictions above rather than adding new ones. A raw score
+ * and a calibrated score are different claims, and a prediction made where the
+ * model has no observations is a third thing again — so the interval and the
+ * extrapolation flag travel with the number they qualify.
+ */
+
+export interface CalibratedPrediction {
+  raw_score?: number | null;
+  raw_mic_um?: number | null;
+  calibrated_score?: number | null;
+  calibrated_mic_um?: number | null;
+  confidence?: number | null;
+  /** [low, high] on the calibrated score. */
+  uncertainty_interval?: [number, number] | null;
+  /** "uncalibrated_prior" means the number is a prior, not a fitted estimate. */
+  calibration_mode?: string;
+  is_extrapolative?: boolean;
+  extrapolation_reasons?: string[];
+}
+
+export interface PtmModificationSite {
+  position: number;
+  residue: string;
+  modification_type: string;
+  description?: string;
+}
+
+export interface PtmProfile {
+  is_ptm_dependent?: boolean;
+  ptm_class?: string;
+  structural_uncertainty_score?: number;
+  /** The peptide needs host enzymes to mature — a sequence alone is not the molecule. */
+  requires_enzymatic_machinery?: boolean;
+  mature_topology_confirmed?: boolean;
+  modification_sites?: PtmModificationSite[];
+}
+
+export interface ScenarioProfile {
+  scenario_id: string;
+  scenario_name: string;
+  description?: string;
+  predicted_activity_retention?: number;
+  limiting_factors?: string[];
+  matrix_effects?: Record<string, unknown>;
+}
+
+export interface CalibrationSummary {
+  calibrated?: boolean;
+  calibration_observations_count?: number;
+  is_extrapolative?: boolean;
+  extrapolation_reasons?: string[];
+}
+
+export interface ValidationExperiment {
+  experiment_id?: string;
+  candidate_id?: string;
+  candidate_name?: string;
+  tier?: DesignTier | string;
+  sequence?: string;
+  target?: Record<string, unknown>;
+  recommended_assay?: string;
+  dilution_series_um?: number[];
+  anchor_mic_um?: number | null;
+  information_gain_rationale?: string;
+}
+
+/** Carried by every tier, so it is mixed into each rather than repeated. */
+export interface CalibrationFields {
+  calibrated_prediction?: CalibratedPrediction | null;
+  ptm_profile?: PtmProfile | null;
+  scenario_profiles?: ScenarioProfile[];
+  acquisition_score?: number | null;
+  epistemic_uncertainty?: number | null;
+  calibrated_score?: number | null;
+  calibrated_mic_um?: number | null;
+  uncertainty_interval?: [number, number] | null;
+}
+
+/* --- knowledge (research state) ------------------------------------------
+ *
+ * Read-only. Writing to the research state belongs to the loop, and the API
+ * exposes only these three queries.
+ */
+
+export type KnowledgeOperation = "summary" | "open-questions" | "integrity";
+
+export interface KnowledgeEnvelope {
+  agent: string;
+  decision: {
+    operation: string;
+    status: "ok" | "error" | string;
+    error?: string;
+    result?: Record<string, unknown>;
+  };
+  evidence: unknown[];
+  confidence: number;
+  uncertainties: (Uncertainty | string)[];
+  artifacts: Record<string, unknown>;
+  warnings: string[];
+  recommended_next_action?: unknown;
+  model_version?: string;
+}
+
+/** What `summary` returns under `decision.result`. */
+export interface KnowledgeSummary {
+  iteration?: number;
+  event_count?: number;
+  last_event_hash?: string | null;
+  objective?: Record<string, unknown>;
+  counts?: {
+    candidates?: Record<string, number>;
+    hypotheses?: Record<string, number>;
+    experiments?: number;
+    results?: number;
+    findings?: number;
+    evidence?: number;
+  };
+  provenance?: string;
+  hypotheses?: Record<string, unknown>[];
+  rejected_hypotheses?: Record<string, unknown>[];
+  rejected_candidates?: Record<string, unknown>[];
+  latest_ranking?: unknown;
+  known_relationships?: Record<string, unknown>[];
+  open_questions?: Record<string, unknown>[];
+  n_open_questions?: number;
+  active_uncertainties?: (Uncertainty | string)[];
+  model_versions?: string[];
+  model_version_warning?: string | null;
 }
