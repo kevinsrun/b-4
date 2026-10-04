@@ -58,6 +58,7 @@ __all__ = [
     "Finding",
     "Hypothesis",
     "Measurement",
+    "OrchestrationError",
     "RecommendedNextAction",
     "ResearchObjective",
     "ResearchState",
@@ -135,6 +136,7 @@ class Candidate(BaseModel):
     score_total: float = Field(default=0.0, ge=0.0)
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     features: dict[str, Any] = Field(default_factory=dict)
+    evidence_ids: list[str] = Field(default_factory=list)
     falsified_if: str | None = None
     # Shared contract rule 9: Proposals only, unvalidated
     validation_status: str = "unvalidated"
@@ -150,6 +152,11 @@ class Hypothesis(BaseModel):
     candidate_id: str | None = None
     statement: str
     prediction: str | None = None
+    predicted_direction: Literal["inhibition", "no-effect", "conditional"] | None = None
+    predicted_inhibition_fraction: float | None = Field(default=None, ge=0.0, le=1.0)
+    expected_relationship: dict[str, Any] | None = None
+    key_conditions: dict[str, Any] = Field(default_factory=dict)
+    tolerance: float | None = Field(default=None, gt=0.0, le=1.0)
     status: Literal["open", "supported", "contradicted", "weakened", "rejected"] = "open"
     prior_plausibility: float = Field(default=0.5, ge=0.0, le=1.0)
     posterior_probability: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -171,8 +178,12 @@ class Finding(BaseModel):
     candidate_ids: list[str] = Field(default_factory=list)
     hypothesis_ids: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
+    result_ids: list[str] = Field(default_factory=list)
     factor_sensitivities: dict[str, float] = Field(default_factory=dict)
     recommendations: list[str] = Field(default_factory=list)
+    uncertainties: list[str | Uncertainty] = Field(default_factory=list)
+    provenance_note: str | None = None
+    analysis_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class Review(BaseModel):
@@ -192,6 +203,11 @@ class Review(BaseModel):
     recommendation: dict[str, Any] = Field(default_factory=dict)
     reviewer: str = "scientific_critic"
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    issues: list[dict[str, Any]] = Field(default_factory=list)
+    required_followups: list[dict[str, Any]] = Field(default_factory=list)
+    uncertainties: list[str | Uncertainty] = Field(default_factory=list)
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    critic_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class ScientificEvent(BaseModel):
@@ -208,6 +224,29 @@ class ScientificEvent(BaseModel):
     timestamp: str | None = None
 
 
+class OrchestrationError(BaseModel):
+    """Machine-readable failure classification retained alongside compatibility strings."""
+
+    model_config = _BASE_CONFIG
+
+    error_type: Literal[
+        "cycle_detected",
+        "visit_limit",
+        "route_validation",
+        "unknown_agent",
+        "invalid_agent_output",
+        "state_integrity",
+        "invariant_violation",
+        "backend_unavailable",
+        "agent_execution",
+        "failure_limit",
+        "unknown",
+    ] = "unknown"
+    message: str
+    retryable: bool = False
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
 class ExecutionTraceItem(BaseModel):
     """One traceable agent invocation record."""
 
@@ -221,6 +260,7 @@ class ExecutionTraceItem(BaseModel):
     routing_reason: str = ""
     status: Literal["success", "failure", "skipped"] = "success"
     error: str | None = None
+    error_info: OrchestrationError | None = None
     timestamp: str | None = None
 
 
@@ -258,6 +298,11 @@ class ResearchState(BaseModel):
     scientific_history: list[ScientificEvent] = Field(default_factory=list)
     tested_candidate_ids: list[str] = Field(default_factory=list)
     settled_candidate_ids: list[str] = Field(default_factory=list)
+    # The real Knowledge Agent's shared state is the durable scientific projection. The list-based
+    # fields remain the workflow view for compatibility while this bridge is incrementally filled.
+    knowledge_state: dict[str, Any] | None = None
+    resume_agent: str | None = None
+    resume_route: dict[str, Any] | None = None
 
     @property
     def all_results(self) -> list[ExperimentResult]:
@@ -295,7 +340,10 @@ class DiscoveryResult(BaseModel):
     final_state: dict[str, Any]
     execution_trace: list[dict[str, Any]]
     iterations_completed: int
+    # ``errors`` stays as human-readable compatibility text; ``error_details`` is authoritative
+    # for machine consumers and avoids forcing downstream clients to parse prose.
     errors: list[str] = Field(default_factory=list)
+    error_details: list[OrchestrationError] = Field(default_factory=list)
     summary: dict[str, Any] = Field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

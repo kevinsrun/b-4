@@ -16,6 +16,7 @@ from .types import (
     ResearchObjective,
     ResearchState,
     Route,
+    OrchestrationError,
     make_run_id,
 )
 
@@ -77,8 +78,25 @@ class DiscoveryWorkflowEngine:
 
         status: str = "completed"
         errors: list[str] = []
-        last_agent: str | None = None
-        last_route: Route | None = None
+        error_details: list[OrchestrationError] = []
+        last_agent: str | None = state.resume_agent
+        last_route: Route | None = (
+            Route.model_validate(state.resume_route) if state.resume_route else None
+        )
+
+        def record_error(
+            error_type: str,
+            message: str,
+            *,
+            retryable: bool = False,
+            details: dict[str, Any] | None = None,
+        ) -> OrchestrationError:
+            structured = OrchestrationError(
+                error_type=error_type, message=message, retryable=retryable, details=details or {}
+            )
+            errors.append(message)
+            error_details.append(structured)
+            return structured
 
         while True:
             # 1. Check max iterations
@@ -89,6 +107,30 @@ class DiscoveryWorkflowEngine:
 
             # 2. Determine next route
             route = router.determine_next_route(state, last_agent=last_agent, last_route=last_route)
+            # The real critic returns a structured follow-up agent. Honour that recommendation
+            # when its conservative verdict maps to ``needs_more_evidence``; otherwise the legacy
+            # router's generic evidence detour can generate a new candidate before the requested
+            # replication is run, making the critic's two-result floor impossible to satisfy.
+            if last_agent == "critic" and state.reviews:
+                latest_review = state.reviews[-1]
+                recommended = latest_review.recommendation.get("agent")
+                canonical = self.registry.canonical_role(str(recommended)) if recommended else None
+                if (
+                    latest_review.reviewer == "scientific_critic_agent"
+                    and latest_review.status == "needs_more_evidence"
+                    and canonical in {"evidence", "candidate", "planner", "analysis"}
+                ):
+                    route = Route(
+                        # Persist the conservative review through the real Knowledge Agent before
+                        # dispatching the recommended follow-up.  This keeps every adaptive turn
+                        # durable without treating a worker's non-approval as a terminal decision.
+                        next_agent="knowledge",
+                        reason=(
+                            "Persist real critic follow-up before "
+                            f"{canonical}: {latest_review.recommendation.get('reason') or latest_review.critique}"
+                        ),
+                        required_inputs=["findings"],
+                    )
 
             # 3. Check terminal route
             if route.terminal:
@@ -102,7 +144,7 @@ class DiscoveryWorkflowEngine:
             is_cycle, cycle_reason = loop_guards.check_cycle(route)
             if is_cycle:
                 status = "stopped"
-                errors.append(cycle_reason)
+                record_error("cycle_detected", cycle_reason, retryable=False)
                 break
 
             # 5. Check per-iteration agent visit guard
@@ -111,13 +153,17 @@ class DiscoveryWorkflowEngine:
             )
             if not allowed_visit:
                 status = "stopped"
-                errors.append(visit_err)
+                record_error("visit_limit", visit_err, retryable=False)
                 break
 
             # 6. Validate route required inputs before dispatch
             valid_inputs, input_err = router.validate_inputs_for_route(route, state)
             if not valid_inputs:
-                errors.append(f"Route validation error: {input_err}")
+                record_error(
+                    "route_validation",
+                    f"Route validation error: {input_err}",
+                    retryable=route.next_agent in {"evidence", "candidate", "planner"},
+                )
                 # Fall back safely
                 if route.next_agent == "planner":
                     route = Route(next_agent="candidate", reason=f"Safe fallback: {input_err}")
@@ -149,9 +195,9 @@ class DiscoveryWorkflowEngine:
             # retrying cannot fix it, so fail immediately with the state untouched.
             if not self.registry.has(route.next_agent):
                 msg = f"Routing error: no agent registered for route target '{route.next_agent}'"
-                trace.record_failure(trace_id, error=msg)
+                structured = record_error("unknown_agent", msg, retryable=False)
+                trace.record_failure(trace_id, error=msg, error_info=structured)
                 loop_guards.record_failure(state.iteration, route.next_agent)
-                errors.append(msg)
                 status = "failed"
                 break
 
@@ -182,21 +228,28 @@ class DiscoveryWorkflowEngine:
 
                 last_agent = route.next_agent
                 last_route = route
+                state.resume_agent = last_agent
+                state.resume_route = route.model_dump(mode="json")
 
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 # Revert to snapshot to preserve state integrity
                 state = snapshot
                 state_mgr = ResearchStateManager(state)
 
-                error_msg = f"Agent '{route.next_agent}' failed: {exc}"
-                trace.record_failure(trace_id, error=str(exc))
+                error_type = "state_integrity" if isinstance(exc, StateIntegrityError) else "agent_execution"
+                structured = record_error(
+                    error_type,
+                    f"Agent '{route.next_agent}' failed: {exc}",
+                    retryable=not isinstance(exc, StateIntegrityError),
+                    details={"agent": route.next_agent, "exception": type(exc).__name__},
+                )
+                trace.record_failure(trace_id, error=str(exc), error_info=structured)
                 loop_guards.record_failure(state.iteration, route.next_agent)
-                errors.append(error_msg)
 
                 should_stop_fail, fail_reason = loop_guards.should_terminate_failures()
                 if should_stop_fail:
                     status = "failed"
-                    errors.append(fail_reason)
+                    record_error("failure_limit", fail_reason, retryable=False)
                     break
 
         summary = {
@@ -220,6 +273,7 @@ class DiscoveryWorkflowEngine:
             execution_trace=trace.to_dicts(),
             iterations_completed=state.iteration,
             errors=errors,
+            error_details=error_details,
             summary=summary,
         )
 

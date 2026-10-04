@@ -572,6 +572,10 @@ def test_25_failed_dispatch_does_not_mutate_scientific_state():
     base = run(max_iterations=1)
     before = ScientificSnapshot(base.final_state)
     prior = ResearchState.model_validate(base.final_state)
+    # Explicitly request a cold-start dispatch so this test exercises rollback of a failing
+    # evidence worker; normal resumed runs continue from the persisted route position.
+    prior.resume_agent = None
+    prior.resume_route = None
 
     result = run(
         max_iterations=3,

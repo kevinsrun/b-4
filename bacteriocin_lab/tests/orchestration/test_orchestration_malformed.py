@@ -60,3 +60,6 @@ def test_malformed_agent_output_caught_by_validation() -> None:
 
     # 4. Structured error is returned in result.errors
     assert any("malformed" in e.lower() for e in result.errors)
+    assert result.error_details[0].error_type == "agent_execution"
+    assert result.error_details[0].retryable is True
+    assert sim_traces[0]["error_info"]["error_type"] == "agent_execution"

@@ -24,6 +24,8 @@ Deterministic backends — MCP tools. Same input, same output, no model:
 | `literature_evidence` | retrieve and structure literature-derived evidence |
 | `generate_candidates` | propose ranked candidates + falsifiable hypotheses |
 | `describe_agent` | the candidate agent's scope and refusals |
+| `plan_experiment` | choose the ONE next experiment by information gain over the competing hypotheses; returns a ready-to-run `experiment_spec` (the deterministic counterpart of the `planner` sub-agent) |
+| `analyze` | interpret one result against its hypothesis and every earlier result: supported / weakened / inconclusive, drivers, what was unexpected (the deterministic counterpart of the `analysis` sub-agent) |
 | `run_experiment` / `run_experiments` | execute one or many simulated experiments |
 | `run_agent` | the experiment envelope, including `recommended_next_action` |
 | `capabilities` / `get_schema` / `describe` | capability negotiation |
@@ -55,9 +57,16 @@ Reasoning steps — sub-agents you dispatch:
    and a Gram-negative-specific candidate can rank highly against a
    Gram-positive target on information gain alone.
 
-3. **Plan.** Dispatch `planner` with the candidates and the objective. It
-   returns `ExperimentSpec`s. Call `get_schema("experiment_spec")` first if
-   you are unsure of the shape — do not guess it.
+3. **Plan.** When you hold candidates and any earlier results, call
+   `plan_experiment` with the objective, candidates, hypotheses, every
+   `ExperimentResult` so far (`previous_experiments`) and the remaining budget:
+   it is deterministic and changes its choice because of the results you pass.
+   Read `decision.status` first; `converged` and `stop_budget_exhausted` mean
+   there is no spec. For open-ended design the tool cannot express (controls,
+   sweeps, several experiments at once), dispatch the `planner` sub-agent with
+   the candidates and the objective instead; it returns `ExperimentSpec`s. Call
+   `get_schema("experiment_spec")` first if you are unsure of the shape — do
+   not guess it.
 
 4. **Execute.** Call `run_agent` with the specs rather than `run_experiment`
    in a loop: it runs the batch, isolates per-spec failures, and returns
@@ -69,8 +78,10 @@ Reasoning steps — sub-agents you dispatch:
    carries them. Without it the model falls back to a generic prior and the
    result is not specific to the candidate you named.
 
-5. **Analyse.** Dispatch `analysis` with the results. Then decide whether to
-   iterate.
+5. **Analyse.** Call `analyze` with the new result, every earlier result and
+   the hypothesis it tests (or dispatch the `analysis` sub-agent for a
+   narrative reading). `inconclusive` is an answer: it means the data cannot
+   separate the outcomes yet. Then decide whether to iterate.
 
 6. **Record.** The research state is the loop's memory, kept in an append-only
    log, not in your context. After each step, write it down:

@@ -36,6 +36,7 @@ class CandidateAgentAdapter:
                 "diversity_weight": 0.3,
             },
             "previous_results": [r.model_dump() for r in state.results],
+            "evidence": [item.model_dump(mode="json") for item in state.evidence],
             "competing_hypotheses": [
                 {
                     "hypothesis_id": h.hypothesis_id,
@@ -50,7 +51,7 @@ class CandidateAgentAdapter:
         }
 
         if self.agent:
-            response_dict = self.agent.run_envelope(request)
+            response_dict = self.agent.run_envelope(request).model_dump(mode="json")
         else:
             response_dict = generate_candidates(request)
 
@@ -82,6 +83,7 @@ class CandidateAgentAdapter:
                 score_total=float(score_val if score_val is not None else 0.5),
                 confidence=float(c.get("confidence", 0.5)),
                 features=dict(c.get("features") or {}),
+                evidence_ids=list(c.get("evidence_ids") or []),
                 falsified_if=c.get("falsified_if"),
                 validation_status="unvalidated",
                 rank=c.get("rank", i + 1),
@@ -100,6 +102,14 @@ class CandidateAgentAdapter:
                     candidate_id=cid,
                     statement=h.get("statement", ""),
                     prediction=h.get("predicted_direction") or h.get("prediction"),
+                    predicted_direction=h.get("predicted_direction"),
+                    predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
+                    expected_relationship=(
+                        h.get("expected_relationship")
+                        or ({"template": h["template"]} if h.get("template") else None)
+                    ),
+                    key_conditions=dict(h.get("key_conditions") or {}),
+                    tolerance=h.get("tolerance"),
                     status="open",
                     prior_plausibility=float(
                         h.get("prior_plausibility") or h.get("confidence") or 0.5
@@ -108,6 +118,7 @@ class CandidateAgentAdapter:
                     discriminating_feature=h.get("discriminating_feature"),
                     favourable_range=h.get("favourable_range"),
                     falsified_if=h.get("falsified_if"),
+                    evidence_ids=list(h.get("evidence_ids") or []),
                 )
                 hypotheses_to_add.append(hyp)
 
@@ -125,12 +136,21 @@ class CandidateAgentAdapter:
                 candidate_id=h.get("candidate_id"),
                 statement=h.get("statement", ""),
                 prediction=h.get("prediction"),
+                predicted_direction=h.get("predicted_direction"),
+                predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
+                expected_relationship=(
+                    h.get("expected_relationship")
+                    or ({"template": h["template"]} if h.get("template") else None)
+                ),
+                key_conditions=dict(h.get("key_conditions") or {}),
+                tolerance=h.get("tolerance"),
                 status="open",
                 prior_plausibility=float(h.get("prior_plausibility", 0.5)),
                 posterior_probability=float(h.get("posterior_probability", 0.5)),
                 discriminating_feature=h.get("discriminating_feature"),
                 favourable_range=h.get("favourable_range"),
                 falsified_if=h.get("falsified_if"),
+                evidence_ids=list(h.get("evidence_ids") or []),
             )
             hypotheses_to_add.append(hyp)
 

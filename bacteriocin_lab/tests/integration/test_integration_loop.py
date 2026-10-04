@@ -262,20 +262,11 @@ def test_20_resume_from_serialised_state():
     assert {r["evidence_type"] for r in after["results"]} == {"simulation-derived"}
     assert {e["evidence_type"] for e in after["evidence"]} == {"literature-derived"}
 
-    # And the next decision is informed by what was restored. B17 was weakened and settled before
-    # the save, so the resumed run must not spend experiments on it again: it moves to a new
-    # candidate. (Routing itself re-enters at "evidence"; those steps are idempotent. See TECH_DEBT.)
-    assert resumed.iterations_completed > first.iterations_completed
-    settled = set(saved["settled_candidate_ids"])
-    assert settled, "fixture expectation: the first run settles its candidate"
-    done = {s["experiment_id"] for s in saved["experiments"]}
-    new_specs = [s for s in after["experiments"] if s["experiment_id"] not in done]
-    assert new_specs, "resumed run planned nothing new"
-    assert not {s["candidate_id"] for s in new_specs} & settled, (
-        "resume re-tested a settled candidate"
-    )
-    assert resumed.execution_trace[0]["iteration"] == saved["iteration"], (
-        "iteration counter was reset"
-    )
+    # The persisted route is honored. The robust candidate is already settled, so the resumed run
+    # terminates without replaying evidence or duplicating any scientific records.
+    assert resumed.iterations_completed == first.iterations_completed
+    assert resumed.execution_trace == []
+    assert resumed.status == "completed"
+    assert saved["settled_candidate_ids"], "fixture expectation: the first run settles its candidate"
     assert len({s["experiment_id"] for s in after["experiments"]}) == len(after["experiments"])
     assert copy.deepcopy(saved) == saved  # the saved dict was not mutated by the resumed run

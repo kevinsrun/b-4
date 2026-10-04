@@ -5,25 +5,25 @@ Run: python -m bacteriocin_lab.evaluation.examples.planner.run_planning_loop [n_
 import json
 import os
 import sys
+from . import toy_simulator
+
+import bacteriocin_lab.agents.planner
+from bacteriocin_lab.agents.candidate import generate_candidates
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
-
-import toy_simulator  # noqa: E402
-
-import bacteriocin_lab.agents.planner  # noqa: E402
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 
 objective = {"target": {"species": "Listeria monocytogenes", "strain": "ATCC 19115"},
              "desired_behavior": {"ph_range": [6.0, 7.5], "target_cell_density": 1e8, "temperature_c": 37}}
 try:
-    import candidate_agent  # optional: separate package; real candidate/hypothesis generation
-    gen = candidate_agent.run_agent({"target": {"organism": "Listeria monocytogenes", "strain": "ATCC 19115"},
-                                     "desired_behavior": objective["desired_behavior"],
-                                     "constraints": {"max_candidates": 3}})
-    candidates, hypotheses = gen["candidates"], gen["hypotheses"]
-except ImportError:
+    gen = generate_candidates({"target": {"organism": "Listeria monocytogenes", "strain": "ATCC 19115"},
+                               "desired_behavior": objective["desired_behavior"],
+                               "constraints": {"max_candidates": 3}})
+    generated = gen.get("decision", gen)
+    candidates = generated.get("candidates", [])
+    hypotheses = [h for candidate in candidates for h in candidate.get("hypotheses", [])]
+except (KeyError, TypeError, ValueError):
     def _c(cid, name, mech, win, conf):
         return {"candidate_id": cid, "name": name, "confidence": conf,
                 "features": {"mechanism": mech, "net_charge_at_target_ph": 3.0,

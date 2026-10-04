@@ -32,6 +32,35 @@ python3 bacteriocin_lab/tests/tools/test_runner_protocol.py      # 17 protocol c
 python3 bacteriocin_lab/tests/tools/test_candidates_protocol.py  # 23 protocol checks
 ```
 
+## How the agents in `bacteriocin_lab/agents/` reach Omnigent
+
+`config.yaml` does not import Python. Omnigent sees two different kinds of thing:
+
+- **MCP tools** (the Python agents). Each is declared in `tools/mcp/<name>.yaml`, which Omnigent
+  discovers on its own; `config.yaml` does not list them. Those files hold machine-specific absolute
+  paths, so they are **generated, not committed**: until you run `python3 install.py` Omnigent sees
+  none of them. `install.py` writes one per server:
+
+  | server | package agent | tools the model gets |
+  |---|---|---|
+  | `literature` | `agents.evidence` | `literature_evidence` |
+  | `candidates` | `agents.candidate` | `generate_candidates`, `describe_agent` |
+  | `experiment_planner` | `agents.planner` | `plan_experiment`, `describe`, `get_schema` |
+  | `runner` | `agents.simulator` | `run_experiment(s)`, `run_agent`, `capabilities`, `selftest`, ... |
+  | `result_analysis` | `agents.analysis` | `analyze`, `describe`, `get_schema` |
+  | `critic` | `agents.critic` | `review_claims`, `run_agent`, `describe`, `get_schema` |
+  | `knowledge` | `agents.knowledge` | state registration, history and integrity tools |
+
+- **Sub-agents** (`config.yaml` -> `tools.agents`): prompt-only LLM agents under `agents/`
+  (`planner`, `insight`, `analysis`). They share names with the Python agents but are not them.
+
+```bash
+pip install -e ".[mcp]"   # the servers need the MCP SDK
+python3 install.py        # generate tools/mcp/*.yaml  (re-run after moving the repo)
+python3 install.py --check
+omnigent run .
+```
+
 ## Layout
 
 ```
