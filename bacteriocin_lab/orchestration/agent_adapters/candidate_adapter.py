@@ -36,6 +36,7 @@ class CandidateAgentAdapter:
                 "diversity_weight": 0.3,
             },
             "previous_results": [r.model_dump() for r in state.results],
+            "evidence": [item.model_dump(mode="json") for item in state.evidence],
             "competing_hypotheses": [
                 {
                     "hypothesis_id": h.hypothesis_id,
@@ -50,7 +51,7 @@ class CandidateAgentAdapter:
         }
 
         if self.agent:
-            response_dict = self.agent.run_envelope(request)
+            response_dict = self.agent.run_envelope(request).model_dump(mode="json")
         else:
             response_dict = generate_candidates(request)
 
@@ -82,6 +83,7 @@ class CandidateAgentAdapter:
                 score_total=float(score_val if score_val is not None else 0.5),
                 confidence=float(c.get("confidence", 0.5)),
                 features=dict(c.get("features") or {}),
+                evidence_ids=list(c.get("evidence_ids") or []),
                 falsified_if=c.get("falsified_if"),
                 validation_status="unvalidated",
                 rank=c.get("rank", i + 1),
@@ -113,6 +115,7 @@ class CandidateAgentAdapter:
                     discriminating_feature=h.get("discriminating_feature"),
                     favourable_range=h.get("favourable_range"),
                     falsified_if=h.get("falsified_if"),
+                    evidence_ids=list(h.get("evidence_ids") or []),
                 )
                 hypotheses_to_add.append(hyp)
 
@@ -141,6 +144,7 @@ class CandidateAgentAdapter:
                 discriminating_feature=h.get("discriminating_feature"),
                 favourable_range=h.get("favourable_range"),
                 falsified_if=h.get("falsified_if"),
+                evidence_ids=list(h.get("evidence_ids") or []),
             )
             hypotheses_to_add.append(hyp)
 

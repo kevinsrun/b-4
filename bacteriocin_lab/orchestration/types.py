@@ -135,6 +135,7 @@ class Candidate(BaseModel):
     score_total: float = Field(default=0.0, ge=0.0)
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     features: dict[str, Any] = Field(default_factory=dict)
+    evidence_ids: list[str] = Field(default_factory=list)
     falsified_if: str | None = None
     # Shared contract rule 9: Proposals only, unvalidated
     validation_status: str = "unvalidated"
