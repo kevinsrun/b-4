@@ -32,6 +32,7 @@ python3 bacteriocin_lab/tests/tools/test_runner_protocol.py      # 17 protocol c
 python3 bacteriocin_lab/tests/tools/test_candidates_protocol.py  # 23 protocol checks
 ```
 
+<<<<<<< Updated upstream
 ## How the agents in `bacteriocin_lab/agents/` reach Omnigent
 
 `config.yaml` does not import Python. Omnigent sees two different kinds of thing:
@@ -61,6 +62,27 @@ python3 install.py --check
 omnigent run .
 ```
 
+=======
+### BACTERION — the web interface
+
+Two processes: the HTTP layer over this package, and the front end that reads
+it. Both are optional; the loop runs without either.
+
+```bash
+uv sync --extra web          # fastapi + uvicorn
+uv run bacterion-api         # http://127.0.0.1:8000
+
+cd web && npm install
+npm run dev                  # http://localhost:3000
+```
+
+`web/` proxies `/api/*` to the Python server, so the browser talks to one
+origin; point it elsewhere with `BACTERION_API_URL`. The front end holds no
+scientific data of its own — candidates, sequences, predictions and state all
+come from the agents over HTTP — and it labels every figure it shows with the
+kind of claim it is.
+
+>>>>>>> Stashed changes
 ## Layout
 
 ```
@@ -79,7 +101,9 @@ bacteriocin_lab/         the Python package (one install)
   adapters/              experiment backends: simulation, wet-lab stub
   orchestration/         workflow, routing, Omnigent adapter, agent adapters, fakes
   evaluation/            demo scenarios and example inputs
+  api/                   HTTP layer for the web UI — forwards, never decides
   tests/                 one folder per area, plus tools/ for MCP protocol tests
+web/                     BACTERION front end (Next.js); reads the API, owns no science
 scripts/                 run_omnigent.py and maintenance scripts
 install.py               generates every MCP declaration
 docs/                    contract notes and integration reference

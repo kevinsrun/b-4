@@ -251,6 +251,36 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(M.model_uncertainty(base, []), 1.0)
 
 
+class NestedMeasurementConditionsTest(unittest.TestCase):
+    """``previous_experiments`` may arrive in the shared-contract shape, with conditions
+    nested as ``{"value": ..., "unit": ...}`` rather than as bare numbers."""
+
+    def test_nested_conditions_do_not_crash_and_match_flat_equivalent(self):
+        nested = {"ph": 6.75,
+                  "target_cell_density": {"value": 1e8, "unit": "cfu_per_ml"},
+                  "bacteriocin_concentration": {"value": 1000.0, "unit": "nM"}}
+        out_nested = run_agent(req([res("e0", "B17", 0.80, BASE), res("e1", "B17", 0.78, nested)]))
+        out_flat = run_agent(req([res("e0", "B17", 0.80, BASE), res("e1", "B17", 0.78, HIGH)]))
+        self.assertEqual(out_nested["decision"]["status"], "propose_experiment")
+        self.assertFalse(any("not convertible" in w for w in out_nested["warnings"]))
+        # 1000 nM == 1.0 uM and the density is already CFU/mL, so this is HIGH restated.
+        self.assertEqual(out_nested["candidate_id"], out_flat["candidate_id"])
+        self.assertEqual(posterior(out_nested), posterior(out_flat))
+
+    def test_log10_density_is_converted(self):
+        nested = dict(BASE, target_cell_density={"value": 8.0, "unit": "log10_cfu_per_ml"})
+        out = run_agent(req([res("e0", "B17", 0.80, BASE), res("e1", "B17", 0.78, nested)]))
+        out_flat = run_agent(req([res("e0", "B17", 0.80, BASE), res("e1", "B17", 0.78, HIGH)]))
+        self.assertEqual(posterior(out), posterior(out_flat))
+
+    def test_unconvertible_unit_is_reported_not_silently_mixed(self):
+        nested = dict(BASE, bacteriocin_concentration={"value": 40.0, "unit": "IU/mL"})
+        out = run_agent(req([res("e1", "B17", 0.78, nested)]))
+        self.assertTrue(any("not convertible" in w for w in out["warnings"]))
+        # Dropped, so the reference value is assumed in its place.
+        self.assertTrue(any("bacteriocin_concentration" in w and "reference" in w for w in out["warnings"]))
+
+
 class IntegrationWithCandidateAgentTest(unittest.TestCase):
     def test_consumes_candidate_agent_output(self):
         from bacteriocin_lab.agents.candidate import generate_candidates

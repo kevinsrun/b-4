@@ -152,10 +152,16 @@ class Router:
                     reason=f"Critic found analysis unsupported: {latest_review.critique if latest_review else ''}",
                 )
             elif review_status == "rejected":
-                # Backtrack to Candidate Agent
+                # Commit the rejection before proposing anything new. Going
+                # straight back to the candidate agent skips the only step that
+                # advances the iteration, so a run that keeps rejecting stays in
+                # iteration 0 until the per-iteration visit guard stops it. The
+                # knowledge agent settles the rejected candidate and advances the
+                # turn; rule 9 then picks the replacement.
                 return Route(
-                    next_agent="candidate",
+                    next_agent="knowledge",
                     reason=f"Critic rejected candidate hypothesis: {latest_review.critique if latest_review else ''}",
+                    required_inputs=["reviews"],
                 )
             else:
                 return Route(

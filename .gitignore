@@ -21,6 +21,7 @@ tools/mcp/*.yaml
 # Default location of the persistent research state (BACTERIOCIN_STATE_DIR overrides it).
 artifacts/
 
+<<<<<<< Updated upstream
 # Local BLAST database files and artifacts
 data/blast/
 *.pin
@@ -32,3 +33,11 @@ data/blast/
 *.pto
 *.pal
 *.pjs
+=======
+# Web front end (web/): dependencies and build output.
+node_modules/
+.next/
+next-env.d.ts
+.tsbuildinfo
+*.tsbuildinfo
+>>>>>>> Stashed changes
