@@ -130,9 +130,12 @@ class Contradiction(StrictModel):
 
 class RetrievalConfig(StrictModel):
     enabled: bool = False
-    sources: list[Literal["europe_pmc"]] = Field(default_factory=lambda: ["europe_pmc"])
+    sources: list[Literal["europe_pmc", "ncbi", "ncbi_pubmed", "ncbi_pmc"]] = Field(
+        default_factory=lambda: ["europe_pmc"]
+    )
     max_results: int = Field(default=10, ge=1, le=50)
     timeout_seconds: float = Field(default=15.0, gt=0, le=60)
+    mode: Literal["local", "live_ncbi", "hybrid"] | None = None
 
 
 class LiteratureQuery(StrictModel):
@@ -141,6 +144,7 @@ class LiteratureQuery(StrictModel):
     bacteriocin: str | None = None
     target_organism: str | None = None
     target_strain: str | None = None
+    mode: Literal["local", "live_ncbi", "hybrid"] | None = None
     conditions: dict[str, Any] = Field(default_factory=dict)
     source_documents: list[SourceDocument] = Field(default_factory=list, max_length=100)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
