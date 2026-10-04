@@ -20,7 +20,7 @@ JsonTransport = Callable[[str, float], dict[str, Any]]
 
 def _default_json_transport(url: str, timeout_seconds: float) -> dict[str, Any]:
     request = Request(url, headers={"Accept": "application/json", "User-Agent": "B4-Literature-Agent/0.1"})
-    with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310 - fixed HTTPS endpoint
+    with urlopen(request, timeout=timeout_seconds) as response:
         return json.load(response)
 
 
