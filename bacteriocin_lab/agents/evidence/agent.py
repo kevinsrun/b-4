@@ -101,13 +101,30 @@ class LiteratureEvidenceAgent:
 
         documents = _deduplicate(documents)
         evidence: list[EvidenceRecord] = []
+        unattributed: list[str] = []
+        unparsed: list[str] = []
         for document in documents:
-            evidence.extend(extract_document(query, document, lambda *parts: _stable_id("ev", *parts)))
+            evidence.extend(
+                extract_document(
+                    query, document, lambda *parts: _stable_id("ev", *parts), unattributed, unparsed
+                )
+            )
 
         contradictions = _contradictions(evidence)
         if documents and not evidence:
             warnings.append(
                 "Sources were retrieved but no supported antimicrobial measurement or activity claim was extracted."
+            )
+        if unattributed:
+            warnings.append(
+                f"{len(unattributed)} antimicrobial measurement(s) were discarded because no bacteriocin was "
+                "named in the sentence reporting them; they may describe a different class of agent."
+            )
+        if unparsed:
+            warnings.append(
+                f"{len(unparsed)} source(s) report an MIC that the deterministic rules could not attribute "
+                "(typically a range, or several agents in one clause). Review by hand before concluding "
+                f"absence of evidence: {', '.join(sorted(unparsed)[:10])}"
             )
 
         knowledge_gaps = self._knowledge_gaps(evidence)
