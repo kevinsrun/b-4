@@ -29,7 +29,13 @@ from bacteriocin_lab.agents.variant import (
     mutate_sequence,
 )
 
+from .active_learning import (
+    compute_acquisition_score,
+    compute_epistemic_uncertainty,
+    formulate_validation_experiment,
+)
 from .agent import ComputationalDesignAgent
+from .calibration import ActivityCalibrator
 from .config import (
     DEFAULT_KNOWN_THRESHOLD,
     DEFAULT_NATURAL_THRESHOLD,
@@ -46,6 +52,8 @@ from .models import (
     TargetContext,
     TargetDesignResult,
 )
+from .ptm import analyze_ptm_profile
+from .scenarios import evaluate_environmental_scenarios
 from .scoring import compute_candidate_score
 
 logger = logging.getLogger(__name__)
@@ -186,6 +194,7 @@ def design_for_target(
     knowledge_source: KnowledgeSource | None = None,
     homolog_data: dict[str, list[dict[str, Any]]] | None = None,
     alignment_backend: Any | None = None,
+    calibrator: ActivityCalibrator | None = None,
 ) -> TargetDesignResult:
     """Execute target-to-bacteriocin design with hierarchical escalation."""
     # 1. Normalize input parameters
@@ -209,6 +218,13 @@ def design_for_target(
 
     ks = knowledge_source or default_knowledge_source()
     curated_homolog_map = homolog_data or CURATED_HOMOLOGS
+    cal = calibrator or ActivityCalibrator()
+    cond_dict = {
+        "ph": ctx.ph,
+        "temperature_c": ctx.temperature_c,
+        "target_cell_density": ctx.target_cell_density,
+        "bacteriocin_concentration": ctx.bacteriocin_concentration,
+    }
 
     known_evaluated: list[dict[str, Any]] = []
     natural_evaluated: list[dict[str, Any]] = []
@@ -264,6 +280,28 @@ def design_for_target(
             target_cell_density=ctx.target_cell_density,
         )
 
+        raw_mic = getattr(sim_res.measurement, "predicted_mic_um", 1.0)
+        cal_pred = cal.calibrate(
+            raw_score=total_score,
+            raw_inhibition=pred_inh,
+            raw_mic_um=raw_mic,
+            target_organism=org_name,
+            bacteriocin_class=rec.bacteriocin_class,
+            conditions=cond_dict,
+            base_confidence=confidence,
+        )
+        ptm_prof = analyze_ptm_profile(rec.sequence, rec.bacteriocin_class, rec.name)
+        scenarios = evaluate_environmental_scenarios(
+            rec.sequence, rec.bacteriocin_class, rec.name, org_name
+        )
+        unc = compute_epistemic_uncertainty(
+            confidence=cal_pred.confidence,
+            structural_uncertainty=ptm_prof.structural_uncertainty_score,
+            is_extrapolative=cal_pred.is_extrapolative,
+            evidence_count=cal_pred.calibration_evidence_count,
+        )
+        acq = compute_acquisition_score(cal_pred.calibrated_score, unc)
+
         cand_data = {
             "candidate_id": cid,
             "name": rec.name,
@@ -271,6 +309,12 @@ def design_for_target(
             "bacteriocin_class": rec.bacteriocin_class,
             "tier": "known",
             "score": total_score,
+            "calibrated_score": cal_pred.calibrated_score,
+            "calibrated_prediction": cal_pred.model_dump(),
+            "ptm_profile": ptm_prof.model_dump(),
+            "scenario_profiles": [s.model_dump() for s in scenarios],
+            "epistemic_uncertainty": unc,
+            "acquisition_score": acq,
             "components": score_components.to_dict(),
             "provenance": "literature-derived",
             "experimentally_validated": bool(rec.sequence_verified),
@@ -279,7 +323,7 @@ def design_for_target(
             "simulation_metrics": {
                 "predicted_inhibition": round(pred_inh, 5),
                 "predicted_log10_reduction": round(pred_log10, 4),
-                "predicted_mic_um": round(getattr(sim_res.measurement, "predicted_mic_um", 1.0), 4),
+                "predicted_mic_um": round(raw_mic, 4),
                 "confidence": confidence,
             },
         }
@@ -296,11 +340,16 @@ def design_for_target(
     )
 
     if top_known:
+        top_cal = top_known.get("calibrated_prediction", {})
         recommendation_items.append(
             RecommendationItem(
                 tier="known",
                 name=top_known["name"],
                 score=top_known["score"],
+                calibrated_score=top_known.get("calibrated_score"),
+                calibrated_mic_um=top_cal.get("calibrated_mic_um"),
+                uncertainty_interval=top_cal.get("uncertainty_interval"),
+                acquisition_score=top_known.get("acquisition_score"),
                 predicted_inhibition=top_known["simulation_metrics"]["predicted_inhibition"],
                 confidence="high"
                 if top_known["simulation_metrics"]["confidence"] >= 0.5
@@ -379,6 +428,30 @@ def design_for_target(
                     target_cell_density=ctx.target_cell_density,
                 )
 
+                raw_mic = getattr(sim_res.measurement, "predicted_mic_um", 1.0)
+                cal_pred = cal.calibrate(
+                    raw_score=total_score,
+                    raw_inhibition=pred_inh,
+                    raw_mic_um=raw_mic,
+                    target_organism=org_name,
+                    bacteriocin_class=parent_cls,
+                    conditions=cond_dict,
+                    base_confidence=confidence,
+                )
+                ptm_prof = analyze_ptm_profile(
+                    mutated_seq, parent_cls, f"{parent_name} {var.protein_change}"
+                )
+                scenarios = evaluate_environmental_scenarios(
+                    mutated_seq, parent_cls, f"{parent_name} {var.protein_change}", org_name
+                )
+                unc = compute_epistemic_uncertainty(
+                    confidence=cal_pred.confidence,
+                    structural_uncertainty=ptm_prof.structural_uncertainty_score,
+                    is_extrapolative=cal_pred.is_extrapolative,
+                    evidence_count=cal_pred.calibration_evidence_count,
+                )
+                acq = compute_acquisition_score(cal_pred.calibrated_score, unc)
+
                 nat_cand = {
                     "candidate_id": var_cid,
                     "parent_candidate_id": parent_cid,
@@ -392,15 +465,19 @@ def design_for_target(
                     "observed_accessions": var.source_accessions,
                     "tier": "natural_variant",
                     "score": total_score,
+                    "calibrated_score": cal_pred.calibrated_score,
+                    "calibrated_prediction": cal_pred.model_dump(),
+                    "ptm_profile": ptm_prof.model_dump(),
+                    "scenario_profiles": [s.model_dump() for s in scenarios],
+                    "epistemic_uncertainty": unc,
+                    "acquisition_score": acq,
                     "components": score_components.to_dict(),
                     "provenance": "database-derived",
                     "experimentally_validated": False,
                     "simulation_metrics": {
                         "predicted_inhibition": round(pred_inh, 5),
                         "predicted_log10_reduction": round(pred_log10, 4),
-                        "predicted_mic_um": round(
-                            getattr(sim_res.measurement, "predicted_mic_um", 1.0), 4
-                        ),
+                        "predicted_mic_um": round(raw_mic, 4),
                         "confidence": confidence,
                     },
                 }
@@ -410,11 +487,16 @@ def design_for_target(
             top_natural = natural_evaluated[0] if natural_evaluated else None
 
             if top_natural:
+                top_cal = top_natural.get("calibrated_prediction", {})
                 recommendation_items.append(
                     RecommendationItem(
                         tier="natural_variant",
                         name=top_natural["name"],
                         score=top_natural["score"],
+                        calibrated_score=top_natural.get("calibrated_score"),
+                        calibrated_mic_um=top_cal.get("calibrated_mic_um"),
+                        uncertainty_interval=top_cal.get("uncertainty_interval"),
+                        acquisition_score=top_natural.get("acquisition_score"),
                         predicted_inhibition=top_natural["simulation_metrics"][
                             "predicted_inhibition"
                         ],
@@ -455,15 +537,57 @@ def design_for_target(
             context=ctx,
             desired_properties=props,
         )
+
+        for d in designed_candidates:
+            raw_mic = d.simulation_metrics.get("predicted_mic_um", 1.0)
+            raw_inh = d.simulation_metrics.get("predicted_inhibition", 0.5)
+            conf = d.simulation_metrics.get("confidence", 0.5)
+            cal_pred = cal.calibrate(
+                raw_score=d.score,
+                raw_inhibition=raw_inh,
+                raw_mic_um=raw_mic,
+                target_organism=org_name,
+                bacteriocin_class=d.design_class,
+                conditions=cond_dict,
+                base_confidence=conf,
+            )
+            ptm_prof = analyze_ptm_profile(d.sequence, d.design_class, d.candidate_id)
+            scenarios = evaluate_environmental_scenarios(
+                d.sequence, d.design_class, d.candidate_id, org_name
+            )
+            unc = compute_epistemic_uncertainty(
+                confidence=cal_pred.confidence,
+                structural_uncertainty=ptm_prof.structural_uncertainty_score,
+                is_extrapolative=cal_pred.is_extrapolative,
+                evidence_count=cal_pred.calibration_evidence_count,
+            )
+            acq = compute_acquisition_score(cal_pred.calibrated_score, unc)
+
+            d.calibrated_prediction = cal_pred.model_dump()
+            d.ptm_profile = ptm_prof.model_dump()
+            d.scenario_profiles = [s.model_dump() for s in scenarios]
+            d.acquisition_score = acq
+            d.epistemic_uncertainty = unc
+            d.uncertainty["epistemic_uncertainty"] = unc
+            d.uncertainty["acquisition_score"] = acq
+            d.uncertainty["is_extrapolative"] = cal_pred.is_extrapolative
+            d.uncertainty["extrapolation_reasons"] = cal_pred.extrapolation_reasons
+            d.uncertainty["ptm_structural_uncertainty"] = ptm_prof.structural_uncertainty_score
+
         designed_evaluated.extend(designed_candidates)
 
         if designed_evaluated:
             top_designed = designed_evaluated[0]
+            top_cal = top_designed.calibrated_prediction or {}
             recommendation_items.append(
                 RecommendationItem(
                     tier="computational_design",
                     name=f"Design {top_designed.candidate_id}",
                     score=top_designed.score,
+                    calibrated_score=top_cal.get("calibrated_score"),
+                    calibrated_mic_um=top_cal.get("calibrated_mic_um"),
+                    uncertainty_interval=top_cal.get("uncertainty_interval"),
+                    acquisition_score=top_designed.acquisition_score,
                     predicted_inhibition=top_designed.simulation_metrics.get(
                         "predicted_inhibition", 0.5
                     ),
@@ -490,6 +614,14 @@ def design_for_target(
                 "sequence": d.sequence,
                 "tier": "computational_design",
                 "score": d.score,
+                "calibrated_score": (d.calibrated_prediction or {}).get(
+                    "calibrated_score", d.score
+                ),
+                "acquisition_score": d.acquisition_score or d.score,
+                "epistemic_uncertainty": d.epistemic_uncertainty or 0.3,
+                "calibrated_prediction": d.calibrated_prediction,
+                "ptm_profile": d.ptm_profile,
+                "scenario_profiles": d.scenario_profiles,
                 "provenance": d.provenance,
                 "experimentally_validated": d.experimentally_validated,
                 "simulation_metrics": d.simulation_metrics,
@@ -501,25 +633,23 @@ def design_for_target(
     all_candidates.sort(key=lambda c: c["score"], reverse=True)
     best_candidate = all_candidates[0] if all_candidates else None
 
-    # Determine recommended next experiment
-    rec_exp: dict[str, Any] = {}
-    if best_candidate:
-        cand_id = best_candidate["candidate_id"]
-        pred_mic = best_candidate.get("simulation_metrics", {}).get("predicted_mic_um", 1.0)
-        rec_exp = {
-            "experiment_type": "concentration_sweep_simulation",
-            "candidate_id": cand_id,
-            "target": target_info,
-            "purpose": (
-                f"Computational dose-response sweep across 0.25x to 4x predicted MIC "
-                f"({pred_mic:.2f} uM) under {ctx.ph:.1f} pH and "
-                f"{ctx.target_cell_density:.1e} CFU/mL to refine inhibition curve."
-            ),
-            "suggested_concentrations_um": [
-                round(pred_mic * factor, 3) for factor in [0.25, 0.5, 1.0, 2.0, 4.0]
-            ],
-            "recommended_assay": "growth_inhibition",
-        }
+    # Sort all candidates by acquisition score to prioritize active-learning validation
+    candidates_by_acquisition = sorted(
+        all_candidates, key=lambda c: c.get("acquisition_score", 0.0), reverse=True
+    )
+    val_candidate = candidates_by_acquisition[0] if candidates_by_acquisition else best_candidate
+
+    rec_val_exp: dict[str, Any] = {}
+    if val_candidate:
+        cal_pred_dict = val_candidate.get("calibrated_prediction") or {}
+        cal_mic = cal_pred_dict.get("calibrated_mic_um")
+        rec_val_exp = formulate_validation_experiment(
+            candidate=val_candidate,
+            target_info=target_info,
+            acquisition_score=val_candidate.get("acquisition_score", 0.8),
+            epistemic_uncertainty=val_candidate.get("epistemic_uncertainty", 0.3),
+            calibrated_mic_um=cal_mic,
+        )
 
     # Safety: Non-operational future production concept
     future_concept = FutureProductionConcept(
@@ -547,6 +677,25 @@ def design_for_target(
         "Peptide degradation and stability kinetics in real target matrices.",
     ]
 
+    is_ood, ood_reasons = cal.check_extrapolation(cond_dict, org_name)
+    if is_ood:
+        for r in ood_reasons:
+            if r not in uncertainties:
+                uncertainties.append(f"OOD Extrapolation: {r}")
+
+    if best_candidate and (best_candidate.get("ptm_profile") or {}).get("is_ptm_dependent"):
+        uncertainties.append(
+            "PTM-dependent mature structure inferred from sequence motifs; ring topology not "
+            "mechanistically modeled by in silico biophysical simulator."
+        )
+
+    cal_summary = {
+        "calibrated": True,
+        "calibration_observations_count": len(cal.observations),
+        "is_extrapolative": is_ood,
+        "extrapolation_reasons": ood_reasons,
+    }
+
     return TargetDesignResult(
         target=target_info,
         known_candidates=known_evaluated[:max_known_candidates],
@@ -557,15 +706,20 @@ def design_for_target(
             "literature_candidates_screened": len(known_evaluated),
             "natural_variants_identified": len(natural_evaluated),
             "computational_designs_generated": len(designed_evaluated),
+            "calibration_observations_count": len(cal.observations),
         },
         uncertainties=uncertainties,
-        recommended_next_experiment=rec_exp,
+        recommended_next_experiment=rec_val_exp,
+        recommended_validation_experiment=rec_val_exp,
+        calibration_summary=cal_summary,
+        iteration=1,
         limitations=limitations,
         provenance={
             "agent": "target_to_bacteriocin_designer",
-            "model_version": "designer/0.1.0",
+            "model_version": "designer/0.2.0",
             "simulator_backend": "standard",
             "seed": seed,
+            "calibrated": True,
         },
         recommendations=recommendation_items,
         future_production_concept=future_concept,
