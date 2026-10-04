@@ -209,7 +209,7 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: unknown or missing candidate_id")
             continue
         m = e.get("measurement") or {}
-        e_conditions, unit_notes = adapters.plain_conditions(e.get("conditions") or {})
+        _, unit_notes = adapters.plain_conditions(e.get("conditions") or {})
         warnings.extend(f"previous_experiments[{i}] {n}" for n in unit_notes)
         y = m.get("predicted_inhibition_fraction")
         if y is None and _num(m.get("predicted_survival_fraction")):
@@ -220,12 +220,6 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: no inhibition value in [0, 1]")
             continue
         cond = dict(ref)
-<<<<<<< Updated upstream
-        incomplete = [k for k in ("ph", "target_cell_density", "bacteriocin_concentration") if e_conditions.get(k) is None]
-        if incomplete:
-            warnings.append(f"previous_experiments[{i}] lacks {incomplete}; reference values assumed")
-        cond.update({k: v for k, v in e_conditions.items() if k in CONDITION_KEYS and v is not None})
-=======
         supplied = {
             k: measurement_scalar(k, v, warnings, f"previous_experiments[{i}].conditions")
             for k, v in (e.get("conditions") or {}).items()
@@ -235,7 +229,6 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
         if incomplete:
             warnings.append(f"previous_experiments[{i}] lacks {incomplete}; reference values assumed")
         cond.update({k: v for k, v in supplied.items() if v is not None})
->>>>>>> Stashed changes
         exps.append({"experiment_id": e.get("experiment_id"), "result_id": e.get("result_id"),
                      "candidate_id": e["candidate_id"], "hypothesis_id": e.get("hypothesis_id"),
                      "conditions": cond, "y": float(y), "uncertainty": m.get("uncertainty"),
