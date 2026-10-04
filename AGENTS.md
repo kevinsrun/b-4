@@ -12,7 +12,7 @@ and report what they returned without distortion.
 ```
 evidence → hypotheses → candidate selection → experiment planning
    ↑                                                      ↓
-   └──── state update ←── analysis ←── simulation ←────────┘
+   └──── state update ←── critic ←── analysis ←── simulation ┘
 ```
 
 ## Who does what
@@ -26,6 +26,7 @@ Deterministic backends — MCP tools. Same input, same output, no model:
 | `describe_agent` | the candidate agent's scope and refusals |
 | `plan_experiment` | choose the ONE next experiment by information gain over the competing hypotheses; returns a ready-to-run `experiment_spec` (the deterministic counterpart of the `planner` sub-agent) |
 | `analyze` | interpret one result against its hypothesis and every earlier result: supported / weakened / inconclusive, drivers, what was unexpected (the deterministic counterpart of the `analysis` sub-agent) |
+| `review_claims` / `describe` | scientific critic: evaluate claims against evidence, ensure calibration, enforce conservatism, prevent ungrounded validation claims |
 | `run_experiment` / `run_experiments` | execute one or many simulated experiments |
 | `run_agent` | the experiment envelope, including `recommended_next_action` |
 | `capabilities` / `get_schema` / `describe` | capability negotiation |
@@ -43,6 +44,18 @@ Reasoning steps — sub-agents you dispatch:
 | `planner` | turn hypotheses into concrete `ExperimentSpec`s |
 | `insight` | read accumulated evidence, propose what is worth asking |
 | `analysis` | interpret results, update confidence, say what was learned |
+
+## Execution protocol
+
+In each turn, follow this sequence:
+1. **Read current state** (`summarize_research_state`, `get_open_questions`).
+2. **Choose specialist** based on state, open hypotheses, and previous findings.
+3. **Call tool** adhering strictly to schema — never invent schemas or unadvertised parameters.
+4. **Pass sequences** to the simulator in `candidate_registry` — never call simulator without sequence.
+5. **Validate output** from specialist before acting on it.
+6. **Critique claims** before state update: call `review_claims` and honor critic recommendations.
+7. **Persist state** (`update_research_state`) so progress is durable across turns.
+8. **Stop on terminal condition** or when iteration budget (max 10 iterations) or failure limit (max 3) is reached. Never loop endlessly on repeated identical actions.
 
 ## Running one turn of the loop
 
@@ -83,7 +96,13 @@ Reasoning steps — sub-agents you dispatch:
    narrative reading). `inconclusive` is an answer: it means the data cannot
    separate the outcomes yet. Then decide whether to iterate.
 
-6. **Record.** The research state is the loop's memory, kept in an append-only
+6. **Critique.** Call `review_claims` on the analysis finding before committing
+   to the state. The critic enforces calibration, checks controls and uncertainty,
+   and prevents simulated results from being described as validated. Honor its
+   verdict and recommendation (`needs_more_evidence`, `experiment_inconclusive`,
+   `analysis_unsupported`, `rejected`). Never bypass critique.
+
+7. **Record.** The research state is the loop's memory, kept in an append-only
    log, not in your context. After each step, write it down:
    `register_candidates` (pass `full_envelope_path` from `generate_candidates`
    as `candidate_output_path`), `record_experiment_plan` for each spec, and
@@ -153,6 +172,12 @@ Three separate claims, and you must never merge them:
 - The candidate agent produces **proposals**. Never evidence of activity.
 - The simulator produces **simulation-derived predictions** — hypotheses to
   be tested, never observations.
+- BLAST produces **sequence-homology context**. Never biological activity
+  evidence, wet-lab validation, or proof a candidate works. Use BLAST
+  homology sparingly for candidate novelty or family verification; do not
+  overuse it or submit redundant searches.
+- The scientific critic enforces **conservatism and calibration**. Simulated
+  predictions must never be accepted as experimental proof without wet-lab data.
 
 Neither is validated, confirmed, or demonstrated. Say which one you are
 reporting. The simulator's priors are coarse and uncalibrated against any

@@ -20,11 +20,13 @@ import pytest
 
 pytest.importorskip("mcp", reason="the MCP SDK is an optional extra: pip install -e '.[mcp]'")
 
+REPO = Path(__file__).resolve().parents[3]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
 import install
 from bacteriocin_lab.agents.simulator import run_experiment
 from bacteriocin_lab.agents.simulator.selftest import spec as sim_spec
-
-REPO = Path(__file__).resolve().parents[3]
 LAUNCHERS = REPO / "tools" / "launchers"
 
 
