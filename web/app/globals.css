@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  BACTERION — instrument console.
+  BactroGen Research — instrument console.
 
   The page is a dark navy panel with hairline structure, not a stack of cards.
   Two type families: Space Grotesk carries language, JetBrains Mono carries
@@ -45,6 +45,17 @@
 :root {
   color-scheme: dark;
   --rail: 2px;
+  --background: #05080f;
+  --surface: #0a0f1a;
+  --surface-elevated: #101827;
+  --primary: #22d3ee;
+  --secondary: #6d4bc3;
+  --text-primary: #f5f7fb;
+  --text-secondary: #8295ae;
+  --border: #1b2436;
+  --success: #34d399;
+  --warning: #f59e0b;
+  --danger: #f43f5e;
 }
 
 * {

@@ -46,7 +46,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     });
   } catch (cause) {
     throw new ApiError(
-      "The lab API is not reachable. Start it with: uv run bacterion-api",
+      "The BactroGen scientific service is not reachable. Start the local demo or contact the operator.",
       0,
       cause,
     );

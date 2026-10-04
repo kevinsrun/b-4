@@ -71,13 +71,11 @@ export function DiscoveryExperience() {
   return (
     <main className="mx-auto max-w-4xl px-4 pb-20 pt-16 sm:px-6">
       <section className="mx-auto max-w-3xl text-center">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">BACTERION</p>
-        <h1 className="mt-4 text-4xl font-medium tracking-[-0.035em] text-text sm:text-5xl">
+        <h1 className="text-4xl font-medium tracking-[-0.035em] text-text sm:text-5xl">
           What bacterium do you want to target?
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
-          Ask one scientific question. BACTERION gathers evidence, evaluates candidates, tests
-          computational predictions, and returns one bounded recommendation.
+          Discover, evaluate, and computationally design bacteriocin candidates with autonomous scientific AI.
         </p>
       </section>
 
@@ -110,7 +108,7 @@ export function DiscoveryExperience() {
             disabled={running}
             className="border border-cyan/60 bg-cyan/12 px-4 py-2 text-[13px] font-medium text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-wait disabled:border-line disabled:bg-transparent disabled:text-faint"
           >
-            {running ? "Discovering…" : "Discover bacteriocin"}
+            {running ? "Discovering…" : "Discover Bacteriocin"}
           </button>
         </div>
       </form>
