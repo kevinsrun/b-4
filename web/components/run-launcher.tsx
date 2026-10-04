@@ -24,7 +24,7 @@ const PRESETS: { label: string; body: RunRequestBody }[] = [
       target_cell_density: 1e8,
       ph: 7,
       temperature_c: 37,
-      max_candidates: 4,
+      max_candidates: 1,
       max_iterations: 6,
       seed: 42,
     },
@@ -175,9 +175,9 @@ export function RunLauncher({
           />
           <NumberField
             label="Candidates"
-            value={body.max_candidates ?? 4}
+            value={body.max_candidates ?? 1}
             onChange={(v) => set("max_candidates", v)}
-            options={[2, 4, 6, 8]}
+            options={[1, 2, 4, 6, 8]}
             render={(v) => String(v)}
           />
           <NumberField
