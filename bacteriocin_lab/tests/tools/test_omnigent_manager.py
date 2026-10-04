@@ -77,7 +77,11 @@ async def main() -> int:
     check("bundle parses", spec.spec_version == 1)
     check("agent is named", spec.name == "bacteriocin-lab", f"got {spec.name}")
     check("AGENTS.md loaded as instructions", bool(spec.instructions))
-    check("every agent server declared", len(spec.mcp_servers) == len(servers), str(len(spec.mcp_servers)))
+    check(
+        "every agent server declared",
+        len(spec.mcp_servers) == len(servers),
+        str(len(spec.mcp_servers)),
+    )
     check("all use stdio", all(server.transport == "stdio" for server in spec.mcp_servers))
     check(
         "all commands are absolute",
