@@ -20,6 +20,7 @@ byte-identical output, which ``reproducibility.deterministic=True`` asserts.
 
 from __future__ import annotations
 
+import json
 import math
 from typing import Any
 
@@ -65,18 +66,37 @@ class SimulationAdapter(ExperimentAdapter):
         candidate_registry: dict[str, CandidateSpec] | None = None,
         validate_immediately: bool = False,
     ) -> None:
-        self.parameter_overrides = parameter_overrides
-        self.store = ParameterStore.from_overrides(parameter_overrides)
+        # The canonical JSON string is the immutable source used to construct both
+        # the execution store and every validation input. Retaining a detached public
+        # copy preserves the adapter API without letting caller mutation change the
+        # configuration after construction.
+        self._parameter_overrides_json = (
+            json.dumps(
+                parameter_overrides,
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            )
+            if parameter_overrides
+            else None
+        )
+        self.parameter_overrides = self._parameter_overrides_snapshot()
+        self.store = ParameterStore.from_overrides(self._parameter_overrides_snapshot())
         self.candidate_registry = candidate_registry or {}
         if validate_immediately and parameter_overrides:
             self._ensure_validated()
+
+    def _parameter_overrides_snapshot(self) -> dict[str, Any] | None:
+        if self._parameter_overrides_json is None:
+            return None
+        return json.loads(self._parameter_overrides_json)
 
     def _ensure_validated(self) -> None:
         """Validate parameter overrides against directional invariants before producing results."""
         from bacteriocin_lab.agents.simulator.validation import validate_parameter_configuration
 
         validate_parameter_configuration(
-            parameter_overrides=self.parameter_overrides,
+            parameter_overrides=self._parameter_overrides_snapshot(),
             store=self.store,
             model_version=self.model_version,
         )
@@ -161,7 +181,7 @@ class SimulationAdapter(ExperimentAdapter):
         # The sensitivity analysis must run before the variance budget: the
         # budget propagates MIC uncertainty through the measured dose
         # derivative that the analysis produces.
-        factors, derivatives = self._sensitivity(ctx)
+        factors, _derivatives = self._sensitivity(ctx)
         budget = self._build_budget(ctx, measurement)
 
         inhibition = measurement.predicted_inhibition_fraction or 0.0
@@ -524,7 +544,10 @@ class SimulationAdapter(ExperimentAdapter):
         except (OverflowError, ValueError, ZeroDivisionError) as exc:
             raise SimulationError(
                 f"population kinetics failed to integrate: {exc}",
-                details={"mic_um": potency.mic_um, "conditions": resolved.__dict__.keys().__str__()},
+                details={
+                    "mic_um": potency.mic_um,
+                    "conditions": resolved.__dict__.keys().__str__(),
+                },
             ) from exc
 
         inhibition_raw = 1.0 - out.survival_fraction_vs_control
