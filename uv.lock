@@ -12,6 +12,7 @@ members = [
     "b4-literature-evidence",
     "bacteriocin-discovery",
     "bacteriocin-lab",
+    "bacteriocin-orchestration",
     "bacteriocin-sim",
     "experiment-planner-agent",
 ]
@@ -102,6 +103,7 @@ source = { editable = "." }
 dependencies = [
     { name = "b4-literature-evidence" },
     { name = "bacteriocin-discovery" },
+    { name = "bacteriocin-orchestration" },
     { name = "bacteriocin-sim" },
     { name = "experiment-planner-agent" },
 ]
@@ -119,6 +121,7 @@ mcp = [
 requires-dist = [
     { name = "b4-literature-evidence", editable = "packages/b4_literature" },
     { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
+    { name = "bacteriocin-orchestration", editable = "packages/bacteriocin_orchestration" },
     { name = "bacteriocin-sim", editable = "packages/bacteriocin_sim" },
     { name = "experiment-planner-agent", editable = "packages/experiment_planner_agent" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.30" },
@@ -126,6 +129,34 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
 ]
 provides-extras = ["dev", "mcp"]
+
+[[package]]
+name = "bacteriocin-orchestration"
+version = "0.1.0"
+source = { editable = "packages/bacteriocin_orchestration" }
+dependencies = [
+    { name = "b4-literature-evidence" },
+    { name = "bacteriocin-discovery" },
+    { name = "bacteriocin-sim" },
+    { name = "experiment-planner-agent" },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "b4-literature-evidence", editable = "packages/b4_literature" },
+    { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
+    { name = "bacteriocin-sim", editable = "packages/bacteriocin_sim" },
+    { name = "experiment-planner-agent", editable = "packages/experiment_planner_agent" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "bacteriocin-sim"

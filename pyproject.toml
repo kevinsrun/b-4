@@ -21,6 +21,7 @@ dependencies = [
     "bacteriocin-discovery",
     "b4-literature-evidence",
     "experiment-planner-agent",
+    "bacteriocin-orchestration",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +36,7 @@ bacteriocin-sim = { workspace = true }
 bacteriocin-discovery = { workspace = true }
 b4-literature-evidence = { workspace = true }
 experiment-planner-agent = { workspace = true }
+bacteriocin-orchestration = { workspace = true }
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -52,12 +54,14 @@ testpaths = [
     "packages/bacteriocin_discovery/tests",
     "packages/b4_literature/tests",
     "packages/experiment_planner_agent/tests",
+    "packages/bacteriocin_orchestration/tests",
 ]
 pythonpath = [
     "packages/bacteriocin_sim",
     "packages/bacteriocin_discovery/src",
     "packages/b4_literature/src",
     "packages/experiment_planner_agent",
+    "packages/bacteriocin_orchestration/src",
 ]
 addopts = "-q"
 
