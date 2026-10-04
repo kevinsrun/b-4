@@ -163,7 +163,7 @@ function DiscoveryResult({
   setShowDeveloperDetails: (show: boolean) => void;
 }) {
   return (
-    <section className="mx-auto mt-7 max-w-3xl space-y-5">
+    <section id="discovery-results" className="mx-auto mt-7 max-w-3xl space-y-5">
       <div className="border border-cyan/35 bg-cyan/5 p-6">
         <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-cyan">Most promising candidate</p>
         <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
