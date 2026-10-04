@@ -12,6 +12,10 @@ Tests 1 to 7 verify that:
 
 from __future__ import annotations
 
+import copy
+import importlib
+import time
+
 import pytest
 
 from bacteriocin_lab.agents.simulator import (
@@ -22,7 +26,13 @@ from bacteriocin_lab.agents.simulator import (
     run_experiment,
     run_experiments,
 )
+from bacteriocin_lab.agents.simulator.agent import SimulationBackendAgent
+from bacteriocin_lab.agents.simulator.model.parameters import ParameterStore
 from bacteriocin_lab.agents.simulator.selftest import spec
+from bacteriocin_lab.agents.simulator.validation import (
+    _clear_validation_cache,
+    validate_parameter_configuration,
+)
 from bacteriocin_lab.orchestration import ResearchObjective, run_discovery
 from bacteriocin_lab.orchestration.types import Candidate, Hypothesis, ResearchState
 
@@ -48,6 +58,36 @@ MULTI_INVALID_OVERRIDE = {
         "class_IIa_pediocin_like": {"mannose_pts_sensitization": 0.0}
     },
 }
+
+
+def _stub_selftest(monkeypatch, report):
+    calls = []
+
+    def fake_selftest(parameter_overrides=None):
+        calls.append(copy.deepcopy(parameter_overrides))
+        return copy.deepcopy(report)
+
+    monkeypatch.setattr(
+        SimulationBackendAgent,
+        "selftest",
+        staticmethod(fake_selftest),
+    )
+    return calls
+
+
+def _failed_report(name="stub_invariant", detail="stub failure"):
+    return {
+        "passed": False,
+        "n_checks": 1,
+        "checks": [
+            {
+                "check": name,
+                "passed": False,
+                "status": "fail",
+                "detail": detail,
+            }
+        ],
+    }
 
 
 def test_1_valid_override_passes() -> None:
@@ -179,3 +219,160 @@ def test_7_no_silent_fallback() -> None:
     assert report["passed"] is False
     failed_checks = [c["check"] for c in report["checks"] if not c["passed"]]
     assert "gram_negative_is_less_susceptible" in failed_checks
+
+
+def test_invalid_override_outcome_is_cached_by_effective_configuration(monkeypatch) -> None:
+    _clear_validation_cache()
+    calls = _stub_selftest(monkeypatch, _failed_report())
+    overrides = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 9.0}}}
+    store = ParameterStore.from_overrides(overrides)
+
+    for _ in range(2):
+        with pytest.raises(InvariantViolationError):
+            validate_parameter_configuration(
+                overrides,
+                store=store,
+                model_version="cache-test/repeated-invalid",
+            )
+
+    assert calls == [overrides]
+
+
+def test_invalid_override_cache_separates_distinct_effective_hashes(monkeypatch) -> None:
+    _clear_validation_cache()
+    calls = _stub_selftest(monkeypatch, _failed_report())
+    first = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 8.0}}}
+    second = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 9.0}}}
+
+    for overrides in (first, second, first, second):
+        with pytest.raises(InvariantViolationError):
+            validate_parameter_configuration(
+                overrides,
+                store=ParameterStore.from_overrides(overrides),
+                model_version="cache-test/distinct-hashes",
+            )
+
+    assert calls == [first, second]
+
+
+def test_adapter_freezes_override_snapshot_for_validation_and_execution(monkeypatch) -> None:
+    from bacteriocin_lab.adapters.simulation import SimulationAdapter
+
+    _clear_validation_cache()
+    calls = _stub_selftest(
+        monkeypatch,
+        {"passed": True, "n_checks": 1, "checks": []},
+    )
+    overrides = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 1.5}}}
+    adapter = SimulationAdapter(parameter_overrides=overrides)
+
+    overrides["targets"]["listeria monocytogenes"]["log10_mic_um_base"] = 99.0
+    adapter.parameter_overrides["targets"]["listeria monocytogenes"][
+        "log10_mic_um_base"
+    ] = 88.0
+    adapter._ensure_validated()
+
+    assert calls[0]["targets"]["listeria monocytogenes"]["log10_mic_um_base"] == 1.5
+    assert adapter.store.targets["listeria monocytogenes"]["log10_mic_um_base"] == 1.5
+
+
+def test_cached_failure_details_are_fresh_and_cannot_poison_cache(monkeypatch) -> None:
+    _clear_validation_cache()
+    calls = _stub_selftest(monkeypatch, _failed_report(detail="original detail"))
+    overrides = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 9.0}}}
+    kwargs = {
+        "store": ParameterStore.from_overrides(overrides),
+        "model_version": "cache-test/unpoisonable-details",
+    }
+
+    with pytest.raises(InvariantViolationError) as first:
+        validate_parameter_configuration(overrides, **kwargs)
+    first.value.details["failed_invariants"].append("injected")
+    first.value.details["failed_checks"]["stub_invariant"] = "poisoned"
+    first.value.details["parameter_overrides"]["targets"].clear()
+
+    with pytest.raises(InvariantViolationError) as second:
+        validate_parameter_configuration(overrides, **kwargs)
+
+    assert second.value.details["failed_invariants"] == ["stub_invariant"]
+    assert second.value.details["failed_checks"] == {"stub_invariant": "original detail"}
+    assert second.value.details["parameter_overrides"] == overrides
+    assert calls == [overrides]
+
+
+def test_valid_override_outcome_still_uses_cache(monkeypatch) -> None:
+    _clear_validation_cache()
+    calls = _stub_selftest(
+        monkeypatch,
+        {"passed": True, "n_checks": 3, "checks": []},
+    )
+    overrides = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 1.6}}}
+    store = ParameterStore.from_overrides(overrides)
+
+    cold = validate_parameter_configuration(
+        overrides,
+        store=store,
+        model_version="cache-test/valid",
+    )
+    cached = validate_parameter_configuration(
+        overrides,
+        store=store,
+        model_version="cache-test/valid",
+    )
+
+    assert cold["cached"] is False
+    assert cached["cached"] is True
+    assert cold["store_hash"] == cached["store_hash"] == store.hash()
+    assert cold["n_checks"] == cached["n_checks"] == 3
+    assert calls == [overrides]
+
+
+def test_explicit_selftest_remains_uncached(monkeypatch) -> None:
+    selftest_module = importlib.import_module("bacteriocin_lab.agents.simulator.selftest")
+    calls = []
+
+    def fake_run_selftest(parameter_overrides=None):
+        calls.append(copy.deepcopy(parameter_overrides))
+        return {"passed": True, "n_checks": 0, "checks": []}
+
+    monkeypatch.setattr(selftest_module, "run_selftest", fake_run_selftest)
+    overrides = {"global": {"hill_default": 2.1}}
+
+    SimulationAgent.selftest(parameter_overrides=overrides)
+    SimulationAgent.selftest(parameter_overrides=overrides)
+
+    assert calls == [overrides, overrides]
+
+
+def test_invalid_override_cache_benchmark_reports_cold_and_cached_costs(
+    monkeypatch,
+) -> None:
+    """Report cache timings while call count provides the deterministic assertion."""
+    _clear_validation_cache()
+    calls = _stub_selftest(monkeypatch, _failed_report())
+    overrides = {"targets": {"listeria monocytogenes": {"log10_mic_um_base": 7.0}}}
+    store = ParameterStore.from_overrides(overrides)
+    kwargs = {
+        "store": store,
+        "model_version": "cache-benchmark/invalid",
+    }
+
+    started = time.perf_counter()
+    with pytest.raises(InvariantViolationError):
+        validate_parameter_configuration(overrides, **kwargs)
+    cold_seconds = time.perf_counter() - started
+
+    cache_hits = 100
+    started = time.perf_counter()
+    for _ in range(cache_hits):
+        with pytest.raises(InvariantViolationError):
+            validate_parameter_configuration(overrides, **kwargs)
+    cached_seconds = time.perf_counter() - started
+
+    print(
+        "invalid override validation benchmark: "
+        f"cold={cold_seconds:.6f}s, "
+        f"{cache_hits} cached failures={cached_seconds:.6f}s, "
+        f"selftest_calls={len(calls)}"
+    )
+    assert calls == [overrides]
