@@ -57,9 +57,8 @@ async def main() -> int:
 
     # The MCP declaration is generated, not checked in: it holds machine-specific
     # absolute paths because Omnigent treats `command`/`args` as literals.
-    declarations = [
-        BUNDLE / "tools" / "mcp" / f"{name}.yaml" for name in ("literature", "candidates", "runner")
-    ]
+    servers = ("literature", "candidates", "runner", "critic", "knowledge")
+    declarations = [BUNDLE / "tools" / "mcp" / f"{name}.yaml" for name in servers]
     missing = [path for path in declarations if not path.is_file()]
     if missing:
         print(f"error: generated declarations are missing: {missing}.\n  Run: python3 install.py")
@@ -70,7 +69,7 @@ async def main() -> int:
     check("bundle parses", spec.spec_version == 1)
     check("agent is named", spec.name == "bacteriocin-lab", f"got {spec.name}")
     check("AGENTS.md loaded as instructions", bool(spec.instructions))
-    check("three MCP servers declared", len(spec.mcp_servers) == 3)
+    check("five MCP servers declared", len(spec.mcp_servers) == len(servers))
     check("all use stdio", all(server.transport == "stdio" for server in spec.mcp_servers))
     check(
         "all commands are absolute",
@@ -85,6 +84,12 @@ async def main() -> int:
     check(
         "candidate allowlist set",
         allowlists.get("candidates") == {"generate_candidates", "describe_agent"},
+        str(allowlists),
+    )
+    check(
+        "knowledge allowlist set",
+        {"update_research_state", "get_hypothesis_history", "summarize_research_state"}
+        <= allowlists.get("knowledge", set()),
         str(allowlists),
     )
     print(f"       instructions: {len(spec.instructions or '')} chars")
@@ -179,6 +184,42 @@ async def main() -> int:
                 f"total={candidate['score_total']:.3f}  driver={candidate['rank_driven_by']}"
             )
         print(f"       response size: {len(json.dumps(payload))} bytes")
+
+        print("\n[4b] hand the candidate agent's reply to the knowledge agent through the manager")
+        import tempfile
+
+        state_dir = tempfile.mkdtemp(prefix="bacteriocin-state-")
+        wanted = ("register_candidates", "summarize_research_state", "verify_state_integrity")
+        knowledge = {n: next(x for x in names if x.endswith(n)) for n in wanted}
+        registered = tool_payload(
+            await manager.call_tool(
+                spec,
+                knowledge["register_candidates"],
+                {"candidate_output": payload, "state_dir": state_dir},
+            )
+        )
+        check(
+            "candidates registered from the compact reply",
+            registered["status"] == "ok"
+            and registered["new_event_types"].get("candidate_registered") == 3,
+            str(registered)[:300],
+        )
+        summary = tool_payload(
+            await manager.call_tool(
+                spec, knowledge["summarize_research_state"], {"state_dir": state_dir}
+            )
+        )
+        check("state summary lists the hypotheses", len(summary["result"]["hypotheses"]) >= 3)
+        check(
+            "state says nothing is validated",
+            "Nothing here is experimentally validated" in summary["result"]["provenance"],
+        )
+        verdict = tool_payload(
+            await manager.call_tool(
+                spec, knowledge["verify_state_integrity"], {"state_dir": state_dir}
+            )
+        )
+        check("history chain intact", verdict["result"]["intact"])
 
         print("\n[5] call literature_evidence through the manager")
         literature = tool_payload(

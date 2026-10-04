@@ -16,3 +16,6 @@ venv/
 # placeholders are committed.
 tools/mcp/*.yaml
 !tools/mcp/*.yaml.example
+
+# Default location of the persistent research state (BACTERIOCIN_STATE_DIR overrides it).
+artifacts/

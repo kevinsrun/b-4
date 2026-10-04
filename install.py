@@ -24,6 +24,7 @@ Re-run after moving the repository or changing interpreter.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -60,14 +61,16 @@ class Server:
         *,
         name: str,
         launcher: str,
-        pythonpath: Path,
+        pythonpath: Path | tuple[Path, ...],
         description: str,
         tools: list[str],
         timeout: int,
     ) -> None:
         self.name = name
         self.launcher = LAUNCHERS / launcher
-        self.pythonpath = pythonpath
+        # One path, or several (the knowledge server needs its package, the shared schemas and the
+        # contract package); joined the way PYTHONPATH always is.
+        self.pythonpath = os.pathsep.join(str(p) for p in ((pythonpath,) if isinstance(pythonpath, Path) else pythonpath))
         self.description = description
         self.tools = tools
         self.timeout = timeout
@@ -101,6 +104,8 @@ class Server:
             f"timeout: {self.timeout}\n"
         )
 
+
+SHARED = REPO / "shared"
 
 SERVERS = [
     Server(
@@ -169,6 +174,41 @@ SERVERS = [
         # A dose sweep re-runs the ODE at every point and a batch runs every
         # spec, so a grid search can legitimately sit past a short default.
         timeout=300,
+    ),
+    Server(
+        name="knowledge",
+        launcher="knowledge.py",
+        pythonpath=(
+            REPO / "packages" / "knowledge_agent" / "src",
+            SHARED,
+            # The response envelope and ID helpers come from the existing shared contract.
+            REPO / "packages" / "bacteriocin_discovery" / "src",
+        ),
+        description=(
+            "Knowledge / Research-State Agent. The persistent, append-only,\n"
+            "  reconstructable scientific state: candidate and hypothesis registries\n"
+            "  with full status history, experiment and result history, known variable\n"
+            "  relationships, open questions and uncertainties. Record-keeping only --\n"
+            "  nothing is validated."
+        ),
+        tools=[
+            "initialize_research_state",
+            "register_candidates",
+            "record_experiment_plan",
+            "register_evidence",
+            "update_research_state",
+            "reject_candidate",
+            "close_open_question",
+            "get_candidate_history",
+            "get_hypothesis_history",
+            "get_experiment_history",
+            "get_open_questions",
+            "summarize_research_state",
+            "get_state_at_iteration",
+            "verify_state_integrity",
+        ],
+        # Pure bookkeeping over a local log; milliseconds per call.
+        timeout=60,
     ),
 ]
 
