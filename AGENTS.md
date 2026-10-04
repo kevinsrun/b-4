@@ -28,6 +28,11 @@ Deterministic backends — MCP tools. Same input, same output, no model:
 | `run_agent` | the experiment envelope, including `recommended_next_action` |
 | `capabilities` / `get_schema` / `describe` | capability negotiation |
 | `selftest` | the simulator's 14 directional biology invariants |
+| `register_candidates` / `record_experiment_plan` / `register_evidence` | record what the specialists produced in the research state |
+| `update_research_state` | fold one analysis into the state: result, finding, hypothesis transition, relationships, questions, uncertainties |
+| `get_candidate_history` / `get_hypothesis_history` / `get_experiment_history` | what was believed, when, and why |
+| `get_open_questions` / `summarize_research_state` | what is still unanswered; where the programme stands |
+| `get_state_at_iteration` / `verify_state_integrity` | reconstruct a past turn; check the history was not altered |
 
 Reasoning steps — sub-agents you dispatch:
 
@@ -66,6 +71,29 @@ Reasoning steps — sub-agents you dispatch:
 
 5. **Analyse.** Dispatch `analysis` with the results. Then decide whether to
    iterate.
+
+6. **Record.** The research state is the loop's memory, kept in an append-only
+   log, not in your context. After each step, write it down:
+   `register_candidates` (pass `full_envelope_path` from `generate_candidates`
+   as `candidate_output_path`), `record_experiment_plan` for each spec, and
+   `update_research_state` with the analysis and the `ExperimentResult` it
+   analysed. Read what comes back: `hypothesis_transitions` says which beliefs
+   changed (previous and new status, and the experiment and finding that caused
+   it), `relationship_changes` says which known variable-response relationships
+   moved. At the start of the next turn call `summarize_research_state` and
+   `get_open_questions` to choose what to do, instead of relying on recall.
+
+   Rules the state enforces, which you should report faithfully:
+   - **History is never overwritten.** A hypothesis that went supported →
+     weakened keeps both states. Say so; do not describe it as "now false".
+   - **Inconclusive leaves a hypothesis untouched.** Do not report an
+     inconclusive result as support or as weakening.
+   - **A failed attempt is not a negative finding.** It has no measurement.
+   - **A contested hypothesis** (its latest two decisive results disagree) is
+     unsettled: say so, and propose the experiment that would decide it.
+   - Nothing is experimentally validated unless a result is `wet-lab-derived`.
+     If `verify_state_integrity` ever reports a problem, stop and tell the user:
+     the recorded history can no longer be trusted.
 
 ## Reading simulated results
 

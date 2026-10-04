@@ -1,0 +1,44 @@
+# EXAMPLE ONLY -- not loaded by Omnigent.
+#
+# Run `python3 install.py` to generate the real knowledge.yaml next to this file,
+# with absolute paths resolved for your machine. That file is gitignored because
+# Omnigent does not expand ${VAR} in `command` or `args` (its parser documents
+# those as literals), so the paths have to be written out.
+
+name: knowledge
+transport: stdio
+description: >-
+  Knowledge / Research-State Agent. The persistent, append-only, reconstructable
+  scientific state of the programme: candidate and hypothesis registries with full
+  status history, experiment and result history, known variable relationships, open
+  questions and uncertainties. Record-keeping only -- nothing is validated.
+
+command: "/absolute/path/to/python"
+args:
+  - "/absolute/path/to/repo/tools/launchers/knowledge.py"
+
+env:
+  # Colon-separated: the agent, the shared schemas, and the contract package.
+  PYTHONPATH: "/absolute/path/to/repo/packages/knowledge_agent/src:/absolute/path/to/repo/shared:/absolute/path/to/repo/packages/bacteriocin_discovery/src"
+  # stdio is the MCP channel, so logs must stay off stdout.
+  BACTERIOCIN_LOG_LEVEL: "WARNING"
+  # Where the research state lives (default: <repo>/artifacts/research_state).
+  # BACTERIOCIN_STATE_DIR: /path/to/state
+
+tools:
+  - initialize_research_state
+  - register_candidates
+  - record_experiment_plan
+  - register_evidence
+  - update_research_state
+  - reject_candidate
+  - close_open_question
+  - get_candidate_history
+  - get_hypothesis_history
+  - get_experiment_history
+  - get_open_questions
+  - summarize_research_state
+  - get_state_at_iteration
+  - verify_state_integrity
+
+timeout: 60
