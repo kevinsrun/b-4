@@ -5,8 +5,12 @@ import Image from "next/image";
 
 const LINKS = [
   { href: "/research", label: "Discover" },
-  { href: "/research#discovery-results", label: "Results" },
+  { href: "/design", label: "Designer" },
+  { href: "/experiments", label: "Simulator" },
+  { href: "/candidates", label: "Candidates" },
+  { href: "/evidence", label: "Evidence" },
   { href: "/advanced", label: "Advanced" },
+  { href: "/benchmarks", label: "Benchmarks" },
   { href: "/methodology", label: "Methodology" },
 ];
 

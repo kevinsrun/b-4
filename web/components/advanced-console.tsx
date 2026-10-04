@@ -38,6 +38,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Homology context",
     detail: "Sequence search records the source, similarity signal, and whether a local fallback was used.",
     items: ["Closest homologs", "Identity and coverage", "E-value", "Backend and fallback status"],
+    href: "/design",
+    actionLabel: "Search Sequence Homologs",
   },
   {
     number: "04",
@@ -54,6 +56,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Adaptive experiment choice",
     detail: "The planner selects a condition that can most clearly challenge the active hypothesis.",
     items: ["Current hypothesis", "Selected experiment", "Alternatives considered", "Selection rationale"],
+    href: "/experiments",
+    actionLabel: "Plan Adaptive Experiments",
   },
   {
     number: "06",
@@ -70,6 +74,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Interpretation",
     detail: "The analysis compares iterations and reports whether a hypothesis is supported, weakened, or unresolved.",
     items: ["Interpretation", "Hypothesis support", "Cross-iteration comparison", "Condition-response context"],
+    href: "/research#discovery-results",
+    actionLabel: "View Discovery Analysis",
   },
   {
     number: "08",
@@ -77,6 +83,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Independent challenge",
     detail: "A conservative review checks coverage, provenance, and unresolved evidence gaps before a conclusion is accepted.",
     items: ["Verdict", "Concerns", "Evidence gaps", "Recommended follow-up"],
+    href: "/methodology",
+    actionLabel: "Review Critic Boundaries",
   },
   {
     number: "09",
@@ -102,6 +110,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Claim boundaries",
     detail: "Every visible statement is classified by what produced it, preventing predictions from being presented as measurements.",
     items: ["Published evidence", "Database evidence", "Computational simulation", "Model prediction", "Experimental evidence"],
+    href: "/methodology",
+    actionLabel: "Inspect Provenance Rules",
   },
   {
     number: "12",
@@ -109,6 +119,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Measured system behavior",
     detail: "Deterministic benchmark outputs quantify retrieval, variant analysis, and adaptive experiment selection where available.",
     items: ["Adaptive decision efficiency", "Retrieval recovery", "Variant accuracy", "Local search latency"],
+    href: "/benchmarks",
+    actionLabel: "View Benchmark Metrics",
   },
 ];
 
@@ -234,14 +246,14 @@ export function AdvancedConsole() {
 }
 
 function ConsoleCard({ section }: { section: ConsoleSection }) {
-  return (
-    <section className="flex flex-col justify-between border border-line bg-panel p-5 transition-colors hover:border-cyan/35">
+  const inner = (
+    <div className="flex h-full flex-col justify-between">
       <div>
         <div className="flex items-baseline justify-between gap-3">
           <p className="num text-[11px] text-cyan">{section.number}</p>
           <p className="text-[10.5px] uppercase tracking-[0.12em] text-faint">{section.eyebrow}</p>
         </div>
-        <h2 className="mt-3 text-[18px] font-medium text-text">{section.title}</h2>
+        <h2 className="mt-3 text-[18px] font-medium text-text group-hover:text-cyan">{section.title}</h2>
         <p className="mt-2 min-h-[4rem] text-[12.5px] leading-relaxed text-muted">{section.detail}</p>
         <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3">
           {section.items.map((item) => (
@@ -252,16 +264,28 @@ function ConsoleCard({ section }: { section: ConsoleSection }) {
         </ul>
       </div>
       {section.href && (
-        <div className="mt-4 border-t border-line/60 pt-3">
-          <Link
-            href={section.href}
-            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-cyan transition-colors hover:text-cyan/80 hover:underline"
-          >
-            <span>{section.actionLabel ?? "Open Specialist Tool"}</span>
-            <span>→</span>
-          </Link>
+        <div className="mt-5 flex items-center justify-between border-t border-line/60 pt-3 text-[12px] font-medium text-cyan">
+          <span>{section.actionLabel ?? "Open Specialist Tool"}</span>
+          <span className="transition-transform group-hover:translate-x-1">→</span>
         </div>
       )}
+    </div>
+  );
+
+  if (section.href) {
+    return (
+      <Link
+        href={section.href}
+        className="group block border border-line bg-panel p-5 transition-colors hover:border-cyan/50 hover:bg-raised"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <section className="border border-line bg-panel p-5">
+      {inner}
     </section>
   );
 }
