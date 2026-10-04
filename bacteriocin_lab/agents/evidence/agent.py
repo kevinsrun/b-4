@@ -415,6 +415,7 @@ class LiteratureEvidenceAgent:
         sequence: str,
         candidate_id: str | None = None,
         database: str = "nr",
+        backend: str = "auto",
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Perform BLAST sequence similarity search for a candidate sequence."""
@@ -425,5 +426,6 @@ class LiteratureEvidenceAgent:
             candidate_id=candidate_id,
             database=database,
             client=self.ncbi_client,
+            backend=backend,
             **kwargs,
         )

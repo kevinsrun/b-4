@@ -161,3 +161,50 @@ still be wrong by a decade.
 - [`agents/planner`](bacteriocin_lab/agents/planner/README.md) —
   deterministic active-learning experiment selection and budget-aware planning.
 - [`docs/`](docs/) — the shared contract and agent-team reference.
+
+## Local BLAST+ Setup
+
+The system includes a low-latency local BLAST+ execution backend with automatic fallback to the remote NCBI BLAST URL API.
+
+### 1. Install NCBI BLAST+
+
+On macOS:
+
+```bash
+brew install blast
+```
+
+On Ubuntu / Debian:
+
+```bash
+sudo apt update && sudo apt install ncbi-blast+
+```
+
+Verify binary installation:
+
+```bash
+blastp -version
+```
+
+### 2. Build a Local Database
+
+Create a local database using `makeblastdb` or the `build_local_blast_db` helper:
+
+```bash
+makeblastdb \
+  -in bacteriocins.fasta \
+  -dbtype prot \
+  -out ./data/blast/bacteriocins
+```
+
+### 3. Configure Environment
+
+In `.env`:
+
+```bash
+BLAST_BACKEND=auto
+BLASTP_EXECUTABLE=blastp
+BLAST_LOCAL_BACTERIOCIN_DB=./data/blast/bacteriocins
+```
+
+When `BLAST_BACKEND=auto`, the system routes similarity queries to local `blastp` if available for the target database, and seamlessly falls back to remote NCBI BLAST otherwise.
