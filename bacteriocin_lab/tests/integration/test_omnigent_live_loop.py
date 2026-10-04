@@ -405,10 +405,10 @@ def test_09_critic_rejection_reroutes():
     route = router.determine_next_route(state, last_agent="critic")
     assert route.next_agent == "planner"
 
-    # 3. Critic rejects candidate -> reroutes to candidate generation
+    # 3. Critic rejects candidate -> reroutes to knowledge to commit rejection
     state.reviews[-1].status = "rejected"
     route = router.determine_next_route(state, last_agent="critic")
-    assert route.next_agent == "candidate"
+    assert route.next_agent == "knowledge"
 
 
 # ---------------------------------------------------------------------------

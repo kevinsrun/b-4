@@ -200,6 +200,19 @@ class ExperimentBatchRequest(BaseModel):
     candidate_registry: dict[str, dict[str, Any]] | None = None
 
 
+class TargetDesignAPIRequest(BaseModel):
+    target_organism: str = Field(min_length=2, max_length=120)
+    target_strain: str | None = Field(default=None, max_length=120)
+    context: dict[str, Any] | None = None
+    desired_properties: dict[str, Any] | None = None
+    max_known_candidates: int = Field(default=10, ge=1, le=20)
+    max_natural_variants: int = Field(default=10, ge=1, le=20)
+    max_designed_candidates: int = Field(default=10, ge=1, le=25)
+    seed: int | None = Field(default=42)
+    known_threshold: float = Field(default=0.80)
+    natural_threshold: float = Field(default=0.85)
+
+
 def _candidate_registry(raw: dict[str, dict[str, Any]] | None) -> dict[str, CandidateSpec] | None:
     """Coerce a JSON registry into the ``CandidateSpec`` objects the adapter expects.
 
@@ -251,8 +264,15 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
     def agents() -> dict[str, Any]:
         return {
             "agents": AGENT_ROSTER,
-            "loop": ["evidence", "candidate", "planner", "simulation", "analysis",
-                     "critic", "knowledge"],
+            "loop": [
+                "evidence",
+                "candidate",
+                "planner",
+                "simulation",
+                "analysis",
+                "critic",
+                "knowledge",
+            ],
         }
 
     # -- simulator -----------------------------------------------------
@@ -364,6 +384,26 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
         if state_dir:
             payload["state_dir"] = state_dir
         return knowledge_call(payload)
+
+    # -- target-to-bacteriocin design ---------------------------------
+    @app.post("/api/design/target")
+    def design_target(body: TargetDesignAPIRequest) -> dict[str, Any]:
+        """Execute target-to-bacteriocin design with hierarchical escalation."""
+        from bacteriocin_lab.agents.design import design_for_target
+
+        result = design_for_target(
+            target_organism=body.target_organism,
+            target_strain=body.target_strain,
+            context=body.context,
+            desired_properties=body.desired_properties,
+            max_known_candidates=body.max_known_candidates,
+            max_natural_variants=body.max_natural_variants,
+            max_designed_candidates=body.max_designed_candidates,
+            seed=body.seed,
+            known_threshold=body.known_threshold,
+            natural_threshold=body.natural_threshold,
+        )
+        return result.model_dump(mode="json")
 
     # -- runs ----------------------------------------------------------
     @app.post("/api/runs")
