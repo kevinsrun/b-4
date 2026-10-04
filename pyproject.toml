@@ -27,11 +27,13 @@ dependencies = ["pydantic>=2.10,<3"]
 dev = ["pytest>=8.0", "pytest-cov>=6", "ruff>=0.8"]
 mcp = ["mcp>=1.30"]
 verify = ["httpx>=0.25"]
+web = ["fastapi>=0.115", "uvicorn>=0.30"]
 
 [project.scripts]
 bacteriocin-sim = "bacteriocin_lab.agents.simulator.cli:main"
 bacteriocin-sim-mcp = "bacteriocin_lab.agents.simulator.mcp_server:main"
 b4-literature-evidence = "bacteriocin_lab.agents.evidence.cli:main"
+bacterion-api = "bacteriocin_lab.api.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["bacteriocin_lab*"]

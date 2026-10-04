@@ -55,6 +55,46 @@ def _num(x: Any) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
+# Multipliers onto the planner's own condition scales, which are the same bare-number
+# scales the simulator assumes for an unqualified value: uM, CFU/mL, hours.
+_UNIT_FACTORS = {
+    "bacteriocin_concentration": {"um": 1.0, "µm": 1.0, "umol/l": 1.0, "micromolar": 1.0,
+                                  "nm": 1e-3, "nmol/l": 1e-3, "nanomolar": 1e-3,
+                                  "mm": 1e3, "mmol/l": 1e3, "millimolar": 1e3},
+    "target_cell_density": {"cfu_per_ml": 1.0, "cfu/ml": 1.0, "cells_per_ml": 1.0, "cells/ml": 1.0},
+    "producer_cell_density": {"cfu_per_ml": 1.0, "cfu/ml": 1.0, "cells_per_ml": 1.0, "cells/ml": 1.0},
+    "incubation_time": {"h": 1.0, "hour": 1.0, "hours": 1.0, "min": 1 / 60.0, "s": 1 / 3600.0},
+}
+# Log-scaled units, which are a different shape of conversion from a multiplier.
+_LOG_DENSITY_UNITS = ("log10_cfu_per_ml", "log10cfu/ml", "log_cfu_per_ml")
+
+
+def measurement_scalar(key: str, raw: Any, warnings: List[str], label: str) -> Any:
+    """Flatten one condition value from the shared contract onto the planner's scale.
+
+    ``previous_experiments`` arrives as ``ExperimentResult`` dumps, where dose, density
+    and time are nested ``{"value": ..., "unit": ...}`` measurements, while every
+    condition vector the planner reasons over is a bare number. Converting here keeps
+    coverage distances comparable; an unconvertible unit is reported rather than mixed
+    silently into a log-scale distance, where being wrong by a decade is invisible.
+    """
+    if not isinstance(raw, dict) or "value" not in raw:
+        return raw
+    value = raw.get("value")
+    if not _num(value):
+        return None
+    unit = str(raw.get("unit") or "").strip().lower()
+    if not unit:
+        return value
+    if key in ("target_cell_density", "producer_cell_density") and unit in _LOG_DENSITY_UNITS:
+        return 10.0**value
+    factor = _UNIT_FACTORS.get(key, {}).get(unit)
+    if factor is None:
+        warnings.append(f"{label}.{key}: unit {raw.get('unit')!r} is not convertible; value dropped")
+        return None
+    return value * factor
+
+
 def reference_conditions(desired: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, Any]:
     ph = desired.get("ph_range")
     ref = {
@@ -169,7 +209,7 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: unknown or missing candidate_id")
             continue
         m = e.get("measurement") or {}
-        e_conditions, unit_notes = adapters.plain_conditions(e.get("conditions") or {})
+        _, unit_notes = adapters.plain_conditions(e.get("conditions") or {})
         warnings.extend(f"previous_experiments[{i}] {n}" for n in unit_notes)
         y = m.get("predicted_inhibition_fraction")
         if y is None and _num(m.get("predicted_survival_fraction")):
@@ -180,10 +220,15 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: no inhibition value in [0, 1]")
             continue
         cond = dict(ref)
-        incomplete = [k for k in ("ph", "target_cell_density", "bacteriocin_concentration") if e_conditions.get(k) is None]
+        supplied = {
+            k: measurement_scalar(k, v, warnings, f"previous_experiments[{i}].conditions")
+            for k, v in (e.get("conditions") or {}).items()
+            if k in CONDITION_KEYS
+        }
+        incomplete = [k for k in ("ph", "target_cell_density", "bacteriocin_concentration") if supplied.get(k) is None]
         if incomplete:
             warnings.append(f"previous_experiments[{i}] lacks {incomplete}; reference values assumed")
-        cond.update({k: v for k, v in e_conditions.items() if k in CONDITION_KEYS and v is not None})
+        cond.update({k: v for k, v in supplied.items() if v is not None})
         exps.append({"experiment_id": e.get("experiment_id"), "result_id": e.get("result_id"),
                      "candidate_id": e["candidate_id"], "hypothesis_id": e.get("hypothesis_id"),
                      "conditions": cond, "y": float(y), "uncertainty": m.get("uncertainty"),

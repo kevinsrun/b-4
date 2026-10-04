@@ -148,6 +148,32 @@ def test_real_agents_discovery_turn() -> None:
     assert res["measurement"]["predicted_inhibition_fraction"] is not None
 
 
+def test_screen_demo_listeria_followup_changes_ph_after_critic_review() -> None:
+    """The recording preset must visibly demonstrate a critic-driven next experiment."""
+    objective = ResearchObjective(
+        goal=(
+            "Identify the most promising bacteriocin candidate for suppressing high-density "
+            "Listeria monocytogenes and determine the most informative next computational "
+            "experiment."
+        ),
+        target={"species": "Listeria monocytogenes", "gram": "positive"},
+        desired_behavior={"high_inhibition": True, "target_cell_density": 1e8, "ph": 7.0},
+        constraints={"max_candidates": 1},
+    )
+    result = run_discovery(
+        objective=objective,
+        max_iterations=2,
+        registry=AgentRegistry.default(),
+        seed=42,
+    )
+
+    state = ResearchState.model_validate(result.final_state)
+    assert result.iterations_completed == 2
+    assert [spec.conditions.ph for spec in state.experiments] == [7.0, 10.0]
+    assert state.reviews[0].status == "needs_more_evidence"
+    assert all(item.evidence_type == "simulation-derived" for item in state.results)
+
+
 def test_literature_evidence_changes_real_candidate_ranking_and_preserves_provenance() -> None:
     state_a, literature_a = _rank_from_fixture("Candidate X")
     state_b, _literature_b = _rank_from_fixture("Candidate Y")

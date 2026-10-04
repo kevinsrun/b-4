@@ -32,3 +32,10 @@ data/blast/
 *.pto
 *.pal
 *.pjs
+
+# Web front end (web/): dependencies and build output.
+node_modules/
+.next/
+next-env.d.ts
+.tsbuildinfo
+*.tsbuildinfo
