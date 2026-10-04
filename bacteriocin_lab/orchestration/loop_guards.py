@@ -18,6 +18,11 @@ class CycleDetector:
         signature = f"{route.next_agent}:{route.reason.strip()[:30]}"
         self._route_history.append(signature)
 
+    def forget_last_route(self) -> None:
+        """Drop the most recent route (its dispatch failed and so did not advance the science)."""
+        if self._route_history:
+            self._route_history.pop()
+
     def is_cycle_detected(self) -> tuple[bool, str]:
         """Check if any cycle has repeated at least max_cycle_repeats times.
 
@@ -88,9 +93,22 @@ class LoopGuards:
             )
         return True, ""
 
-    def record_failure(self) -> None:
+    def record_failure(self, iteration: int | None = None, agent: str | None = None) -> None:
+        """Count a failed dispatch.
+
+        A failure is governed by ``max_failures`` alone. It is un-counted as a route visit and as a
+        route repetition: otherwise retrying one failing agent trips the cycle detector or the
+        per-iteration visit cap first and reports "stopped" for what is really "failed".
+        """
         self.consecutive_failures += 1
         self.total_failures += 1
+        self.cycle_detector.forget_last_route()
+        if (
+            agent is not None
+            and iteration == self._current_iteration
+            and self._visits_in_current_iteration.get(agent, 0) > 0
+        ):
+            self._visits_in_current_iteration[agent] -= 1
 
     def record_success(self) -> None:
         self.consecutive_failures = 0

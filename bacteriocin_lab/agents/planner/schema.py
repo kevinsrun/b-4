@@ -7,6 +7,8 @@ import json
 import math
 from typing import Any, Dict, List, Optional
 
+from . import adapters
+
 AGENT_NAME = "experiment_planner"
 SCHEMA_VERSION = "experiment_planner.v1"
 MODEL_VERSION = "experiment_planner-0.1.0+scoring-v1"
@@ -136,7 +138,7 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
         if not isinstance(c, dict) or not c.get("candidate_id"):
             errors.append(f"candidates[{i}] needs a candidate_id")
             continue
-        cands[c["candidate_id"]] = c
+        cands[c["candidate_id"]] = adapters.normalize_candidate(c)
 
     hyps: List[Dict[str, Any]] = []
     raw_h = payload.get("hypotheses") or []
@@ -167,6 +169,8 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: unknown or missing candidate_id")
             continue
         m = e.get("measurement") or {}
+        e_conditions, unit_notes = adapters.plain_conditions(e.get("conditions") or {})
+        warnings.extend(f"previous_experiments[{i}] {n}" for n in unit_notes)
         y = m.get("predicted_inhibition_fraction")
         if y is None and _num(m.get("predicted_survival_fraction")):
             y = 1 - m["predicted_survival_fraction"]
@@ -176,10 +180,10 @@ def normalize_request(payload: Any) -> Dict[str, Any]:
             warnings.append(f"previous_experiments[{i}] ignored: no inhibition value in [0, 1]")
             continue
         cond = dict(ref)
-        incomplete = [k for k in ("ph", "target_cell_density", "bacteriocin_concentration") if (e.get("conditions") or {}).get(k) is None]
+        incomplete = [k for k in ("ph", "target_cell_density", "bacteriocin_concentration") if e_conditions.get(k) is None]
         if incomplete:
             warnings.append(f"previous_experiments[{i}] lacks {incomplete}; reference values assumed")
-        cond.update({k: v for k, v in (e.get("conditions") or {}).items() if k in CONDITION_KEYS and v is not None})
+        cond.update({k: v for k, v in e_conditions.items() if k in CONDITION_KEYS and v is not None})
         exps.append({"experiment_id": e.get("experiment_id"), "result_id": e.get("result_id"),
                      "candidate_id": e["candidate_id"], "hypothesis_id": e.get("hypothesis_id"),
                      "conditions": cond, "y": float(y), "uncertainty": m.get("uncertainty"),

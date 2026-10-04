@@ -33,6 +33,7 @@ from bacteriocin_lab.shared.contract import (
     RecommendedNextAction,
     Uncertainty,
 )
+from bacteriocin_lab.shared.compat import contract_result_dict
 from bacteriocin_lab.shared.ids import content_id
 
 from .rules import claims_experimental_validation, review_claim
@@ -167,7 +168,7 @@ class ScientificCriticAgent:
                 out[item.result_id] = item
                 continue
             try:
-                parsed = ExperimentResult.model_validate(item)
+                parsed = ExperimentResult.model_validate(contract_result_dict(item))
             except Exception as exc:  # noqa: BLE001 - any validation failure is the same here
                 logger.warning("%s: skipping unparseable result: %s", AGENT_NAME, exc)
                 continue

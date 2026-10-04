@@ -6,7 +6,8 @@ from typing import Any
 
 from bacteriocin_lab.agents.evidence.agent import LiteratureEvidenceAgent
 
-from ..types import ResearchState, content_id
+from ..state import ResearchStateManager
+from ..types import Evidence, ResearchState, content_id
 
 
 class LiteratureAgentAdapter:
@@ -32,48 +33,25 @@ class LiteratureAgentAdapter:
         response = self.agent.run(request)
         emitted_ids: list[str] = []
 
-        # Convert literature response items into shared contract Evidence records
+        state_mgr = ResearchStateManager(state)
+
+        # Record each literature item as a provenance-carrying contract Evidence. The type is taken
+        # from the agent's own record and defaults to literature-derived; it is never upgraded.
         for item in response.evidence:
             ev_id = item.evidence_id or content_id(
                 "evidence",
                 {"source": item.source.source_id if item.source else "", "claim": item.claim},
             )
-            claim = item.claim
             source_id = item.source.source_id if item.source else "literature"
-            emitted_ids.append(ev_id)
-
-            # Record in state's scientific history
-            state.scientific_history.append(
-                # Import here or rely on state types
-                type(state.scientific_history[0])(
-                    event_id=content_id("run", {"ev_id": ev_id, "iter": state.iteration}),
-                    event_type="evidence_added",
-                    iteration=state.iteration,
-                    source_agent=self.name,
-                    summary=f"Literature evidence: {claim[:80]}",
-                    data={
-                        "evidence_id": ev_id,
-                        "evidence_type": "literature-derived",
-                        "source": source_id,
-                    },
-                )
-                if state.scientific_history
-                # fallback if history empty
-                else type(state.scientific_history)._item_type(  # type: ignore
-                    event_id=content_id("run", {"ev_id": ev_id, "iter": state.iteration}),
-                    event_type="evidence_added",
-                    iteration=state.iteration,
-                    source_agent=self.name,
-                    summary=f"Literature evidence: {claim[:80]}",
-                    data={
-                        "evidence_id": ev_id,
-                        "evidence_type": "literature-derived",
-                        "source": source_id,
-                    },
-                )
-                if hasattr(type(state.scientific_history), "_item_type")
-                else None  # type: ignore
-            ) if False else None
+            evidence = Evidence(
+                evidence_id=ev_id,
+                evidence_type=getattr(item, "evidence_type", None) or "literature-derived",
+                claim=item.claim,
+                source=source_id,
+                confidence=getattr(item, "confidence", None),
+            )
+            if state_mgr.add_evidence(evidence, source_agent=self.name):
+                emitted_ids.append(ev_id)
 
         # Add generic knowledge gap if none found
         if not response.evidence:
