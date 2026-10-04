@@ -89,6 +89,30 @@ class DiscoveryWorkflowEngine:
 
             # 2. Determine next route
             route = router.determine_next_route(state, last_agent=last_agent, last_route=last_route)
+            # The real critic returns a structured follow-up agent. Honour that recommendation
+            # when its conservative verdict maps to ``needs_more_evidence``; otherwise the legacy
+            # router's generic evidence detour can generate a new candidate before the requested
+            # replication is run, making the critic's two-result floor impossible to satisfy.
+            if last_agent == "critic" and state.reviews:
+                latest_review = state.reviews[-1]
+                recommended = latest_review.recommendation.get("agent")
+                canonical = self.registry.canonical_role(str(recommended)) if recommended else None
+                if (
+                    latest_review.reviewer == "scientific_critic_agent"
+                    and latest_review.status == "needs_more_evidence"
+                    and canonical in {"evidence", "candidate", "planner", "analysis"}
+                ):
+                    route = Route(
+                        # Persist the conservative review through the real Knowledge Agent before
+                        # dispatching the recommended follow-up.  This keeps every adaptive turn
+                        # durable without treating a worker's non-approval as a terminal decision.
+                        next_agent="knowledge",
+                        reason=(
+                            "Persist real critic follow-up before "
+                            f"{canonical}: {latest_review.recommendation.get('reason') or latest_review.critique}"
+                        ),
+                        required_inputs=["findings"],
+                    )
 
             # 3. Check terminal route
             if route.terminal:
@@ -183,7 +207,7 @@ class DiscoveryWorkflowEngine:
                 last_agent = route.next_agent
                 last_route = route
 
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 # Revert to snapshot to preserve state integrity
                 state = snapshot
                 state_mgr = ResearchStateManager(state)

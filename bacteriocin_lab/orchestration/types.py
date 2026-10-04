@@ -150,6 +150,11 @@ class Hypothesis(BaseModel):
     candidate_id: str | None = None
     statement: str
     prediction: str | None = None
+    predicted_direction: Literal["inhibition", "no-effect", "conditional"] | None = None
+    predicted_inhibition_fraction: float | None = Field(default=None, ge=0.0, le=1.0)
+    expected_relationship: dict[str, Any] | None = None
+    key_conditions: dict[str, Any] = Field(default_factory=dict)
+    tolerance: float | None = Field(default=None, gt=0.0, le=1.0)
     status: Literal["open", "supported", "contradicted", "weakened", "rejected"] = "open"
     prior_plausibility: float = Field(default=0.5, ge=0.0, le=1.0)
     posterior_probability: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -171,8 +176,12 @@ class Finding(BaseModel):
     candidate_ids: list[str] = Field(default_factory=list)
     hypothesis_ids: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
+    result_ids: list[str] = Field(default_factory=list)
     factor_sensitivities: dict[str, float] = Field(default_factory=dict)
     recommendations: list[str] = Field(default_factory=list)
+    uncertainties: list[str | Uncertainty] = Field(default_factory=list)
+    provenance_note: str | None = None
+    analysis_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class Review(BaseModel):
@@ -192,6 +201,11 @@ class Review(BaseModel):
     recommendation: dict[str, Any] = Field(default_factory=dict)
     reviewer: str = "scientific_critic"
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    issues: list[dict[str, Any]] = Field(default_factory=list)
+    required_followups: list[dict[str, Any]] = Field(default_factory=list)
+    uncertainties: list[str | Uncertainty] = Field(default_factory=list)
+    provenance: dict[str, Any] = Field(default_factory=dict)
+    critic_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class ScientificEvent(BaseModel):
@@ -258,6 +272,9 @@ class ResearchState(BaseModel):
     scientific_history: list[ScientificEvent] = Field(default_factory=list)
     tested_candidate_ids: list[str] = Field(default_factory=list)
     settled_candidate_ids: list[str] = Field(default_factory=list)
+    # Temporary bridge to the real Knowledge Agent's append-only state. Task B will replace the
+    # parallel orchestration state rather than carrying both representations.
+    knowledge_state: dict[str, Any] | None = None
 
     @property
     def all_results(self) -> list[ExperimentResult]:
