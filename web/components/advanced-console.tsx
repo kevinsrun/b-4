@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type ConsoleSection = {
@@ -8,6 +9,8 @@ type ConsoleSection = {
   eyebrow: string;
   detail: string;
   items: string[];
+  href?: string;
+  actionLabel?: string;
 };
 
 const SECTIONS: ConsoleSection[] = [
@@ -17,6 +20,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Scientific inputs",
     detail: "Published and database-derived support is kept distinct from computational claims.",
     items: ["Literature evidence", "Database evidence", "NCBI source details", "Citations and provenance"],
+    href: "/evidence",
+    actionLabel: "Search Literature Evidence",
   },
   {
     number: "02",
@@ -24,6 +29,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Candidate landscape",
     detail: "Known bacteriocins, natural variants, and computational designs are displayed as separate tiers.",
     items: ["Ranked bacteriocins", "Natural variants", "Computational designs", "Scores and rationale"],
+    href: "/candidates",
+    actionLabel: "Explore Candidates",
   },
   {
     number: "03",
@@ -38,6 +45,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Observed sequence variation",
     detail: "Homolog alignment separates observed substitutions from unsupported design hypotheses.",
     items: ["Substitutions and indels", "Variant frequencies", "Conservation", "Source accessions"],
+    href: "/design",
+    actionLabel: "Launch Target Designer",
   },
   {
     number: "05",
@@ -52,6 +61,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Computational prediction",
     detail: "Candidate sequence, target, and conditions are evaluated together with their uncertainty.",
     items: ["Candidate and target", "Experimental conditions", "Predicted response", "Uncertainty and model version"],
+    href: "/experiments",
+    actionLabel: "Run Simulator & Dose Curves",
   },
   {
     number: "07",
@@ -73,6 +84,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Research memory",
     detail: "The system retains conclusions, unresolved hypotheses, and the provenance category of every claim.",
     items: ["Current conclusions", "Unresolved hypotheses", "Iteration history", "Provenance categories"],
+    href: "/knowledge",
+    actionLabel: "Inspect Research State",
   },
   {
     number: "10",
@@ -80,6 +93,8 @@ const SECTIONS: ConsoleSection[] = [
     eyebrow: "Workflow control",
     detail: "The autonomous loop routes evidence through evaluation and review, then adapts the next experiment when needed.",
     items: ["Stage sequence", "Current stage", "Adaptive routing", "Iteration transitions"],
+    href: "/agents",
+    actionLabel: "View Specialist Agents & Selftest",
   },
   {
     number: "11",
@@ -105,12 +120,95 @@ export function AdvancedConsole() {
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">Advanced</p>
         <h1 className="mt-3 text-4xl font-medium tracking-[-0.035em] text-text">Scientific research console</h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
-          An optional map of the full discovery system. Discover remains the normal one-question,
-          one-result experience; this view explains the scientific depth behind it.
+          Access the individual specialist tools driving the discovery system, or inspect the 12 scientific subsystems behind the autonomous loop.
         </p>
       </header>
 
-      <section className="mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Advanced scientific system">
+      {/* Direct Interactive Tools Launcher */}
+      <section className="mt-8 border border-cyan/40 bg-cyan/5 p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-cyan">Interactive Specialist Tools</p>
+            <h2 className="mt-1 text-2xl font-medium text-text">Launch autonomous lab modules directly</h2>
+          </div>
+          <span className="text-[12px] text-muted">6 live interactive interfaces</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/design"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Pipeline</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Target-to-Bacteriocin Designer</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Known candidates, natural variant discovery, active learning & calibration ladder</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Launch designer →</span>
+          </Link>
+          <Link
+            href="/candidates"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Agent 02</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Candidate Explorer</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Ranked candidate proposals, hypothesis discrimination & falsification criteria</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Explore candidates →</span>
+          </Link>
+          <Link
+            href="/experiments"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Agent 04</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Simulator & Dose Curves</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Mechanistic simulated microdilution assays, inoculum effect & dose-response sweeps</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Open simulator →</span>
+          </Link>
+          <Link
+            href="/evidence"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Agent 01</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Literature & NCBI Evidence</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Live Europe PMC and NCBI extraction with strict provenance boundaries</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Search evidence →</span>
+          </Link>
+          <Link
+            href="/knowledge"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Agent 07</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Research State Memory</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Append-only event log, open scientific questions & hash-verified state integrity</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">View research state →</span>
+          </Link>
+          <Link
+            href="/agents"
+            className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
+          >
+            <div>
+              <div className="text-[11px] text-cyan">Verification</div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">Agent Network & Selftest</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">Interactive roster of all 7 agents and live execution of 14 biology invariants</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Run selftest & view roster →</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* 12 Subsystem Architecture Reference */}
+      <div className="mt-12 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-xl font-medium text-text">Subsystem Architecture Reference</h2>
+        <span className="text-[12px] text-muted">Complete technical map</span>
+      </div>
+      <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Advanced scientific system">
         {SECTIONS.map((section) => <ConsoleCard key={section.number} section={section} />)}
       </section>
 
@@ -120,7 +218,7 @@ export function AdvancedConsole() {
           <span>Evidence</span><span className="text-cyan">→</span><span>Candidates</span><span className="text-cyan">→</span><span>Computational experiment</span><span className="text-cyan">→</span><span>Scientific review</span><span className="text-cyan">→</span><span>Next experiment</span>
         </div>
         <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-muted">
-          The system does not expose manual agent controls. It chooses the next bounded action from the current scientific state and preserves uncertainty throughout.
+          The system does not expose manual agent controls in standard discovery. It chooses the next bounded action from the current scientific state and preserves uncertainty throughout.
         </p>
       </section>
 
@@ -137,11 +235,33 @@ export function AdvancedConsole() {
 
 function ConsoleCard({ section }: { section: ConsoleSection }) {
   return (
-    <section className="border border-line bg-panel p-5 transition-colors hover:border-cyan/35">
-      <div className="flex items-baseline justify-between gap-3"><p className="num text-[11px] text-cyan">{section.number}</p><p className="text-[10.5px] uppercase tracking-[0.12em] text-faint">{section.eyebrow}</p></div>
-      <h2 className="mt-3 text-[18px] font-medium text-text">{section.title}</h2>
-      <p className="mt-2 min-h-[4rem] text-[12.5px] leading-relaxed text-muted">{section.detail}</p>
-      <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3">{section.items.map((item) => <li key={item} className="border border-line bg-raised px-2 py-1 text-[10.5px] text-muted">{item}</li>)}</ul>
+    <section className="flex flex-col justify-between border border-line bg-panel p-5 transition-colors hover:border-cyan/35">
+      <div>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="num text-[11px] text-cyan">{section.number}</p>
+          <p className="text-[10.5px] uppercase tracking-[0.12em] text-faint">{section.eyebrow}</p>
+        </div>
+        <h2 className="mt-3 text-[18px] font-medium text-text">{section.title}</h2>
+        <p className="mt-2 min-h-[4rem] text-[12.5px] leading-relaxed text-muted">{section.detail}</p>
+        <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3">
+          {section.items.map((item) => (
+            <li key={item} className="border border-line bg-raised px-2 py-1 text-[10.5px] text-muted">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+      {section.href && (
+        <div className="mt-4 border-t border-line/60 pt-3">
+          <Link
+            href={section.href}
+            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-cyan transition-colors hover:text-cyan/80 hover:underline"
+          >
+            <span>{section.actionLabel ?? "Open Specialist Tool"}</span>
+            <span>→</span>
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
