@@ -9,6 +9,9 @@ from .agent_adapters import (
     KnowledgeAgent,
     LiteratureAgentAdapter,
     PlannerAgentAdapter,
+    RealAnalysisAdapter,
+    RealCriticAdapter,
+    RealKnowledgeAdapter,
     ResultAnalysisAgent,
     ScientificCriticAgent,
     SimulationAgentAdapter,
@@ -79,12 +82,25 @@ class AgentRegistry:
 
     @classmethod
     def default(cls) -> AgentRegistry:
-        """Construct the registry used outside tests.
+        """Construct the production registry backed by all real specialist agents."""
+        return cls.real()
 
-        Evidence, candidate, planner and simulation call the real specialist agents. Analysis, critic
-        and knowledge are the orchestration layer's own built-in implementations, NOT the agents in
-        ``bacteriocin_lab.agents.analysis`` / ``.critic`` / ``.knowledge`` (see TECH_DEBT.md, item 1).
-        """
+    @classmethod
+    def real(cls) -> AgentRegistry:
+        """Construct a registry whose scientific steps invoke the repository's real agents."""
+        return cls(
+            evidence=LiteratureAgentAdapter(),
+            candidate=CandidateAgentAdapter(),
+            planner=PlannerAgentAdapter(),
+            simulation=SimulationAgentAdapter(),
+            analysis=RealAnalysisAdapter(),
+            critic=RealCriticAdapter(),
+            knowledge=RealKnowledgeAdapter(),
+        )
+
+    @classmethod
+    def legacy(cls) -> AgentRegistry:
+        """Construct the former orchestration-local analysis, critic, and knowledge path."""
         return cls(
             evidence=LiteratureAgentAdapter(),
             candidate=CandidateAgentAdapter(),

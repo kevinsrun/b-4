@@ -100,6 +100,11 @@ class CandidateAgentAdapter:
                     candidate_id=cid,
                     statement=h.get("statement", ""),
                     prediction=h.get("predicted_direction") or h.get("prediction"),
+                    predicted_direction=h.get("predicted_direction"),
+                    predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
+                    expected_relationship=h.get("expected_relationship"),
+                    key_conditions=dict(h.get("key_conditions") or {}),
+                    tolerance=h.get("tolerance"),
                     status="open",
                     prior_plausibility=float(
                         h.get("prior_plausibility") or h.get("confidence") or 0.5
@@ -125,6 +130,11 @@ class CandidateAgentAdapter:
                 candidate_id=h.get("candidate_id"),
                 statement=h.get("statement", ""),
                 prediction=h.get("prediction"),
+                predicted_direction=h.get("predicted_direction"),
+                predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
+                expected_relationship=h.get("expected_relationship"),
+                key_conditions=dict(h.get("key_conditions") or {}),
+                tolerance=h.get("tolerance"),
                 status="open",
                 prior_plausibility=float(h.get("prior_plausibility", 0.5)),
                 posterior_probability=float(h.get("posterior_probability", 0.5)),
