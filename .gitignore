@@ -20,3 +20,15 @@ tools/mcp/*.yaml
 
 # Default location of the persistent research state (BACTERIOCIN_STATE_DIR overrides it).
 artifacts/
+
+# Local BLAST database files and artifacts
+data/blast/
+*.pin
+*.phr
+*.psq
+*.pdb
+*.pot
+*.ptf
+*.pto
+*.pal
+*.pjs

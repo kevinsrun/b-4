@@ -70,3 +70,39 @@ class BlastParseError(BlastError, NCBIParseError):
 
 class BlastBudgetExceededError(BlastError):
     """Raised when the maximum allowed BLAST searches for a run is exceeded."""
+
+
+class LocalBlastError(BlastError):
+    """Base exception for all local BLAST+ execution errors."""
+
+
+class LocalBlastUnavailableError(LocalBlastError):
+    """Raised when the local blastp executable is not found or not executable."""
+
+
+class LocalBlastDatabaseError(LocalBlastError):
+    """Raised when the requested local BLAST database is missing, invalid, or cannot be built."""
+
+
+class LocalBlastExecutionError(LocalBlastError):
+    """Raised when the local blastp process exits with a non-zero return code."""
+
+    def __init__(
+        self,
+        message: str,
+        returncode: int | None = None,
+        stderr: str | None = None,
+        cmd: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.returncode = returncode
+        self.stderr = stderr
+        self.cmd = cmd
+
+
+class LocalBlastTimeoutError(LocalBlastError, BlastTimeoutError):
+    """Raised when the local blastp process exceeds its execution timeout."""
+
+
+class LocalBlastParseError(LocalBlastError, BlastParseError):
+    """Raised when local blastp output cannot be parsed."""

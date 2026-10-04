@@ -3,6 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from .blast import (
+    AutoBlastBackend,
+    BlastBackend,
+    LocalBlastBackend,
+    RemoteNcbiBlastBackend,
     blastp,
     check_blast_status,
     clear_blast_cache,
@@ -22,12 +26,23 @@ from .errors import (
     BlastSubmissionError,
     BlastTimeoutError,
     BlastValidationError,
+    LocalBlastDatabaseError,
+    LocalBlastError,
+    LocalBlastExecutionError,
+    LocalBlastParseError,
+    LocalBlastTimeoutError,
+    LocalBlastUnavailableError,
     NCBIError,
     NCBIParseError,
     NCBIRateLimitError,
     NCBIRequestError,
 )
 from .fasta import fetch_fasta
+from .local_blast import (
+    build_local_blast_db,
+    parse_blast_tsv,
+    resolve_local_db,
+)
 from .pmc import fetch_pmc_article
 from .protein import search_protein
 from .pubmed import fetch_pubmed_records, search_pubmed
@@ -41,6 +56,8 @@ def search_ncbi(db: str, query: str, limit: int = 10, client: NcbiClient | None 
 
 
 __all__ = [
+    "AutoBlastBackend",
+    "BlastBackend",
     "BlastBudgetExceededError",
     "BlastError",
     "BlastParseError",
@@ -48,6 +65,13 @@ __all__ = [
     "BlastSubmissionError",
     "BlastTimeoutError",
     "BlastValidationError",
+    "LocalBlastBackend",
+    "LocalBlastDatabaseError",
+    "LocalBlastError",
+    "LocalBlastExecutionError",
+    "LocalBlastParseError",
+    "LocalBlastTimeoutError",
+    "LocalBlastUnavailableError",
     "NCBIConfig",
     "NCBIError",
     "NCBIParseError",
@@ -55,7 +79,9 @@ __all__ = [
     "NCBIRequestError",
     "NcbiClient",
     "NcbiSource",
+    "RemoteNcbiBlastBackend",
     "blastp",
+    "build_local_blast_db",
     "check_blast_status",
     "clear_blast_cache",
     "fetch_blast_results",
@@ -63,7 +89,9 @@ __all__ = [
     "fetch_pmc_article",
     "fetch_pubmed_records",
     "normalize_protein_sequence",
+    "parse_blast_tsv",
     "reset_blast_budget",
+    "resolve_local_db",
     "search_ncbi",
     "search_protein",
     "search_pubmed",

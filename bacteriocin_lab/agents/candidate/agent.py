@@ -83,6 +83,7 @@ class CandidateGenerationAgent:
         sequence: str,
         database: str = "nr",
         client: Any | None = None,
+        backend: str = "auto",
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Check sequence similarity and novelty of a candidate using NCBI BLAST."""
@@ -94,6 +95,7 @@ class CandidateGenerationAgent:
             candidate_id=candidate_id,
             database=database,
             client=c,
+            backend=backend,
             **kwargs,
         )
 

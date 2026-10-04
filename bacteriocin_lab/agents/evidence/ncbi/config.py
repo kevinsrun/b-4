@@ -26,6 +26,19 @@ class NCBIConfig:
     blast_cache_enabled: bool = True
     max_blast_queries_per_run: int = 5
 
+    # Local BLAST-specific configuration
+    blast_backend: str = "auto"
+    blastp_executable: str = "blastp"
+    makeblastdb_executable: str = "makeblastdb"
+    blast_local_db_dir: str | None = None
+    blast_local_default_db: str | None = None
+    blast_local_timeout_seconds: float = 30.0
+    blast_local_num_threads: int = 4
+    blast_local_swissprot_db: str | None = None
+    blast_local_refseq_db: str | None = None
+    blast_local_bacteriocin_db: str | None = None
+    blast_local_nr_db: str | None = None
+
     def __post_init__(self) -> None:
         if self.api_key is None:
             self.api_key = os.getenv("NCBI_API_KEY") or None
@@ -64,6 +77,32 @@ class NCBIConfig:
             with contextlib.suppress(ValueError):
                 self.max_blast_queries_per_run = int(os.getenv("BLAST_MAX_QUERIES_PER_RUN", "5"))
 
+        # Environment variable overrides for Local BLAST
+        if os.getenv("BLAST_BACKEND"):
+            self.blast_backend = os.getenv("BLAST_BACKEND", self.blast_backend).lower()
+        if os.getenv("BLASTP_EXECUTABLE"):
+            self.blastp_executable = os.getenv("BLASTP_EXECUTABLE", self.blastp_executable)
+        if os.getenv("MAKEBLASTDB_EXECUTABLE"):
+            self.makeblastdb_executable = os.getenv("MAKEBLASTDB_EXECUTABLE", self.makeblastdb_executable)
+        if os.getenv("BLAST_LOCAL_DB_DIR"):
+            self.blast_local_db_dir = os.getenv("BLAST_LOCAL_DB_DIR")
+        if os.getenv("BLAST_LOCAL_DEFAULT_DB"):
+            self.blast_local_default_db = os.getenv("BLAST_LOCAL_DEFAULT_DB")
+        if os.getenv("BLAST_LOCAL_TIMEOUT_SECONDS"):
+            with contextlib.suppress(ValueError):
+                self.blast_local_timeout_seconds = float(os.getenv("BLAST_LOCAL_TIMEOUT_SECONDS", "30.0"))
+        if os.getenv("BLAST_LOCAL_NUM_THREADS"):
+            with contextlib.suppress(ValueError):
+                self.blast_local_num_threads = int(os.getenv("BLAST_LOCAL_NUM_THREADS", "4"))
+        if os.getenv("BLAST_LOCAL_SWISSPROT_DB"):
+            self.blast_local_swissprot_db = os.getenv("BLAST_LOCAL_SWISSPROT_DB")
+        if os.getenv("BLAST_LOCAL_REFSEQ_DB"):
+            self.blast_local_refseq_db = os.getenv("BLAST_LOCAL_REFSEQ_DB")
+        if os.getenv("BLAST_LOCAL_BACTERIOCIN_DB"):
+            self.blast_local_bacteriocin_db = os.getenv("BLAST_LOCAL_BACTERIOCIN_DB")
+        if os.getenv("BLAST_LOCAL_NR_DB"):
+            self.blast_local_nr_db = os.getenv("BLAST_LOCAL_NR_DB")
+
     def __repr__(self) -> str:
         masked_key = "'***REDACTED***'" if self.api_key else "None"
         return (
@@ -75,7 +114,8 @@ class NCBIConfig:
             f"blast_max_poll_attempts={self.blast_max_poll_attempts}, "
             f"blast_max_concurrent_requests={self.blast_max_concurrent_requests}, "
             f"blast_cache_enabled={self.blast_cache_enabled}, "
-            f"max_blast_queries_per_run={self.max_blast_queries_per_run})"
+            f"max_blast_queries_per_run={self.max_blast_queries_per_run}, "
+            f"blast_backend={self.blast_backend!r}, blastp_executable={self.blastp_executable!r})"
         )
 
     @classmethod
@@ -95,4 +135,16 @@ class NCBIConfig:
             max_blast_queries_per_run=int(
                 os.getenv("MAX_BLAST_QUERIES_PER_RUN", os.getenv("BLAST_MAX_QUERIES_PER_RUN", "5"))
             ),
+            blast_backend=os.getenv("BLAST_BACKEND", "auto").lower(),
+            blastp_executable=os.getenv("BLASTP_EXECUTABLE", "blastp"),
+            makeblastdb_executable=os.getenv("MAKEBLASTDB_EXECUTABLE", "makeblastdb"),
+            blast_local_db_dir=os.getenv("BLAST_LOCAL_DB_DIR") or None,
+            blast_local_default_db=os.getenv("BLAST_LOCAL_DEFAULT_DB") or None,
+            blast_local_timeout_seconds=float(os.getenv("BLAST_LOCAL_TIMEOUT_SECONDS", "30.0")),
+            blast_local_num_threads=int(os.getenv("BLAST_LOCAL_NUM_THREADS", "4")),
+            blast_local_swissprot_db=os.getenv("BLAST_LOCAL_SWISSPROT_DB") or None,
+            blast_local_refseq_db=os.getenv("BLAST_LOCAL_REFSEQ_DB") or None,
+            blast_local_bacteriocin_db=os.getenv("BLAST_LOCAL_BACTERIOCIN_DB") or None,
+            blast_local_nr_db=os.getenv("BLAST_LOCAL_NR_DB") or None,
         )
+
