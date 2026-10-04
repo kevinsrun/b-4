@@ -16,6 +16,9 @@ class SimulationAgentAdapter:
 
     name = "simulation"
 
+    def __init__(self, parameter_overrides: dict[str, Any] | None = None) -> None:
+        self.parameter_overrides = parameter_overrides
+
     def run(self, state: ResearchState) -> dict[str, Any]:
         state_mgr = ResearchStateManager(state)
 
@@ -45,9 +48,18 @@ class SimulationAgentAdapter:
                     sequence=c.sequence,
                 )
 
+        # Extract parameter_overrides if specified on adapter or state
+        overrides = (
+            self.parameter_overrides
+            or getattr(state, "parameter_overrides", None)
+            or state.objective.constraints.get("parameter_overrides")
+            or state.objective.target.get("parameter_overrides")
+        )
+
         results = run_experiments(
             specs_to_run,
             candidate_registry=candidate_registry,
+            parameter_overrides=overrides,
         )
 
         emitted_ids: list[str] = []

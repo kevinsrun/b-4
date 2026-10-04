@@ -49,6 +49,15 @@ class SimulationBackendAgent:
         # be able to reconstruct everything the agent knows from the envelope.
         pass
 
+    @classmethod
+    def selftest(
+        cls, parameter_overrides: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Run directional biology invariants, optionally testing candidate parameter overrides."""
+        from .selftest import run_selftest
+
+        return run_selftest(parameter_overrides=parameter_overrides)
+
     # ------------------------------------------------------------------
 
     def describe(self) -> dict[str, Any]:
@@ -420,3 +429,7 @@ class SimulationBackendAgent:
 def run_agent(payload: AgentInput | dict[str, Any]) -> AgentOutput:
     """Module-level convenience entry point for Omnigent tool calls."""
     return SimulationBackendAgent().run(payload)
+
+
+SimulationAgent = SimulationBackendAgent
+
