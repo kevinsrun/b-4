@@ -1,0 +1,9 @@
+<!-- QBlastInfoBegin
+    RID = TEST-RID-12345
+    RTOE = 15
+QBlastInfoEnd -->
+<html>
+<body>
+<p>Your request has been submitted to the NCBI BLAST service.</p>
+</body>
+</html>

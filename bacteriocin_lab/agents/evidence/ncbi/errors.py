@@ -42,3 +42,31 @@ class NCBIParseError(NCBIError):
         full_msg = f"{message} (snippet: {snippet!r})" if snippet else message
         super().__init__(full_msg)
         self.raw_snippet = snippet
+
+
+class BlastError(NCBIError):
+    """Base exception for all NCBI BLAST-related errors."""
+
+
+class BlastValidationError(BlastError, ValueError):
+    """Raised when sequence validation fails prior to network dispatch."""
+
+
+class BlastSubmissionError(BlastError):
+    """Raised when BLAST job submission fails or RID cannot be extracted."""
+
+
+class BlastTimeoutError(BlastError):
+    """Raised when BLAST polling exceeds configured timeout or max attempts."""
+
+
+class BlastRemoteFailure(BlastError):
+    """Raised when a remote BLAST search fails or RID is unknown/expired on NCBI."""
+
+
+class BlastParseError(BlastError, NCBIParseError):
+    """Raised when BLAST output or XML cannot be parsed."""
+
+
+class BlastBudgetExceededError(BlastError):
+    """Raised when the maximum allowed BLAST searches for a run is exceeded."""

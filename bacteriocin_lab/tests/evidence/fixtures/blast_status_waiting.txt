@@ -1,0 +1,8 @@
+<!-- QBlastInfoBegin
+    Status = WAITING
+QBlastInfoEnd -->
+<html>
+<body>
+<p>Search is currently waiting in the NCBI queue.</p>
+</body>
+</html>
