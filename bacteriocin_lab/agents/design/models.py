@@ -101,6 +101,11 @@ class DesignedCandidate(BaseModel):
     critic_verdict: str = "pending"
     critic_notes: list[str] = Field(default_factory=list)
     simulation_metrics: dict[str, Any] = Field(default_factory=dict)
+    calibrated_prediction: dict[str, Any] | None = None
+    ptm_profile: dict[str, Any] | None = None
+    scenario_profiles: list[dict[str, Any]] = Field(default_factory=list)
+    acquisition_score: float | None = None
+    epistemic_uncertainty: float | None = None
 
     @model_validator(mode="after")
     def _enforce_computational_provenance(self) -> DesignedCandidate:
@@ -125,6 +130,10 @@ class RecommendationItem(BaseModel):
     experimentally_validated: bool = False
     candidate_id: str | None = None
     mutations: list[str] = Field(default_factory=list)
+    calibrated_score: float | None = None
+    calibrated_mic_um: float | None = None
+    uncertainty_interval: tuple[float, float] | None = None
+    acquisition_score: float | None = None
 
 
 class TargetContext(BaseModel):
@@ -184,6 +193,9 @@ class TargetDesignResult(BaseModel):
     evidence_summary: dict[str, Any] = Field(default_factory=dict)
     uncertainties: list[str] = Field(default_factory=list)
     recommended_next_experiment: dict[str, Any] = Field(default_factory=dict)
+    recommended_validation_experiment: dict[str, Any] = Field(default_factory=dict)
+    calibration_summary: dict[str, Any] = Field(default_factory=dict)
+    iteration: int = 1
     limitations: list[str] = Field(default_factory=list)
     provenance: dict[str, Any] = Field(default_factory=dict)
     recommendations: list[RecommendationItem] = Field(default_factory=list)
