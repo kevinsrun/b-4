@@ -1,0 +1,9 @@
+<!-- QBlastInfoBegin
+    Status = READY
+    ThereAreHits = yes
+QBlastInfoEnd -->
+<html>
+<body>
+<p>Search completed. Results are ready to download.</p>
+</body>
+</html>

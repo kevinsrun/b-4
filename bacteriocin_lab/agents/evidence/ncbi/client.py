@@ -92,6 +92,13 @@ class NcbiClient:
         if self.config.api_key and "api_key" not in full_params:
             full_params["api_key"] = self.config.api_key
 
+        if endpoint.startswith("http://") or endpoint.startswith("https://"):
+            base = endpoint
+            encoded_query = urlencode(full_params)
+            sep = "&" if "?" in base else "?"
+            url = f"{base}{sep}{encoded_query}" if encoded_query else base
+            return url, full_params
+
         base = self.config.base_url.rstrip("/")
         ep = endpoint.lstrip("/")
         encoded_query = urlencode(full_params)
