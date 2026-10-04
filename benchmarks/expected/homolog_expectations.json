@@ -1,0 +1,119 @@
+{
+  "nisin_a": {
+    "seed_accession": "P13068",
+    "expected_family_accessions": [
+      "P29559",
+      "Q939T1",
+      "P10944",
+      "P08136"
+    ],
+    "category": "easy_to_divergent",
+    "notes": "Includes Nisin Z (P29559, 1-residue swap N27H), Nisin Q (Q939T1), and distant lantibiotics Subtilin and Epidermin."
+  },
+  "subtilin": {
+    "seed_accession": "P10944",
+    "expected_family_accessions": [
+      "Q45589",
+      "P13068",
+      "P21838"
+    ],
+    "category": "moderate_to_divergent",
+    "notes": "Includes Ericin S homolog and lantibiotics Nisin A and Gallidermin."
+  },
+  "epidermin": {
+    "seed_accession": "P08136",
+    "expected_family_accessions": [
+      "P21838",
+      "P13068"
+    ],
+    "category": "easy_to_divergent",
+    "notes": "Includes Gallidermin (P21838, single substitution I6L) and Nisin A."
+  },
+  "gallidermin": {
+    "seed_accession": "P21838",
+    "expected_family_accessions": [
+      "P08136",
+      "P13068"
+    ],
+    "category": "easy_to_divergent",
+    "notes": "Includes Epidermin (P08136, single substitution L6I) and Nisin A."
+  },
+  "pediocin_pa1": {
+    "seed_accession": "P29430",
+    "expected_family_accessions": [
+      "Q47849",
+      "P80497",
+      "P35618",
+      "P34034",
+      "P0C988"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Includes Coagulin (Q47849), Bavaricin A (P80497), Sakacin P (P35618), Leucocin A (P34034), and Enterocin A (P0C988)."
+  },
+  "sakacin_a": {
+    "seed_accession": "P26829",
+    "expected_family_accessions": [
+      "P36495",
+      "P29430",
+      "P35618"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Curvacin A (P36495) differs by only 1 residue (A27E). Pediocin PA-1 and Sakacin P are fellow class IIa members."
+  },
+  "sakacin_p": {
+    "seed_accession": "P35618",
+    "expected_family_accessions": [
+      "P80496",
+      "P29430",
+      "P34034"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Sakacin 674 is an identical/close variant; Pediocin PA-1 and Leucocin A share the YGNGV box."
+  },
+  "leucocin_a": {
+    "seed_accession": "P34034",
+    "expected_family_accessions": [
+      "Q48740",
+      "P29430",
+      "P35618"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Leucocin B is a close homolog; Pediocin PA-1 and Sakacin P are moderate class IIa relatives."
+  },
+  "enterocin_a": {
+    "seed_accession": "P0C988",
+    "expected_family_accessions": [
+      "P81577",
+      "P29430"
+    ],
+    "category": "moderate_to_divergent",
+    "notes": "Enterocin B/P and Pediocin PA-1 share antilisterial class IIa homology."
+  },
+  "curvacin_a": {
+    "seed_accession": "P36495",
+    "expected_family_accessions": [
+      "P26829",
+      "P35618"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Sakacin A (P26829) is an isogenic/closely related variant differing at residue 27."
+  },
+  "carnobacteriocin_b2": {
+    "seed_accession": "P38579",
+    "expected_family_accessions": [
+      "P38578",
+      "P29430"
+    ],
+    "category": "moderate_to_divergent",
+    "notes": "Carnobacteriocin BM1 and Pediocin PA-1 share YGNGV motif."
+  },
+  "microcin_j25": {
+    "seed_accession": "Q9X2V7",
+    "expected_family_accessions": [
+      "A0A024R254",
+      "Q84FT1"
+    ],
+    "category": "easy_to_moderate",
+    "notes": "Enterobacterial lasso peptide homologs sharing macrolactam ring topology."
+  }
+}

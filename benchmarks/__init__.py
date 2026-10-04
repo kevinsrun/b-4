@@ -1,1 +1,1 @@
-"""Deterministic, bounded benchmark harnesses for hackathon claims."""
+"""Bacteriocin discovery benchmark suite."""
