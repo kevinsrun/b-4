@@ -122,6 +122,34 @@ SERVERS = [
         timeout=60,
     ),
     Server(
+        name="experiment_planner",
+        launcher="planner.py",
+        pythonpath=REPO,
+        description=(
+            "Deterministic experiment planner (active learning). Chooses the next\n"
+            "  computational experiment by expected information gain over the competing\n"
+            "  hypotheses, uncertainty, relevance and cost, and returns a ready-to-run\n"
+            "  ExperimentSpec. Plans only -- never runs or interprets anything."
+        ),
+        tools=["plan_experiment", "describe", "get_schema"],
+        # Pure computation over the submitted payload; no I/O, no model.
+        timeout=60,
+    ),
+    Server(
+        name="result_analysis",
+        launcher="analysis.py",
+        pythonpath=REPO,
+        description=(
+            "Result Analysis Agent. Interprets an experiment result against its\n"
+            "  hypothesis and every earlier result: supported, weakened or inconclusive,\n"
+            "  which variables drove it, what was unexpected. Interprets only -- a\n"
+            "  simulation-derived result is never described as experimentally validated."
+        ),
+        tools=["analyze", "get_schema", "describe"],
+        # Pure computation over the submitted payload; no I/O, no model.
+        timeout=60,
+    ),
+    Server(
         name="literature",
         launcher="literature.py",
         pythonpath=REPO,

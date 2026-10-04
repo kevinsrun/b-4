@@ -57,7 +57,15 @@ async def main() -> int:
 
     # The MCP declaration is generated, not checked in: it holds machine-specific
     # absolute paths because Omnigent treats `command`/`args` as literals.
-    servers = ("literature", "candidates", "runner", "critic", "knowledge")
+    servers = (
+        "literature",
+        "candidates",
+        "runner",
+        "critic",
+        "knowledge",
+        "experiment_planner",
+        "result_analysis",
+    )
     declarations = [BUNDLE / "tools" / "mcp" / f"{name}.yaml" for name in servers]
     missing = [path for path in declarations if not path.is_file()]
     if missing:
@@ -69,7 +77,7 @@ async def main() -> int:
     check("bundle parses", spec.spec_version == 1)
     check("agent is named", spec.name == "bacteriocin-lab", f"got {spec.name}")
     check("AGENTS.md loaded as instructions", bool(spec.instructions))
-    check("five MCP servers declared", len(spec.mcp_servers) == len(servers))
+    check("every agent server declared", len(spec.mcp_servers) == len(servers), str(len(spec.mcp_servers)))
     check("all use stdio", all(server.transport == "stdio" for server in spec.mcp_servers))
     check(
         "all commands are absolute",
@@ -92,6 +100,16 @@ async def main() -> int:
         <= allowlists.get("knowledge", set()),
         str(allowlists),
     )
+    check(
+        "planner allowlist set",
+        allowlists.get("experiment_planner") == {"plan_experiment", "describe", "get_schema"},
+        str(allowlists),
+    )
+    check(
+        "analysis allowlist set",
+        allowlists.get("result_analysis") == {"analyze", "get_schema", "describe"},
+        str(allowlists),
+    )
     print(f"       instructions: {len(spec.instructions or '')} chars")
 
     manager = RunnerMcpManager()
@@ -111,6 +129,8 @@ async def main() -> int:
             str(names),
         )
         check("describe_agent registered", any("describe_agent" in n for n in names), str(names))
+        check("plan_experiment registered", any("plan_experiment" in n for n in names), str(names))
+        check("analyze registered", any(n.endswith("analyze") for n in names), str(names))
         check(
             "literature_evidence registered",
             any("literature_evidence" in n for n in names),
