@@ -20,7 +20,9 @@ try:
     gen = generate_candidates({"target": {"organism": "Listeria monocytogenes", "strain": "ATCC 19115"},
                                "desired_behavior": objective["desired_behavior"],
                                "constraints": {"max_candidates": 3}})
-    candidates, hypotheses = gen.get("candidates", []), gen.get("hypotheses", [])
+    generated = gen.get("decision", gen)
+    candidates = generated.get("candidates", [])
+    hypotheses = [h for candidate in candidates for h in candidate.get("hypotheses", [])]
 except (KeyError, TypeError, ValueError):
     def _c(cid, name, mech, win, conf):
         return {"candidate_id": cid, "name": name, "confidence": conf,
