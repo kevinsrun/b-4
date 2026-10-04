@@ -1,0 +1,17 @@
+{
+  "header": {
+    "type": "esearch",
+    "version": "0.3"
+  },
+  "esearchresult": {
+    "count": "2",
+    "retmax": "2",
+    "retstart": "0",
+    "idlist": [
+      "31234567",
+      "32345678"
+    ],
+    "translationset": [],
+    "querytranslation": "nisin[All Fields] AND Listeria[All Fields]"
+  }
+}

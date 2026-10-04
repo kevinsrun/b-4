@@ -1,0 +1,26 @@
+{
+  "header": {
+    "type": "esummary",
+    "version": "0.3"
+  },
+  "result": {
+    "uids": [
+      "1234567",
+      "7654321"
+    ],
+    "1234567": {
+      "uid": "1234567",
+      "caption": "NP_046340.1",
+      "title": "nisin A precursor [Lactococcus lactis subsp. lactis]",
+      "extra": "gi|1234567|ref|NP_046340.1|",
+      "taxid": 1360
+    },
+    "7654321": {
+      "uid": "7654321",
+      "caption": "AAA25206.1",
+      "title": "pediocin PA-1 [Pediococcus acidilactici]",
+      "extra": "gi|7654321|gb|AAA25206.1|",
+      "taxid": 1254
+    }
+  }
+}

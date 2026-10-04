@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2024//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_240101.dtd">
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation Status="MEDLINE" Owner="NLM">
+      <PMID Version="1">31234567</PMID>
+      <Article PubModel="Print">
+        <Journal>
+          <Title>Journal of Applied Microbiology</Title>
+          <JournalIssue>
+            <PubDate>
+              <Year>2020</Year>
+              <Month>Jun</Month>
+            </PubDate>
+          </JournalIssue>
+        </Journal>
+        <ArticleTitle>Antimicrobial activity of nisin against Listeria monocytogenes in broth microdilution assay.</ArticleTitle>
+        <Abstract>
+          <AbstractText Label="BACKGROUND">Listeria monocytogenes is a major foodborne pathogen.</AbstractText>
+          <AbstractText Label="RESULTS">In a broth microdilution assay, 10^6 CFU/mL Listeria monocytogenes in BHI broth was exposed to nisin at 2.5 mg/L. The MIC of nisin was 2.5 mg/L at pH 6.5.</AbstractText>
+        </Abstract>
+        <AuthorList CompleteYN="Y">
+          <Author ValidYN="Y">
+            <LastName>Smith</LastName>
+            <ForeName>John</ForeName>
+            <Initials>J</Initials>
+          </Author>
+          <Author ValidYN="Y">
+            <LastName>Doe</LastName>
+            <ForeName>Jane</ForeName>
+            <Initials>J</Initials>
+          </Author>
+        </AuthorList>
+        <ELocationID EIdType="doi" ValidYN="Y">10.1111/jam.12345</ELocationID>
+      </Article>
+    </MedlineCitation>
+    <PubmedData>
+      <ArticleIdList>
+        <ArticleId IdType="pubmed">31234567</ArticleId>
+        <ArticleId IdType="doi">10.1111/jam.12345</ArticleId>
+        <ArticleId IdType="pmc">PMC7654321</ArticleId>
+      </ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+  <PubmedArticle>
+    <MedlineCitation Status="Publisher" Owner="NLM">
+      <PMID Version="1">32345678</PMID>
+      <Article PubModel="Electronic">
+        <Journal>
+          <Title>Frontiers in Microbiology</Title>
+          <JournalIssue>
+            <PubDate>
+              <MedlineDate>2022</MedlineDate>
+            </PubDate>
+          </JournalIssue>
+        </Journal>
+        <ArticleTitle>Evaluation of bacteriocin sensitivity across target strains.</ArticleTitle>
+        <Abstract>
+          <AbstractText>Nisin inhibited Listeria monocytogenes in vitro.</AbstractText>
+        </Abstract>
+        <AuthorList CompleteYN="Y">
+          <Author ValidYN="Y">
+            <LastName>Taylor</LastName>
+            <ForeName>Alex</ForeName>
+            <Initials>A</Initials>
+          </Author>
+        </AuthorList>
+      </Article>
+    </MedlineCitation>
+    <PubmedData>
+      <ArticleIdList>
+        <ArticleId IdType="pubmed">32345678</ArticleId>
+      </ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+</PubmedArticleSet>

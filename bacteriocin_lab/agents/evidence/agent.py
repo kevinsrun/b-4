@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections import defaultdict
+from typing import Any, Literal
 
 from .extraction import extract_document
 from .models import (
@@ -11,7 +13,10 @@ from .models import (
     LiteratureQuery,
     LiteratureResponse,
     SourceDocument,
+    SourceReference,
 )
+from .ncbi.client import NcbiClient
+from .ncbi.source import NcbiSource
 from .sources import EuropePmcSource, LiteratureSource
 
 
@@ -28,15 +33,162 @@ def _canonical_query_id(query: LiteratureQuery) -> str:
     return _stable_id("query", canonical)
 
 
+def _extract_identifiers(doc: SourceDocument) -> dict[str, Any]:
+    sid = doc.source.source_id.strip()
+    url = (doc.source.doi_or_url or "").strip()
+    title = doc.source.title.strip()
+
+    pmid: str | None = None
+    pmcid: str | None = None
+    doi: str | None = None
+
+    if sid.lower().startswith("pmid:"):
+        pmid = sid.split(":", 1)[1].strip()
+    elif sid.lower().startswith("pmc:"):
+        pmcid = sid.split(":", 1)[1].strip().upper()
+    elif sid.lower().startswith("doi:"):
+        doi = sid.split(":", 1)[1].strip().lower()
+
+    if not pmid:
+        m_pmid = re.search(r"(?:pubmed\.ncbi\.nlm\.nih\.gov|ncbi\.nlm\.nih\.gov/pubmed)/(\d+)", url, re.I)
+        if m_pmid:
+            pmid = m_pmid.group(1)
+    if not pmcid:
+        m_pmc = re.search(r"ncbi\.nlm\.nih\.gov/pmc/articles/(PMC\d+)", url, re.I)
+        if m_pmc:
+            pmcid = m_pmc.group(1).upper()
+    if not doi:
+        m_doi = re.search(r"doi\.org/(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)", url, re.I)
+        if m_doi:
+            doi = m_doi.group(1).strip().lower()
+
+    norm_title = re.sub(r"[^a-z0-9]", "", title.lower()) if len(title) >= 15 else None
+
+    return {
+        "pmid": pmid,
+        "pmcid": pmcid,
+        "doi": doi,
+        "norm_title": norm_title,
+        "raw_id": sid.casefold(),
+    }
+
+
+def _matches_existing(id_a: dict[str, Any], id_b: dict[str, Any]) -> bool:
+    if id_a["raw_id"] == id_b["raw_id"]:
+        return True
+    if id_a["pmid"] and id_b["pmid"] and id_a["pmid"] == id_b["pmid"]:
+        return True
+    if id_a["pmcid"] and id_b["pmcid"] and id_a["pmcid"] == id_b["pmcid"]:
+        return True
+    if id_a["doi"] and id_b["doi"] and id_a["doi"] == id_b["doi"]:
+        return True
+    return bool(id_a["norm_title"] and id_b["norm_title"] and id_a["norm_title"] == id_b["norm_title"])
+
+
+def _merge_source_documents(primary: SourceDocument, secondary: SourceDocument) -> SourceDocument:
+    p_src = primary.source
+    s_src = secondary.source
+
+    # Merge authors preserving order and uniqueness
+    authors = list(p_src.authors)
+    for a in s_src.authors:
+        if a not in authors:
+            authors.append(a)
+
+    # Preserve both source IDs if different
+    if p_src.source_id.casefold() == s_src.source_id.casefold() or s_src.source_id in p_src.source_id:
+        source_id = p_src.source_id
+    elif p_src.source_id in s_src.source_id:
+        source_id = s_src.source_id
+    else:
+        source_id = f"{p_src.source_id}|{s_src.source_id}"
+
+    doi_or_url = p_src.doi_or_url or s_src.doi_or_url
+    year = p_src.year or s_src.year
+    journal = p_src.journal or s_src.journal
+
+    merged_ref = SourceReference(
+        source_id=source_id,
+        title=p_src.title,
+        doi_or_url=doi_or_url,
+        year=year,
+        authors=authors,
+        journal=journal,
+        source_type=p_src.source_type if p_src.source_type != "other" else s_src.source_type,
+    )
+
+    return SourceDocument(
+        source=merged_ref,
+        text=primary.text,
+        locator=primary.locator,
+        retrieved_at=primary.retrieved_at or secondary.retrieved_at,
+    )
+
+
 def _deduplicate(documents: list[SourceDocument]) -> list[SourceDocument]:
     output: list[SourceDocument] = []
-    seen: set[str] = set()
-    for document in documents:
-        key = document.source.source_id.casefold()
-        if key not in seen:
-            output.append(document)
-            seen.add(key)
+    identifiers: list[dict[str, Any]] = []
+
+    for doc in documents:
+        doc_id = _extract_identifiers(doc)
+        matched_idx = -1
+        for idx, existing_id in enumerate(identifiers):
+            if _matches_existing(existing_id, doc_id):
+                matched_idx = idx
+                break
+
+        if matched_idx >= 0:
+            # Merge into existing record
+            merged = _merge_source_documents(output[matched_idx], doc)
+            output[matched_idx] = merged
+            identifiers[matched_idx] = _extract_identifiers(merged)
+        else:
+            output.append(doc)
+            identifiers.append(doc_id)
+
     return output
+
+
+def build_ncbi_query(query: LiteratureQuery) -> str:
+    """Construct an NCBI PubMed query string from a LiteratureQuery."""
+    q = query.question.strip()
+    if any(op in q for op in (" AND ", " OR ", "[Title/Abstract]", "[Mesh]", "[All Fields]")):
+        return q
+
+    terms: list[str] = []
+    if query.bacteriocin:
+        terms.append(query.bacteriocin.strip())
+    if query.target_organism:
+        terms.append(query.target_organism.strip())
+    if query.target_strain:
+        terms.append(query.target_strain.strip())
+
+    lower_q = q.lower()
+    keywords: list[str] = []
+    if any(k in lower_q for k in ("density", "cfu", "od600", "inoculum")):
+        keywords.append("(cell density OR CFU OR OD600 OR inoculum)")
+    if any(k in lower_q for k in ("concentration", "mic", "dose")):
+        keywords.append("(concentration OR MIC OR inhibition)")
+    if "ph" in lower_q:
+        keywords.append("pH")
+    if "temperature" in lower_q:
+        keywords.append("temperature")
+
+    if terms:
+        base = " AND ".join(terms)
+        if keywords:
+            return f"{base} AND {' AND '.join(keywords)}"
+        remaining_words = [
+            w
+            for w in re.findall(r"\w+", q)
+            if w.lower() not in {t.lower() for t in terms}
+            and w.lower() not in {"what", "is", "the", "under", "which", "does", "against", "in", "and", "or", "of"}
+        ]
+        if remaining_words:
+            return f"{base} AND ({' '.join(remaining_words)})"
+        return base
+
+    return q
 
 
 def _contradictions(evidence: list[EvidenceRecord]) -> list[Contradiction]:
@@ -77,16 +229,86 @@ def _contradictions(evidence: list[EvidenceRecord]) -> list[Contradiction]:
 class LiteratureEvidenceAgent:
     """Stateless, bounded evidence retrieval and deterministic extraction service."""
 
-    def __init__(self, sources: dict[str, LiteratureSource] | None = None) -> None:
-        self.sources = sources or {"europe_pmc": EuropePmcSource()}
+    def __init__(
+        self,
+        sources: dict[str, LiteratureSource] | None = None,
+        mode: Literal["local", "live_ncbi", "hybrid"] = "local",
+        ncbi_client: NcbiClient | None = None,
+    ) -> None:
+        self.mode = mode
+        self.ncbi_client = ncbi_client or NcbiClient()
+        ncbi_source = NcbiSource(client=self.ncbi_client)
+        default_sources: dict[str, LiteratureSource] = {
+            "europe_pmc": EuropePmcSource(),
+            "ncbi": ncbi_source,
+            "ncbi_pubmed": ncbi_source,
+        }
+        if sources is not None:
+            default_sources.update(sources)
+        self.sources = default_sources
 
     def run(self, raw_query: LiteratureQuery | dict) -> LiteratureResponse:
         query = raw_query if isinstance(raw_query, LiteratureQuery) else LiteratureQuery.model_validate(raw_query)
         query_id = _canonical_query_id(query)
-        documents = list(query.source_documents)
         warnings: list[str] = []
 
-        if query.retrieval.enabled:
+        # Resolve mode: query.mode > query.retrieval.mode > inference from retrieval.enabled > self.mode
+        explicit_mode = query.mode or query.retrieval.mode
+        if explicit_mode:
+            effective_mode = explicit_mode
+        elif query.retrieval.enabled:
+            has_ncbi = any(s in query.retrieval.sources for s in ("ncbi", "ncbi_pubmed", "ncbi_pmc"))
+            if query.source_documents:
+                effective_mode = "hybrid" if has_ncbi else "legacy_retrieval"
+            else:
+                effective_mode = "live_ncbi" if has_ncbi else "legacy_retrieval"
+        else:
+            effective_mode = self.mode
+
+        documents: list[SourceDocument] = []
+
+        if effective_mode == "local":
+            documents = _deduplicate(list(query.source_documents))
+
+        elif effective_mode == "live_ncbi":
+            ncbi_src = self.sources.get("ncbi") or self.sources.get("ncbi_pubmed")
+            if ncbi_src is None:
+                warnings.append("retrieval source unavailable: ncbi")
+            else:
+                search_query = build_ncbi_query(query)
+                try:
+                    documents.extend(
+                        ncbi_src.search(search_query, query.retrieval.max_results, query.retrieval.timeout_seconds)
+                    )
+                except Exception as exc:
+                    warnings.append(f"ncbi retrieval failed: {type(exc).__name__}: {exc}")
+            documents = _deduplicate(documents)
+
+        elif effective_mode == "hybrid":
+            local_docs = list(query.source_documents)
+            remote_docs: list[SourceDocument] = []
+
+            sources_to_query = list(query.retrieval.sources)
+            if explicit_mode == "hybrid" and not any("ncbi" in s for s in sources_to_query):
+                sources_to_query.append("ncbi")
+
+            for source_name in sources_to_query:
+                source = self.sources.get(source_name)
+                if source is None:
+                    warnings.append(f"retrieval source unavailable: {source_name}")
+                    continue
+                search_query = build_ncbi_query(query) if "ncbi" in source_name else query.question
+                try:
+                    remote_docs.extend(
+                        source.search(search_query, query.retrieval.max_results, query.retrieval.timeout_seconds)
+                    )
+                except Exception as exc:
+                    warnings.append(f"{source_name} retrieval failed: {type(exc).__name__}: {exc}")
+
+            documents = _deduplicate(local_docs + remote_docs)
+
+        else:  # legacy_retrieval
+            documents = list(query.source_documents)
             for source_name in query.retrieval.sources:
                 source = self.sources.get(source_name)
                 if source is None:
@@ -96,10 +318,9 @@ class LiteratureEvidenceAgent:
                     documents.extend(
                         source.search(query.question, query.retrieval.max_results, query.retrieval.timeout_seconds)
                     )
-                except Exception as exc:  # source failure is explicit, supplied documents remain usable
+                except Exception as exc:
                     warnings.append(f"{source_name} retrieval failed: {type(exc).__name__}: {exc}")
-
-        documents = _deduplicate(documents)
+            documents = _deduplicate(documents)
         evidence: list[EvidenceRecord] = []
         for document in documents:
             evidence.extend(extract_document(query, document, lambda *parts: _stable_id("ev", *parts)))

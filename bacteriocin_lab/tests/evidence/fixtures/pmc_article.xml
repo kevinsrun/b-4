@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
+<article xmlns:xlink="http://www.w3.org/1999/xlink">
+  <front>
+    <journal-meta>
+      <journal-title-group>
+        <journal-title>Journal of Applied Microbiology</journal-title>
+      </journal-title-group>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="pmc">PMC7654321</article-id>
+      <article-id pub-id-type="pmid">31234567</article-id>
+      <article-id pub-id-type="doi">10.1111/jam.12345</article-id>
+      <title-group>
+        <article-title>Antimicrobial activity of nisin against Listeria monocytogenes in broth microdilution assay</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Smith</surname>
+            <given-names>John</given-names>
+          </name>
+        </contrib>
+      </contrib-group>
+      <pub-date pub-type="epub">
+        <year>2020</year>
+      </pub-date>
+      <abstract>
+        <p>In a broth microdilution assay, 10^6 CFU/mL Listeria monocytogenes in BHI broth was exposed to nisin at 2.5 mg/L.</p>
+      </abstract>
+    </article-meta>
+  </front>
+  <body>
+    <sec sec-type="intro">
+      <title>Introduction</title>
+      <p>Bacteriocins are antimicrobial peptides produced by bacteria. Nisin is a prominent lantibiotic.</p>
+    </sec>
+    <sec sec-type="results">
+      <title>Results</title>
+      <p>The MIC of nisin was 2.5 mg/L at pH 6.5. Exposure for 90 minutes resulted in complete inhibition.</p>
+    </sec>
+    <sec sec-type="discussion">
+      <title>Discussion</title>
+      <p>These findings demonstrate potent antimicrobial efficacy of nisin against foodborne pathogens.</p>
+    </sec>
+  </body>
+</article>

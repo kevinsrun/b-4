@@ -15,9 +15,31 @@
           "title": "Max Results",
           "type": "integer"
         },
+        "mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "local",
+                "live_ncbi",
+                "hybrid"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        },
         "sources": {
           "items": {
-            "const": "europe_pmc",
+            "enum": [
+              "europe_pmc",
+              "ncbi",
+              "ncbi_pubmed",
+              "ncbi_pmc"
+            ],
             "type": "string"
           },
           "title": "Sources",
@@ -171,6 +193,23 @@
       "additionalProperties": true,
       "title": "Metadata",
       "type": "object"
+    },
+    "mode": {
+      "anyOf": [
+        {
+          "enum": [
+            "local",
+            "live_ncbi",
+            "hybrid"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mode"
     },
     "query_id": {
       "anyOf": [
