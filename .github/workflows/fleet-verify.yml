@@ -32,7 +32,7 @@ jobs:
           'uv' 'run' 'python' 'install.py'
       - name: 'Lint literature and Omnigent integration'
         run: |
-          'uv' 'run' 'ruff' 'check' 'packages/b4_literature' 'tools/launchers/literature.py' 'tools/tests/test_literature_protocol.py' 'tools/tests/test_omnigent_manager.py' 'scripts/run_omnigent.py' '--config' 'packages/b4_literature/pyproject.toml'
+          'uv' 'run' 'ruff' 'check' 'bacteriocin_lab/agents/evidence' 'tools/launchers/literature.py' 'bacteriocin_lab/tests/tools/test_literature_protocol.py' 'bacteriocin_lab/tests/tools/test_omnigent_manager.py' 'scripts/run_omnigent.py'
       - name: Record commit binding
         if: always()
         run: |
@@ -62,7 +62,7 @@ jobs:
           'uv' 'run' 'python' 'install.py'
       - name: 'Lint experiment planner for syntax and undefined names'
         run: |
-          'uv' 'run' 'ruff' 'check' 'packages/experiment_planner_agent' '--select' 'E9,F63,F7,F82'
+          'uv' 'run' 'ruff' 'check' 'bacteriocin_lab/agents/planner' '--select' 'E9,F63,F7,F82'
       - name: Record commit binding
         if: always()
         run: |
@@ -152,7 +152,7 @@ jobs:
           'uv' 'run' 'python' 'install.py'
       - name: 'Literature MCP protocol'
         run: |
-          'uv' 'run' 'python' 'tools/tests/test_literature_protocol.py'
+          'uv' 'run' 'python' 'bacteriocin_lab/tests/tools/test_literature_protocol.py'
       - name: Record commit binding
         if: always()
         run: |
@@ -182,7 +182,7 @@ jobs:
           'uv' 'run' 'python' 'install.py'
       - name: 'Candidate MCP protocol'
         run: |
-          'uv' 'run' 'python' 'tools/tests/test_candidates_protocol.py'
+          'uv' 'run' 'python' 'bacteriocin_lab/tests/tools/test_candidates_protocol.py'
       - name: Record commit binding
         if: always()
         run: |
@@ -212,7 +212,7 @@ jobs:
           'uv' 'run' 'python' 'install.py'
       - name: 'Simulation MCP protocol'
         run: |
-          'uv' 'run' 'python' 'tools/tests/test_runner_protocol.py'
+          'uv' 'run' 'python' 'bacteriocin_lab/tests/tools/test_runner_protocol.py'
       - name: Record commit binding
         if: always()
         run: |

@@ -18,7 +18,7 @@ args:
   - "/absolute/path/to/repo/tools/launchers/critic.py"
 
 env:
-  PYTHONPATH: "/absolute/path/to/repo/packages/critic_agent/src"
+  PYTHONPATH: "/absolute/path/to/repo"
   # stdio is the MCP channel, so logs must stay off stdout.
   BACTERIOCIN_LOG_LEVEL: "WARNING"
 

@@ -1,23 +1,10 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
     "(python_full_version < '3.14' and sys_platform != 'emscripten') or (python_full_version < '3.12' and sys_platform == 'emscripten')",
-]
-
-[manifest]
-members = [
-    "b4-literature-evidence",
-    "bacteriocin-discovery",
-    "bacteriocin-lab",
-    "bacteriocin-orchestration",
-    "bacteriocin-shared",
-    "bacteriocin-sim",
-    "critic-agent",
-    "experiment-planner-agent",
-    "knowledge-agent",
 ]
 
 [[package]]
@@ -52,9 +39,9 @@ wheels = [
 ]
 
 [[package]]
-name = "b4-literature-evidence"
+name = "bacteriocin-lab"
 version = "0.1.0"
-source = { editable = "packages/b4_literature" }
+source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -65,27 +52,8 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "pydantic", specifier = ">=2.10,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3,<9" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6,<7" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8,<1" },
-]
-provides-extras = ["dev"]
-
-[[package]]
-name = "bacteriocin-discovery"
-version = "0.1.0"
-source = { editable = "packages/bacteriocin_discovery" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
+mcp = [
+    { name = "mcp" },
 ]
 verify = [
     { name = "httpx" },
@@ -94,113 +62,13 @@ verify = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", marker = "extra == 'verify'", specifier = ">=0.25" },
-    { name = "pydantic", specifier = ">=2.5,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4" },
-]
-provides-extras = ["dev", "verify"]
-
-[[package]]
-name = "bacteriocin-lab"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "b4-literature-evidence" },
-    { name = "bacteriocin-discovery" },
-    { name = "bacteriocin-orchestration" },
-    { name = "bacteriocin-shared" },
-    { name = "bacteriocin-sim" },
-    { name = "critic-agent" },
-    { name = "experiment-planner-agent" },
-    { name = "knowledge-agent" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-mcp = [
-    { name = "mcp" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "b4-literature-evidence", editable = "packages/b4_literature" },
-    { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
-    { name = "bacteriocin-orchestration", editable = "packages/bacteriocin_orchestration" },
-    { name = "bacteriocin-shared", editable = "shared" },
-    { name = "bacteriocin-sim", editable = "packages/bacteriocin_sim" },
-    { name = "critic-agent", editable = "packages/critic_agent" },
-    { name = "experiment-planner-agent", editable = "packages/experiment_planner_agent" },
-    { name = "knowledge-agent", editable = "packages/knowledge_agent" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.30" },
+    { name = "pydantic", specifier = ">=2.10,<3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
 ]
-provides-extras = ["dev", "mcp"]
-
-[[package]]
-name = "bacteriocin-orchestration"
-version = "0.1.0"
-source = { editable = "packages/bacteriocin_orchestration" }
-dependencies = [
-    { name = "b4-literature-evidence" },
-    { name = "bacteriocin-discovery" },
-    { name = "bacteriocin-sim" },
-    { name = "experiment-planner-agent" },
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "b4-literature-evidence", editable = "packages/b4_literature" },
-    { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
-    { name = "bacteriocin-sim", editable = "packages/bacteriocin_sim" },
-    { name = "experiment-planner-agent", editable = "packages/experiment_planner_agent" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-]
-provides-extras = ["dev"]
-
-[[package]]
-name = "bacteriocin-shared"
-version = "0.1.0"
-source = { editable = "shared" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.5,<3" }]
-
-[[package]]
-name = "bacteriocin-sim"
-version = "0.1.0"
-source = { editable = "packages/bacteriocin_sim" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-mcp = [
-    { name = "mcp" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.30" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-]
-provides-extras = ["dev", "mcp"]
+provides-extras = ["dev", "mcp", "verify"]
 
 [[package]]
 name = "certifi"
@@ -447,28 +315,6 @@ toml = [
 ]
 
 [[package]]
-name = "critic-agent"
-version = "0.1.0"
-source = { editable = "packages/critic_agent" }
-dependencies = [
-    { name = "bacteriocin-discovery" },
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
-    { name = "pydantic", specifier = ">=2.5,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "cryptography"
 version = "50.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -536,11 +382,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/36/8b/e6d153808bf353e152abd2fd4d8f09670d956ac78379ac46e60d7efbf04c/cryptography-50.0.2-pp311-pypy311_pp80-macosx_11_0_arm64.whl", hash = "sha256:3dc4fd8058cea1644971207d530e1a03a184a805ffc8ebdddf0599d78a331b81", size = 3873097, upload-time = "2026-09-30T15:29:56.097Z" },
     { url = "https://files.pythonhosted.org/packages/ca/1d/1271f287ff7170ddafc2aad36260c4eec20ccd2fea70f38455e9d56d427b/cryptography-50.0.2-pp311-pypy311_pp80-win_amd64.whl", hash = "sha256:7b75de3c8b3be1cdb1052747c929440c3eea46c1bc2cb8a6e3a48388e9b7b452", size = 3805376, upload-time = "2026-09-30T15:29:58.729Z" },
 ]
-
-[[package]]
-name = "experiment-planner-agent"
-version = "0.1.0"
-source = { editable = "packages/experiment_planner_agent" }
 
 [[package]]
 name = "h11"
@@ -662,30 +503,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
 ]
-
-[[package]]
-name = "knowledge-agent"
-version = "0.1.0"
-source = { editable = "packages/knowledge_agent" }
-dependencies = [
-    { name = "bacteriocin-discovery" },
-    { name = "bacteriocin-shared" },
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "bacteriocin-discovery", editable = "packages/bacteriocin_discovery" },
-    { name = "bacteriocin-shared", editable = "shared" },
-    { name = "pydantic", specifier = ">=2.5,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "mcp"

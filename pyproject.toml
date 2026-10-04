@@ -1,81 +1,48 @@
-# Workspace root. The specialist modules are separate installable packages under
-# packages/, each with its own pyproject.toml, dependencies and tests --
-# they are deployed independently and should version independently.
+# One installable package, ``bacteriocin_lab``, laid out as:
 #
-# This file exists to make the repository installable in one step and to hold
-# the settings that genuinely are repository-wide.
+#   shared/         schemas, contract, enums, ids, config (no agent imports)
+#   agents/         evidence, candidate, planner, simulator, analysis, knowledge, critic
+#   adapters/       experiment backends (simulation, wet-lab stub)
+#   orchestration/  workflow, routing, Omnigent adapter
+#   evaluation/     benchmarks, demo scenarios, example inputs
+#   tests/
 #
-#   uv sync                                        # all packages, editable
-#   uv pip install -e "packages/bacteriocin_sim[mcp]"
-#   pytest                                         # both test suites
-
-[project]
-name = "bacteriocin-lab"
-version = "0.1.0"
-description = "Autonomous bacteriocin-discovery lab: evidence, candidate design, and simulated experiments"
-# The union of the package floors. bacteriocin_discovery requires 3.11,
-# so the workspace cannot claim 3.10 even though bacteriocin_sim supports it.
-requires-python = ">=3.11"
-dependencies = [
-    "bacteriocin-sim",
-    "bacteriocin-discovery",
-    "b4-literature-evidence",
-    "experiment-planner-agent",
-    "bacteriocin-orchestration",
-    "critic-agent",
-    "knowledge-agent",
-    "bacteriocin-shared",
-]
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.8"]
-mcp = ["mcp>=1.30"]
-
-[tool.uv.workspace]
-members = ["packages/*", "shared"]
-
-[tool.uv.sources]
-bacteriocin-sim = { workspace = true }
-bacteriocin-discovery = { workspace = true }
-b4-literature-evidence = { workspace = true }
-critic-agent = { workspace = true }
-experiment-planner-agent = { workspace = true }
-bacteriocin-orchestration = { workspace = true }
-knowledge-agent = { workspace = true }
-bacteriocin-shared = { workspace = true }
+#   uv sync                 # editable install with dev tools
+#   pytest
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-# The root is a workspace, not a package: nothing to discover here.
-packages = []
+[project]
+name = "bacteriocin-lab"
+version = "0.1.0"
+description = "Autonomous bacteriocin-discovery lab: evidence, candidate design, and simulated experiments"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = ["pydantic>=2.10,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=6", "ruff>=0.8"]
+mcp = ["mcp>=1.30"]
+verify = ["httpx>=0.25"]
+
+[project.scripts]
+bacteriocin-sim = "bacteriocin_lab.agents.simulator.cli:main"
+bacteriocin-sim-mcp = "bacteriocin_lab.agents.simulator.mcp_server:main"
+b4-literature-evidence = "bacteriocin_lab.agents.evidence.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["bacteriocin_lab*"]
+
+[tool.setuptools.package-data]
+"bacteriocin_lab.agents.candidate" = ["data/*.json"]
+"bacteriocin_lab.agents.evidence" = ["schemas/*.json"]
 
 [tool.pytest.ini_options]
-# All suites run from the root; each package's layout concerns stay inside
-# that package.
-testpaths = [
-    "packages/bacteriocin_sim/tests",
-    "packages/bacteriocin_discovery/tests",
-    "packages/b4_literature/tests",
-    "packages/experiment_planner_agent/tests",
-    "packages/bacteriocin_orchestration/tests",
-    "packages/critic_agent/tests",
-    "packages/knowledge_agent/tests",
-    "shared/tests",
-]
-pythonpath = [
-    "packages/bacteriocin_sim",
-    "packages/bacteriocin_discovery/src",
-    "packages/b4_literature/src",
-    "packages/experiment_planner_agent",
-    "packages/bacteriocin_orchestration/src",
-    "packages/critic_agent/src",
-    "packages/knowledge_agent/src",
-    "packages/knowledge_agent/tests",
-    "shared",
-]
+testpaths = ["bacteriocin_lab/tests"]
+pythonpath = ["."]
 addopts = "-q"
 
 [tool.ruff]
@@ -84,3 +51,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"bacteriocin_lab/agents/evidence/*" = ["E501", "RUF001"]  # × is matched deliberately in regexes
+"bacteriocin_lab/orchestration/*" = ["E501"]
