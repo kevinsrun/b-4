@@ -1,0 +1,119 @@
+{
+  "adaptive_vs_static": {
+    "adaptive_experiment_count": 2,
+    "adaptive_simulation_tool_calls": 2,
+    "adaptive_wall_seconds": 0.165653,
+    "adaptive_workflow_agent_calls": 12,
+    "comparison_scope": "post-candidate simulation decision segment only",
+    "critic_verdicts": [
+      "needs_more_evidence",
+      "needs_more_evidence"
+    ],
+    "experiment_reduction_factor": 3.0,
+    "iteration_1_conditions": {
+      "aeration": null,
+      "assay_domain": "simulated_in_vitro",
+      "assay_type": null,
+      "bacteriocin_concentration": 1.0,
+      "growth_phase": null,
+      "incubation_time": 24.0,
+      "incubation_time_unit": "h",
+      "ionic_conditions": {
+        "cacl2_mm": null,
+        "edta_mm": null,
+        "kcl_mm": null,
+        "mgcl2_mm": null,
+        "nacl_mm": null
+      },
+      "medium": null,
+      "permeabilizer": null,
+      "ph": 7.0,
+      "producer_cell_density": null,
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37.0
+    },
+    "iteration_2_changed": true,
+    "iteration_2_conditions": {
+      "aeration": null,
+      "assay_domain": "simulated_in_vitro",
+      "assay_type": null,
+      "bacteriocin_concentration": 1.0,
+      "growth_phase": null,
+      "incubation_time": 24.0,
+      "incubation_time_unit": "h",
+      "ionic_conditions": {
+        "cacl2_mm": null,
+        "edta_mm": null,
+        "kcl_mm": null,
+        "mgcl2_mm": null,
+        "nacl_mm": null
+      },
+      "medium": null,
+      "permeabilizer": null,
+      "ph": 10.0,
+      "producer_cell_density": null,
+      "target_cell_density": 100000000.0,
+      "temperature_c": 37.0
+    },
+    "provenance": [
+      "simulation-derived"
+    ],
+    "redundant_static_experiments": 4,
+    "state_integrity": "PASS",
+    "static_experiment_count": 6,
+    "static_simulation_tool_calls": 6,
+    "static_wall_seconds": 0.496589,
+    "stopping_criterion": "Two critic-reviewed simulations with the second condition changed after the first review; static exhausts a precommitted six-point pH grid.",
+    "wall_clock_speedup": 2.998,
+    "workflow_wall_seconds": 0.188674
+  },
+  "environment": {
+    "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+    "python": "3.14.7"
+  },
+  "homolog_retrieval": {
+    "fixture_queries": 3,
+    "metric": "family recovery with deterministic 3-mer Jaccard ranking",
+    "ranks": [
+      1,
+      1,
+      1
+    ],
+    "recall_at_1": 1.0,
+    "recall_at_10": 1.0,
+    "recall_at_5": 1.0,
+    "self_hits_excluded": true
+  },
+  "limitations": [
+    "All activity results are simulation-derived predictions, not wet-lab validation.",
+    "Retrieval and variant metrics use compact deterministic fixtures for CI.",
+    "Wall-clock values are host measurements and should not be generalized across machines."
+  ],
+  "local_sequence_search_latency": {
+    "cold_seconds": null,
+    "database": "bacteriocin",
+    "p50_seconds": null,
+    "p95_seconds": null,
+    "status": "unavailable",
+    "warm_seconds": null
+  },
+  "remote_blast": {
+    "reason": "outside bounded deterministic benchmark",
+    "status": "not_run"
+  },
+  "schema_version": 1,
+  "synthetic_variant_accuracy": {
+    "coordinate_accuracy": 1.0,
+    "fixture_truth_count": 3,
+    "frequency_accuracy": 1.0,
+    "indel_precision": 1.0,
+    "indel_recall": 1.0,
+    "observed_changes": [
+      "F5Y",
+      "del6_7",
+      "ins5QQ"
+    ],
+    "substitution_precision": 1.0,
+    "substitution_recall": 1.0
+  }
+}
