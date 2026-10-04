@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .types import ExecutionTraceItem, content_id
+from .types import ExecutionTraceItem, OrchestrationError, content_id
 
 
 class TraceRecorder:
@@ -56,12 +56,14 @@ class TraceRecorder:
         self,
         trace_id: str,
         error: str,
+        error_info: OrchestrationError | None = None,
     ) -> None:
         """Mark an ongoing invocation as failed with a sanitized error message."""
         for item in self._trace:
             if item.trace_id == trace_id:
                 item.status = "failure"
                 item.error = str(error)
+                item.error_info = error_info
                 return
 
     def record_skipped(

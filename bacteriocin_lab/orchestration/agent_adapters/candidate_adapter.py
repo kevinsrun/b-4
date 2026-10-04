@@ -104,7 +104,10 @@ class CandidateAgentAdapter:
                     prediction=h.get("predicted_direction") or h.get("prediction"),
                     predicted_direction=h.get("predicted_direction"),
                     predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
-                    expected_relationship=h.get("expected_relationship"),
+                    expected_relationship=(
+                        h.get("expected_relationship")
+                        or ({"template": h["template"]} if h.get("template") else None)
+                    ),
                     key_conditions=dict(h.get("key_conditions") or {}),
                     tolerance=h.get("tolerance"),
                     status="open",
@@ -135,7 +138,10 @@ class CandidateAgentAdapter:
                 prediction=h.get("prediction"),
                 predicted_direction=h.get("predicted_direction"),
                 predicted_inhibition_fraction=h.get("predicted_inhibition_fraction"),
-                expected_relationship=h.get("expected_relationship"),
+                expected_relationship=(
+                    h.get("expected_relationship")
+                    or ({"template": h["template"]} if h.get("template") else None)
+                ),
                 key_conditions=dict(h.get("key_conditions") or {}),
                 tolerance=h.get("tolerance"),
                 status="open",

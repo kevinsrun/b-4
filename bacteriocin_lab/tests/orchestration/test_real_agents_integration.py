@@ -136,6 +136,10 @@ def test_real_agents_discovery_turn() -> None:
     assert len(final_state["results"]) >= 1
     assert len(final_state["findings"]) >= 1
     assert len(final_state["reviews"]) >= 1
+    assert final_state["knowledge_state"] is not None
+    assert final_state["knowledge_state"]["event_count"] >= 1
+    assert final_state["resume_agent"] == "knowledge"
+    assert not result.error_details
 
     # Verify simulation result properties
     res = final_state["results"][0]

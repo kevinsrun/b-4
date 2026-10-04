@@ -6,7 +6,7 @@ targeted condition in experiment 2.
 
 from __future__ import annotations
 
-from bacteriocin_lab.orchestration import ResearchObjective, run_discovery
+from bacteriocin_lab.orchestration import ResearchObjective, ResearchState, run_discovery
 from bacteriocin_lab.orchestration.registry import AgentRegistry
 
 
@@ -51,3 +51,28 @@ def test_result_changes_next_experiment() -> None:
         "target cell density" in exp2.get("notes", "").lower()
         or "density" in exp2.get("notes", "").lower()
     )
+
+
+def test_resume_uses_persisted_route_position() -> None:
+    objective = ResearchObjective(
+        goal="Resume a bounded discovery campaign.",
+        target={"species": "Listeria monocytogenes", "gram": "positive"},
+    )
+    first = run_discovery(
+        objective=objective,
+        max_iterations=1,
+        registry=AgentRegistry.fixture(),
+        seed=7,
+    )
+    state = ResearchState.model_validate(first.final_state)
+    assert state.resume_agent == "knowledge"
+
+    resumed = run_discovery(
+        objective=objective,
+        max_iterations=2,
+        registry=AgentRegistry.fixture(),
+        initial_state=state,
+        seed=7,
+    )
+    assert resumed.execution_trace
+    assert resumed.execution_trace[0]["agent"] != "evidence"
