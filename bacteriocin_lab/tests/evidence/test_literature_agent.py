@@ -146,3 +146,82 @@ def test_malformed_input_fails_validation() -> None:
         assert "unexpected" in str(exc)
     else:
         raise AssertionError("malformed input should fail")
+
+
+def test_length_units_are_not_read_as_molar_concentrations() -> None:
+    """A nanoparticle diameter in nm must never become a bacteriocin concentration in nM."""
+    response = LiteratureEvidenceAgent().run(
+        base_request(
+            [
+                document(
+                    "paper-nm",
+                    "Nisin-loaded silver nanoparticles with an average size of 87 nm were synthesized. "
+                    "The MIC of nisin against Listeria monocytogenes ATCC 19115 was 2.5 mg/L, "
+                    "measured in BHI broth with inhibition zones of 12 mm.",
+                )
+            ]
+        )
+    )
+    assert len(response.evidence) == 1
+    concentration = response.evidence[0].conditions.bacteriocin_concentration
+    assert concentration is not None
+    # 87 nm is a particle diameter and 12 mm a zone width; neither is a dose.
+    assert concentration.original_unit not in {"nm", "mm", "um"}
+    assert concentration.original_value == "2.5"
+
+
+def test_measurement_without_an_identifiable_bacteriocin_is_not_emitted() -> None:
+    """An antimicrobial measurement for a non-bacteriocin agent is not bacteriocin evidence."""
+    request = base_request(
+        [
+            document(
+                "paper-agnp",
+                "The biosynthesized AgNPs exhibited potent broad-spectrum antimicrobial activity, "
+                "notably with inhibition zones of 25.8 mm for Listeria monocytogenes.",
+            )
+        ]
+    )
+    request.pop("bacteriocin")
+    response = LiteratureEvidenceAgent().run(request)
+    assert response.evidence == []
+    assert response.decision["status"] == "insufficient-evidence"
+
+
+def test_variant_query_still_matches_the_base_name_in_the_source() -> None:
+    """Querying 'nisin A' must not silently discard every abstract that says 'nisin'."""
+    request = base_request(
+        [
+            document(
+                "paper-base",
+                "Nisin inhibited Listeria monocytogenes ATCC 19115 with a MIC of 2.5 mg/L "
+                "in BHI broth at pH 6.5.",
+            )
+        ]
+    )
+    request["bacteriocin"] = "nisin A"
+    response = LiteratureEvidenceAgent().run(request)
+    assert len(response.evidence) == 1
+    record = response.evidence[0]
+    assert record.measurement.value == 2.5
+    # The record states what the source says, and keeps the requested term as an alias
+    # rather than asserting the variant.
+    assert record.bacteriocin.name == "nisin"
+    assert "nisin A" in record.bacteriocin.aliases
+
+
+def test_unattributable_mic_range_is_flagged_not_guessed() -> None:
+    """An MIC given as a range for two agents is flagged, never split between them."""
+    response = LiteratureEvidenceAgent().run(
+        base_request(
+            [
+                document(
+                    "paper-range",
+                    "Nisin and oxacillin were tested against Listeria monocytogenes ATCC 19115. "
+                    "MIC values for oxacillin and nisin ranged 4-8 ug/mL and 64-128 ug/mL, respectively.",
+                )
+            ]
+        )
+    )
+    assert response.evidence == []
+    assert any("could not attribute" in warning for warning in response.warnings)
+    assert any("paper-range" in warning for warning in response.warnings)
