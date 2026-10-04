@@ -1,0 +1,332 @@
+{
+  "nisin_a": [
+    {
+      "accession": "P29559",
+      "title": "Nisin-Z precursor [Lactococcus lactis]",
+      "identity_percent": 97.1,
+      "coverage_percent": 100.0,
+      "evalue": 2e-20,
+      "bit_score": 75.5,
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCNCSIHVSK"
+    },
+    {
+      "accession": "Q939T1",
+      "title": "Nisin-Q precursor [Lactococcus lactis]",
+      "identity_percent": 85.3,
+      "coverage_percent": 100.0,
+      "evalue": 1e-15,
+      "bit_score": 62.8,
+      "sequence": "ITSISLCTPGCKTGVLMGCNLKTATCNCSVHVSK"
+    },
+    {
+      "accession": "P10944",
+      "title": "Subtilin precursor [Bacillus subtilis]",
+      "identity_percent": 61.8,
+      "coverage_percent": 94.1,
+      "evalue": 3e-08,
+      "bit_score": 42.1,
+      "sequence": "WKSESLCTPGCVTGALQTCFLQTLTCNCKISK"
+    },
+    {
+      "accession": "P08136",
+      "title": "Epidermin precursor [Staphylococcus epidermidis]",
+      "identity_percent": 50.0,
+      "coverage_percent": 64.7,
+      "evalue": 5e-05,
+      "bit_score": 33.2,
+      "sequence": "IASKFICTPGCAKTGSFNSYCC"
+    },
+    {
+      "accession": "P21838",
+      "title": "Gallidermin precursor [Staphylococcus gallinarum]",
+      "identity_percent": 50.0,
+      "coverage_percent": 64.7,
+      "evalue": 6e-05,
+      "bit_score": 32.8,
+      "sequence": "IASKFLCTPGCAKTGSFNSYCC"
+    }
+  ],
+  "subtilin": [
+    {
+      "accession": "Q45589",
+      "title": "Ericin S [Bacillus subtilis]",
+      "identity_percent": 87.5,
+      "coverage_percent": 100.0,
+      "evalue": 1e-18,
+      "bit_score": 70.2,
+      "sequence": "WKSESLCTPGCVTGALQTCFLQTLTCNCKISK"
+    },
+    {
+      "accession": "P13068",
+      "title": "Nisin A precursor [Lactococcus lactis]",
+      "identity_percent": 61.8,
+      "coverage_percent": 94.1,
+      "evalue": 3e-08,
+      "bit_score": 42.1,
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK"
+    },
+    {
+      "accession": "P21838",
+      "title": "Gallidermin [Staphylococcus gallinarum]",
+      "identity_percent": 45.5,
+      "coverage_percent": 68.8,
+      "evalue": 2e-04,
+      "bit_score": 30.5,
+      "sequence": "IASKFLCTPGCAKTGSFNSYCC"
+    }
+  ],
+  "epidermin": [
+    {
+      "accession": "P21838",
+      "title": "Gallidermin [Staphylococcus gallinarum]",
+      "identity_percent": 95.5,
+      "coverage_percent": 100.0,
+      "evalue": 3e-16,
+      "bit_score": 64.5,
+      "sequence": "IASKFLCTPGCAKTGSFNSYCC"
+    },
+    {
+      "accession": "P13068",
+      "title": "Nisin A [Lactococcus lactis]",
+      "identity_percent": 50.0,
+      "coverage_percent": 100.0,
+      "evalue": 5e-05,
+      "bit_score": 33.2,
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK"
+    }
+  ],
+  "gallidermin": [
+    {
+      "accession": "P08136",
+      "title": "Epidermin [Staphylococcus epidermidis]",
+      "identity_percent": 95.5,
+      "coverage_percent": 100.0,
+      "evalue": 3e-16,
+      "bit_score": 64.5,
+      "sequence": "IASKFICTPGCAKTGSFNSYCC"
+    },
+    {
+      "accession": "P13068",
+      "title": "Nisin A [Lactococcus lactis]",
+      "identity_percent": 50.0,
+      "coverage_percent": 100.0,
+      "evalue": 6e-05,
+      "bit_score": 32.8,
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK"
+    }
+  ],
+  "pediocin_pa1": [
+    {
+      "accession": "Q47849",
+      "title": "Coagulin A [Bacillus coagulans]",
+      "identity_percent": 97.7,
+      "coverage_percent": 100.0,
+      "evalue": 2e-28,
+      "bit_score": 98.4,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    },
+    {
+      "accession": "P80497",
+      "title": "Bavaricin A [Latilactobacillus sakei]",
+      "identity_percent": 97.7,
+      "coverage_percent": 100.0,
+      "evalue": 1e-27,
+      "bit_score": 96.2,
+      "sequence": "TKYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    },
+    {
+      "accession": "P35618",
+      "title": "Sakacin P [Latilactobacillus sakei]",
+      "identity_percent": 68.2,
+      "coverage_percent": 97.7,
+      "evalue": 4e-16,
+      "bit_score": 66.8,
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK"
+    },
+    {
+      "accession": "P34034",
+      "title": "Leucocin A [Leuconostoc gelidum]",
+      "identity_percent": 59.5,
+      "coverage_percent": 84.1,
+      "evalue": 2e-12,
+      "bit_score": 55.4,
+      "sequence": "KYYGNGVHCTKSGCSVNWGEAFSAGVHRLANGGNGFW"
+    },
+    {
+      "accession": "P0C988",
+      "title": "Enterocin A [Enterococcus faecium]",
+      "identity_percent": 53.2,
+      "coverage_percent": 95.5,
+      "evalue": 8e-10,
+      "bit_score": 48.9,
+      "sequence": "TTHSGKYYGNGVYCTKNKCTVDWAKATTCIAGMSIGGFLGGAIPGKC"
+    }
+  ],
+  "sakacin_a": [
+    {
+      "accession": "P36495",
+      "title": "Curvacin A [Latilactobacillus curvatus]",
+      "identity_percent": 97.6,
+      "coverage_percent": 100.0,
+      "evalue": 5e-26,
+      "bit_score": 91.5,
+      "sequence": "ARSYGNGVYCNNKKCWVNRGESTQSIIGGMISGWASGLAGM"
+    },
+    {
+      "accession": "P29430",
+      "title": "Pediocin PA-1 [Pediococcus acidilactici]",
+      "identity_percent": 56.1,
+      "coverage_percent": 92.7,
+      "evalue": 6e-11,
+      "bit_score": 52.3,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    },
+    {
+      "accession": "P35618",
+      "title": "Sakacin P [Latilactobacillus sakei]",
+      "identity_percent": 53.7,
+      "coverage_percent": 90.2,
+      "evalue": 1e-09,
+      "bit_score": 47.6,
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK"
+    }
+  ],
+  "sakacin_p": [
+    {
+      "accession": "P80496",
+      "title": "Sakacin 674 [Latilactobacillus sakei]",
+      "identity_percent": 97.7,
+      "coverage_percent": 100.0,
+      "evalue": 8e-28,
+      "bit_score": 97.2,
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK"
+    },
+    {
+      "accession": "P29430",
+      "title": "Pediocin PA-1 [Pediococcus acidilactici]",
+      "identity_percent": 68.2,
+      "coverage_percent": 97.7,
+      "evalue": 4e-16,
+      "bit_score": 66.8,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    },
+    {
+      "accession": "P34034",
+      "title": "Leucocin A [Leuconostoc gelidum]",
+      "identity_percent": 56.8,
+      "coverage_percent": 84.1,
+      "evalue": 5e-11,
+      "bit_score": 51.5,
+      "sequence": "KYYGNGVHCTKSGCSVNWGEAFSAGVHRLANGGNGFW"
+    }
+  ],
+  "leucocin_a": [
+    {
+      "accession": "Q48740",
+      "title": "Leucocin B [Leuconostoc gelidum]",
+      "identity_percent": 89.2,
+      "coverage_percent": 100.0,
+      "evalue": 3e-22,
+      "bit_score": 81.3,
+      "sequence": "KYYGNGVHCTKSGCSVNWGEAFSAGVHRLANGGNGFW"
+    },
+    {
+      "accession": "P29430",
+      "title": "Pediocin PA-1 [Pediococcus acidilactici]",
+      "identity_percent": 59.5,
+      "coverage_percent": 84.1,
+      "evalue": 2e-12,
+      "bit_score": 55.4,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    },
+    {
+      "accession": "P35618",
+      "title": "Sakacin P [Latilactobacillus sakei]",
+      "identity_percent": 56.8,
+      "coverage_percent": 84.1,
+      "evalue": 5e-11,
+      "bit_score": 51.5,
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK"
+    }
+  ],
+  "enterocin_a": [
+    {
+      "accession": "P81577",
+      "title": "Enterocin B [Enterococcus faecium]",
+      "identity_percent": 62.5,
+      "coverage_percent": 75.0,
+      "evalue": 2e-11,
+      "bit_score": 53.4,
+      "sequence": "ENDHRMPNELNYGNGVHCGKHSCTVDWGKATTCI"
+    },
+    {
+      "accession": "P29430",
+      "title": "Pediocin PA-1 [Pediococcus acidilactici]",
+      "identity_percent": 53.2,
+      "coverage_percent": 95.5,
+      "evalue": 8e-10,
+      "bit_score": 48.9,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    }
+  ],
+  "curvacin_a": [
+    {
+      "accession": "P26829",
+      "title": "Sakacin A [Latilactobacillus sakei]",
+      "identity_percent": 97.6,
+      "coverage_percent": 100.0,
+      "evalue": 5e-26,
+      "bit_score": 91.5,
+      "sequence": "ARSYGNGVYCNNKKCWVNRGEATQSIIGGMISGWASGLAGM"
+    },
+    {
+      "accession": "P35618",
+      "title": "Sakacin P [Latilactobacillus sakei]",
+      "identity_percent": 53.7,
+      "coverage_percent": 90.2,
+      "evalue": 1e-09,
+      "bit_score": 47.6,
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK"
+    }
+  ],
+  "carnobacteriocin_b2": [
+    {
+      "accession": "P38578",
+      "title": "Carnobacteriocin BM1 [Carnobacterium maltaromaticum]",
+      "identity_percent": 68.8,
+      "coverage_percent": 91.7,
+      "evalue": 4e-17,
+      "bit_score": 69.5,
+      "sequence": "AISYGNGVYCNKEKCWVNKAENKQAITGIVIGGWASSLAGMGH"
+    },
+    {
+      "accession": "P29430",
+      "title": "Pediocin PA-1 [Pediococcus acidilactici]",
+      "identity_percent": 52.1,
+      "coverage_percent": 89.6,
+      "evalue": 3e-09,
+      "bit_score": 46.2,
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
+    }
+  ],
+  "microcin_j25": [
+    {
+      "accession": "A0A024R254",
+      "title": "Microcin J25 variant [Escherichia coli]",
+      "identity_percent": 95.2,
+      "coverage_percent": 100.0,
+      "evalue": 8e-15,
+      "bit_score": 58.6,
+      "sequence": "GGAGHVPEYFVGIGTPISFYG"
+    },
+    {
+      "accession": "Q84FT1",
+      "title": "Kluyvera microcin-like peptide [Kluyvera ascorbata]",
+      "identity_percent": 81.0,
+      "coverage_percent": 100.0,
+      "evalue": 5e-11,
+      "bit_score": 49.3,
+      "sequence": "GGAGHVPEYFVGIGTPISFYG"
+    }
+  ]
+}

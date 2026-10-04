@@ -1,0 +1,96 @@
+{
+  "nisin_a": [
+    {
+      "id": "nisin_z",
+      "accession": "P29559",
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCNCSIHVSK",
+      "organism": "Lactococcus lactis"
+    },
+    {
+      "id": "nisin_q",
+      "accession": "Q939T1",
+      "sequence": "ITSISLCTPGCKTGVLMGCNLKTATCNCSVHVSK",
+      "organism": "Lactococcus lactis"
+    },
+    {
+      "id": "nisin_f",
+      "accession": "Q2Y824",
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCNCSVSVSK",
+      "organism": "Lactococcus lactis"
+    }
+  ],
+  "pediocin_pa1": [
+    {
+      "id": "coagulin",
+      "accession": "Q47849",
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC",
+      "organism": "Bacillus coagulans"
+    },
+    {
+      "id": "bavaricin_a",
+      "accession": "P80497",
+      "sequence": "TKYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC",
+      "organism": "Latilactobacillus sakei"
+    },
+    {
+      "id": "sakacin_p",
+      "accession": "P35618",
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK",
+      "organism": "Latilactobacillus sakei"
+    }
+  ],
+  "sakacin_p": [
+    {
+      "id": "sakacin_674",
+      "accession": "P80496",
+      "sequence": "KYYGNGVHCGKHSCTVDWGTAIGNIGNNAAANWATGGNAGWNK",
+      "organism": "Latilactobacillus sakei"
+    },
+    {
+      "id": "pediocin_pa1",
+      "accession": "P29430",
+      "sequence": "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC",
+      "organism": "Pediococcus acidilactici"
+    },
+    {
+      "id": "leucocin_a",
+      "accession": "P34034",
+      "sequence": "KYYGNGVHCTKSGCSVNWGEAFSAGVHRLANGGNGFW",
+      "organism": "Leuconostoc gelidum"
+    }
+  ],
+  "subtilin": [
+    {
+      "id": "ericin_s",
+      "accession": "Q45589",
+      "sequence": "WKSESLCTPGCVTGALQTCFLQTLTCNCKISK",
+      "organism": "Bacillus subtilis"
+    },
+    {
+      "id": "nisin_a",
+      "accession": "P13068",
+      "sequence": "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK",
+      "organism": "Lactococcus lactis"
+    },
+    {
+      "id": "gallidermin",
+      "accession": "P21838",
+      "sequence": "IASKFLCTPGCAKTGSFNSYCC",
+      "organism": "Staphylococcus gallinarum"
+    }
+  ],
+  "microcin_j25": [
+    {
+      "id": "mccj25_var1",
+      "accession": "A0A024R254",
+      "sequence": "GGAGHVPEYFVGIGTPISFYG",
+      "organism": "Escherichia coli"
+    },
+    {
+      "id": "mccj25_kluyvera",
+      "accession": "Q84FT1",
+      "sequence": "GGAGHVPEYFVGIGTPISFYG",
+      "organism": "Kluyvera ascorbata"
+    }
+  ]
+}
