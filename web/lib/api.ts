@@ -94,6 +94,28 @@ export interface RunRequestBody {
   seed?: number | null;
 }
 
+/** The intentionally small, product-facing answer returned by `/api/discover`. */
+export interface DiscoveryResponse {
+  target: { organism: string };
+  recommendation: { name: string; tier: string; confidence: string; summary: string };
+  predicted_effect: {
+    description: string;
+    conditions: Record<string, number | string | null | undefined>;
+    evidence_label: string;
+  };
+  why_this_candidate: string[];
+  evidence: { label: string; summary: string }[];
+  uncertainty: string[];
+  scientific_review: { verdict: string; summary: string };
+  adaptive_experiment: {
+    initial_condition: Record<string, number | string | null | undefined>;
+    next_condition: Record<string, number | string | null | undefined> | null;
+    explanation: string;
+  };
+  next_experiment: { summary: string; reason: string };
+  status: "computational_prediction";
+}
+
 /**
  * Follow a run over server-sent events.
  *
@@ -154,6 +176,8 @@ export const api = {
     ),
   startRun: (body: RunRequestBody) =>
     request<RunSummary>("/api/runs", { method: "POST", body: JSON.stringify(body) }),
+  discover: (body: { prompt: string; target_organism?: string; context?: Record<string, unknown> }) =>
+    request<DiscoveryResponse>("/api/discover", { method: "POST", body: JSON.stringify(body) }),
 
   /**
    * Read-only research state. Writing to it belongs to the loop, so only these

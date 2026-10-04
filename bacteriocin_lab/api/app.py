@@ -35,6 +35,8 @@ from bacteriocin_lab.agents.simulator import describe_backends, run_experiment, 
 from bacteriocin_lab.agents.simulator.errors import BacteriocinSimError
 from bacteriocin_lab.agents.simulator.schemas import CandidateSpec
 from bacteriocin_lab.agents.simulator.selftest import run_selftest
+from bacteriocin_lab.orchestration import AgentRegistry, run_discovery
+from bacteriocin_lab.presentation import build_discovery_response, infer_target
 from bacteriocin_lab.shared.config import SCHEMA_VERSION
 
 from .runs import MAX_ITERATIONS_LIMIT, RunManager
@@ -155,6 +157,14 @@ class RunRequest(BaseModel):
             "max_failures": self.max_failures,
             "seed": self.seed,
         }
+
+
+class DiscoverRequest(BaseModel):
+    """One product-level question; the orchestrator owns all agent dispatch."""
+
+    prompt: str = Field(min_length=3, max_length=500)
+    target_organism: str | None = Field(default=None, max_length=120)
+    context: dict[str, Any] | None = None
 
 
 class CandidateRequest(BaseModel):
@@ -404,6 +414,58 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
             natural_threshold=body.natural_threshold,
         )
         return result.model_dump(mode="json")
+
+    # -- product discovery -------------------------------------------------
+    @app.post("/api/discover")
+    def discover(body: DiscoverRequest) -> dict[str, Any]:
+        """Run the complete workflow and return only its public scientific answer.
+
+        The lower-level specialist routes remain available for engineering and
+        Omnigent integration, but a product client never needs to coordinate
+        them or understand their identifiers.
+        """
+        try:
+            organism, gram = infer_target(body.prompt, body.target_organism)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+        context = body.context or {}
+        high_density = (
+            "high-density" in body.prompt.casefold() or "high density" in body.prompt.casefold()
+        )
+        density = context.get("target_cell_density", 1e8 if high_density else 1e6)
+        objective = {
+            "goal": body.prompt,
+            "target": {"species": organism, "gram": gram},
+            "desired_behavior": {
+                "high_inhibition": True,
+                "target_cell_density": density,
+                "ph": context.get("ph", 7.0),
+                "temperature_c": context.get("temperature_c", 37.0),
+            },
+            # A single ranked candidate makes the adaptive condition change
+            # legible instead of switching candidates between iterations.
+            "constraints": {"max_candidates": 1},
+        }
+        try:
+            result = run_discovery(
+                objective=objective,
+                max_iterations=2,
+                max_failures=3,
+                seed=42,
+                registry=AgentRegistry.default(),
+            )
+        except Exception as exc:
+            # Details stay in server logs and the developer routes.  Showing
+            # a traceback as a scientific answer would be both unsafe and
+            # unhelpful to a normal product user.
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Computational evaluation could not safely complete. Please try again later."
+                ),
+            ) from exc
+        return build_discovery_response(result.to_dict())
 
     # -- runs ----------------------------------------------------------
     @app.post("/api/runs")
