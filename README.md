@@ -208,3 +208,17 @@ BLAST_LOCAL_BACTERIOCIN_DB=./data/blast/bacteriocins
 ```
 
 When `BLAST_BACKEND=auto`, the system routes similarity queries to local `blastp` if available for the target database, and seamlessly falls back to remote NCBI BLAST otherwise.
+
+## Natural Genomic Variant Discovery
+
+The system includes a dedicated genomic variant discovery pipeline (`bacteriocin_lab/agents/variant`) for identifying natural sequence variations across bacteriocin homologs.
+
+### Capabilities
+
+1. **Homolog Discovery**: Finds sequence homologs using local BLAST+ or remote NCBI BLASTP.
+2. **Multiple Sequence Alignment (MSA)**: Aligns homologous sequences via an extensible backend abstraction (`MafftBackend`, `ClustalOmegaBackend`, `FixtureAlignmentBackend`, `AutoAlignmentBackend`).
+3. **Ungapped Coordinate Anchoring**: Maps substitutions (e.g. `F8Y`), insertions (e.g. `ins5QQ`), and deletions (e.g. `del6_7`) relative to biological ungapped reference coordinates, regardless of alignment gaps.
+4. **CDS & Codon Mapping**: Derives codon-level changes (`missense`, `synonymous`, `stop_gain`) and verifies nucleotide coding sequences against translation; gracefully handles protein-only records without fabricating nucleotide annotations.
+5. **Calibrated Scoring & Hypotheses**: Computes natural frequency (`observed_count / homolog_count`) and conservation scores, producing deterministic variant priority scores and falsifiable functional effect hypotheses.
+6. **Agent Integration & Safeguards**: Directly integrates with `CandidateGenerationAgent` to propose candidate variants (`origin="modified"`, `validation_status="unvalidated"`). Exposes the `discover_candidate_variants` MCP tool to Omnigent with query budgets (`MAX_VARIANT_HOMOLOGS=50`, `MAX_VARIANTS_PER_CANDIDATE=10`). Strictly enforces provenance (`database-derived`)—variants and hypotheses are never claimed as experimentally validated.
+

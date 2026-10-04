@@ -545,7 +545,7 @@ def build_server():
 
         try:
             envelope = _AGENT.run_envelope(request).model_dump(mode="json")
-        except Exception as exc:  # noqa: BLE001 - tool boundary
+        except Exception as exc:
             logger.exception("generate_candidates failed")
             envelope = _error_envelope(exc)
 
@@ -568,7 +568,7 @@ def build_server():
             {
                 "agent": AGENT_NAME,
                 "model_version": MODEL_VERSION,
-                "knowledge_source": _AGENT._knowledge.source_name,  # noqa: SLF001
+                "knowledge_source": _AGENT._knowledge.source_name,
                 "responsibility": (
                     "Propose ranked bacteriocin candidates and falsifiable hypotheses "
                     "for the next experiment."
@@ -592,6 +592,103 @@ def build_server():
             },
             indent=2,
         )
+
+    @server.tool(
+        name="discover_candidate_variants",
+        description=(
+            "Discover naturally occurring sequence variants in homologs of a bacteriocin candidate "
+            "using sequence similarity (BLAST), multiple sequence alignment, and CDS mapping. "
+            "Returns ranked variants and candidate proposals with falsifiable hypotheses. "
+            "Never claims variants are experimentally validated."
+        ),
+    )
+    def discover_candidate_variants_tool(  # type: ignore[misc]
+        candidate_id: Annotated[
+            str, Field(description="Identifier of the reference candidate bacteriocin.")
+        ],
+        sequence: Annotated[
+            str, Field(description="Query amino acid sequence of the bacteriocin candidate.")
+        ],
+        database: Annotated[
+            str,
+            Field(description="BLAST database to search for homologs, e.g. 'swissprot' or 'nr'."),
+        ] = "swissprot",
+        max_homologs: Annotated[
+            int,
+            Field(
+                ge=1,
+                le=50,
+                description="Maximum number of homologs to retrieve and align (max 50).",
+            ),
+        ] = 20,
+        max_variants: Annotated[
+            int,
+            Field(ge=1, le=10, description="Maximum number of ranked variants to return (max 10)."),
+        ] = 5,
+        ref_cds: Annotated[
+            str | None,
+            Field(
+                description="Optional reference nucleotide coding sequence (CDS) for codon changes."
+            ),
+        ] = None,
+    ) -> str:
+        """Discover natural variants and generate candidate proposals."""
+        from bacteriocin_lab.agents.variant import (
+            DEFAULT_MAX_VARIANT_HOMOLOGS,
+            DEFAULT_MAX_VARIANTS_PER_CANDIDATE,
+            VariantBudgetExceededError,
+            discover_variants,
+            variant_to_proposal,
+        )
+
+        if max_homologs > DEFAULT_MAX_VARIANT_HOMOLOGS:
+            raise VariantBudgetExceededError(
+                f"max_homologs={max_homologs} exceeds limit {DEFAULT_MAX_VARIANT_HOMOLOGS}"
+            )
+        if max_variants > DEFAULT_MAX_VARIANTS_PER_CANDIDATE:
+            raise VariantBudgetExceededError(
+                f"max_variants={max_variants} exceeds limit {DEFAULT_MAX_VARIANTS_PER_CANDIDATE}"
+            )
+
+        try:
+            result = discover_variants(
+                candidate_id=candidate_id,
+                sequence=sequence,
+                database=database,
+                max_homologs=max_homologs,
+                max_variants=max_variants,
+                ref_cds=ref_cds,
+                strict_budget=True,
+            )
+            proposals = [
+                variant_to_proposal(v, sequence).model_dump(mode="json")
+                for v in result.variants
+            ]
+            payload = {
+                "candidate_id": result.candidate_id,
+                "reference_sequence": result.reference_sequence,
+                "homolog_count": result.homolog_count,
+                "aligned_homolog_count": result.aligned_homolog_count,
+                "variants": [v.model_dump(mode="json") for v in result.variants],
+                "proposals": proposals,
+                "provenance": result.provenance,
+                "sources": result.sources,
+                "warnings": result.warnings,
+            }
+            return json.dumps(payload, indent=2)
+        except Exception as exc:
+            logger.exception("discover_candidate_variants failed")
+            return json.dumps(
+                {
+                    "error": str(exc),
+                    "candidate_id": candidate_id,
+                    "variants": [],
+                    "proposals": [],
+                    "provenance": "database-derived",
+                    "warnings": [f"Variant discovery failed: {exc}"],
+                },
+                indent=2,
+            )
 
     return server
 

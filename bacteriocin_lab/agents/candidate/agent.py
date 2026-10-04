@@ -12,6 +12,7 @@ Omnigent.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from bacteriocin_lab.shared.contract import (
@@ -98,6 +99,54 @@ class CandidateGenerationAgent:
             backend=backend,
             **kwargs,
         )
+
+    def discover_candidate_variants(
+        self,
+        candidate_id: str,
+        sequence: str,
+        homologs: list[dict[str, Any]] | None = None,
+        max_variants: int = 5,
+        database: str = "swissprot",
+        ref_cds: str | None = None,
+        homolog_cds: Mapping[str, str] | None = None,
+        region_annotations: Mapping[str, tuple[int, int]] | None = None,
+        alignment_backend: Any | None = None,
+        blast_backend: Any | None = None,
+        **kwargs: Any,
+    ) -> tuple[Any, list[CandidateProposal]]:
+        """Discover natural sequence variants from homologs and generate CandidateProposals.
+
+        Proposals are marked with origin='modified', validation_status='unvalidated',
+        parent_candidate_id, and falsifiable hypotheses.
+        """
+        from bacteriocin_lab.agents.variant import VariantDiscoveryAgent, variant_to_proposal
+
+        agent = VariantDiscoveryAgent(
+            blast_backend=blast_backend,
+            alignment_backend=alignment_backend,
+            ncbi_client=self._ncbi_client,
+        )
+        discovery_result = agent.discover(
+            candidate_id=candidate_id,
+            sequence=sequence,
+            homologs=homologs,
+            ref_cds=ref_cds,
+            homolog_cds=homolog_cds,
+            region_annotations=region_annotations,
+            database=database,
+            max_variants=max_variants,
+            **kwargs,
+        )
+
+        parent_features = CandidateFeatures()
+        proposals: list[CandidateProposal] = []
+        for var in discovery_result.variants:
+            prop = variant_to_proposal(var, sequence, parent_features=parent_features)
+            proposals.append(prop)
+
+        return discovery_result, proposals
+
+    discover_and_propose_variants = discover_candidate_variants
 
     def verify_candidate_sequences(
         self,

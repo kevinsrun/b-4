@@ -28,5 +28,6 @@ env:
 tools:
   - generate_candidates
   - describe_agent
+  - discover_candidate_variants
 
 timeout: 60
