@@ -14,6 +14,12 @@ evidence → hypotheses → candidate selection → experiment planning
 ## Run it
 
 ```bash
+pip install -e ".[dev,mcp]"      # or: uv sync --all-extras   (one package, editable)
+pytest                           # whole suite, including the end-to-end integration tests
+python -m bacteriocin_lab        # the deterministic end-to-end demo (fixture agents, offline)
+```
+
+```bash
 uv sync                  # one package, editable
 python3 install.py       # generate the MCP declarations (machine-specific paths)
 python3 scripts/run_omnigent.py  # run the single Omnigent orchestrator
