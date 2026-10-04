@@ -240,7 +240,13 @@ def _candidate_registry(raw: dict[str, dict[str, Any]] | None) -> dict[str, Cand
 
 
 # ----------------------------------------------------------------------
-def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
+def create_app(
+    *,
+    allow_origins: list[str] | None = None,
+    allow_origin_regex: str | None = None,
+) -> FastAPI:
+    import os
+
     app = FastAPI(
         title="BACTERION API",
         version=SCHEMA_VERSION if isinstance(SCHEMA_VERSION, str) else "1",
@@ -250,9 +256,11 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
             "simulation-derived claims are distinct and are never merged."
         ),
     )
+    regex = allow_origin_regex or os.environ.get("BACTERION_ORIGIN_REGEX") or None
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allow_origins or ["http://localhost:3000", "http://127.0.0.1:3000"],
+        allow_origin_regex=regex,
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
@@ -260,6 +268,7 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
     literature = LiteratureEvidenceAgent()
 
     # -- meta ----------------------------------------------------------
+    @app.get("/health")
     @app.get("/api/health")
     def health() -> dict[str, Any]:
         return {
@@ -527,8 +536,9 @@ def create_app(*, allow_origins: list[str] | None = None) -> FastAPI:
 
 
 def app_from_env() -> FastAPI:
-    """Factory for ``uvicorn --reload``, which needs an import string, not an app."""
+    """Factory for ASGI servers (uvicorn, vercel, etc.)."""
     import os
 
-    origins = [o for o in (os.environ.get("BACTERION_ORIGINS") or "").split(",") if o]
-    return create_app(allow_origins=origins or None)
+    origins = [o.strip() for o in (os.environ.get("BACTERION_ORIGINS") or "").split(",") if o.strip()]
+    origin_regex = os.environ.get("BACTERION_ORIGIN_REGEX") or None
+    return create_app(allow_origins=origins or None, allow_origin_regex=origin_regex)
