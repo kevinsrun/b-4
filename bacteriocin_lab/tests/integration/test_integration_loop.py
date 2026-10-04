@@ -107,15 +107,19 @@ def test_06_different_result_different_decision():
     high = run(max_iterations=2, registry=registry(simulation=ScriptedSimulator(0.92)))
     poor = run(max_iterations=2, registry=registry(simulation=ScriptedSimulator(0.15)))
 
-    def after_first_critic(result) -> str:
+    def after_first_critic(result) -> list[str]:
         order = agents_in_order(result)
-        return order[order.index("critic") + 1]
+        return order[order.index("critic") + 1 :]
 
-    assert after_first_critic(high) != after_first_critic(poor)
-    assert after_first_critic(poor) == "candidate", (
-        "a failed candidate must send the loop back to candidates"
+    assert after_first_critic(high)[0] != after_first_critic(poor)[0]
+    # A rejection is committed before anything new is proposed: the knowledge agent
+    # settles the rejected candidate and advances the turn, then rule 9 asks the
+    # candidate agent for a replacement. Going straight back to candidate would skip
+    # the only step that advances the iteration (see routing.py rule 8, "rejected").
+    assert after_first_critic(poor)[:2] == ["knowledge", "candidate"], (
+        "a failed candidate must send the loop back to candidates, via the knowledge update"
     )
-    assert after_first_critic(high) == "evidence", (
+    assert after_first_critic(high)[0] == "evidence", (
         "a promising but untested-at-density result needs evidence"
     )
 

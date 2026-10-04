@@ -405,9 +405,17 @@ def test_09_critic_rejection_reroutes():
     route = router.determine_next_route(state, last_agent="critic")
     assert route.next_agent == "planner"
 
-    # 3. Critic rejects candidate -> reroutes to candidate generation
+    # 3. Critic rejects candidate -> commits the rejection, then back to candidates.
+    # The knowledge agent settles the rejected candidate and advances the turn before
+    # a replacement is proposed; routing straight to candidate would leave a run that
+    # keeps rejecting stuck in iteration 0 until the visit guard stopped it.
     state.reviews[-1].status = "rejected"
     route = router.determine_next_route(state, last_agent="critic")
+    assert route.next_agent == "knowledge"
+    assert "reviews" in route.required_inputs
+
+    # Rule 9 then hands the untested replacement back to the candidate agent.
+    route = router.determine_next_route(state, last_agent="knowledge")
     assert route.next_agent == "candidate"
 
 
