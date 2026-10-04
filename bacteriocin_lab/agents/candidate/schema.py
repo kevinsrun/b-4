@@ -177,6 +177,9 @@ class CandidateProposal(ExtensibleContractModel):
     derived_from_candidate_id: str | None = Field(
         default=None, description="Set when origin == 'modified'."
     )
+    parent_candidate_id: str | None = Field(
+        default=None, description="Alias of derived_from_candidate_id for modified candidates."
+    )
     modifications: list[str] = Field(
         default_factory=list, description="Described changes for 'modified'/'generated' origins."
     )
@@ -204,8 +207,13 @@ class CandidateProposal(ExtensibleContractModel):
                 "The candidate generation agent must never emit "
                 "validation_status='experimentally-validated'; that requires wet-lab evidence"
             )
-        if self.origin == "modified" and not self.derived_from_candidate_id:
-            raise ValueError("origin='modified' requires derived_from_candidate_id")
+        if self.origin == "modified":
+            if not self.derived_from_candidate_id and not self.parent_candidate_id:
+                raise ValueError("origin='modified' requires derived_from_candidate_id")
+            if not self.derived_from_candidate_id and self.parent_candidate_id:
+                self.derived_from_candidate_id = self.parent_candidate_id
+            elif self.derived_from_candidate_id and not self.parent_candidate_id:
+                self.parent_candidate_id = self.derived_from_candidate_id
         return self
 
 

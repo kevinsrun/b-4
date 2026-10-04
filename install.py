@@ -172,7 +172,7 @@ SERVERS = [
             "Candidate Generation & Design Agent. Proposes ranked candidates and\n"
             "  falsifiable hypotheses. Proposals only -- never experimental evidence."
         ),
-        tools=["generate_candidates", "describe_agent"],
+        tools=["generate_candidates", "describe_agent", "discover_candidate_variants"],
         # Scoring is pure computation over a small pool, so calls return in
         # milliseconds. A low ceiling surfaces a hung subprocess quickly.
         timeout=60,
