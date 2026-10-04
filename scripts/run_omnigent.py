@@ -21,7 +21,7 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-REQUIRED_DECLARATIONS = ("literature.yaml", "candidates.yaml", "runner.yaml")
+REQUIRED_DECLARATIONS = ("literature.yaml", "candidates.yaml", "runner.yaml", "critic.yaml")
 
 
 def _stage_bundle(destination: Path) -> None:

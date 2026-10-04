@@ -104,6 +104,23 @@ class Server:
 
 SERVERS = [
     Server(
+        name="critic",
+        launcher="critic.py",
+        # The launcher puts bacteriocin_discovery (which owns the shared
+        # contract) on sys.path itself, so one entry here is enough.
+        pythonpath=REPO / "packages" / "critic_agent" / "src",
+        description=(
+            "Scientific critic / safety agent. Reviews claims BEFORE the loop accepts\n"
+            "  them: checks that conclusions follow from results, that simulated evidence\n"
+            "  is never described as experimentally validated, that coverage, controls and\n"
+            "  uncertainty support the wording, and routes work back when they do not.\n"
+            "  Does not approve by default."
+        ),
+        tools=["review_claims", "run_agent", "describe", "get_schema"],
+        # Pure rule evaluation over the submitted payload; no I/O, no model.
+        timeout=60,
+    ),
+    Server(
         name="literature",
         launcher="literature.py",
         pythonpath=REPO / "packages" / "b4_literature" / "src",

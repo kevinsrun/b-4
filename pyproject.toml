@@ -22,6 +22,7 @@ dependencies = [
     "b4-literature-evidence",
     "experiment-planner-agent",
     "bacteriocin-orchestration",
+    "critic-agent",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +36,7 @@ members = ["packages/*"]
 bacteriocin-sim = { workspace = true }
 bacteriocin-discovery = { workspace = true }
 b4-literature-evidence = { workspace = true }
+critic-agent = { workspace = true }
 experiment-planner-agent = { workspace = true }
 bacteriocin-orchestration = { workspace = true }
 
@@ -55,6 +57,7 @@ testpaths = [
     "packages/b4_literature/tests",
     "packages/experiment_planner_agent/tests",
     "packages/bacteriocin_orchestration/tests",
+    "packages/critic_agent/tests",
 ]
 pythonpath = [
     "packages/bacteriocin_sim",
@@ -62,6 +65,7 @@ pythonpath = [
     "packages/b4_literature/src",
     "packages/experiment_planner_agent",
     "packages/bacteriocin_orchestration/src",
+    "packages/critic_agent/src",
 ]
 addopts = "-q"
 
