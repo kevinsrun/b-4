@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/*
+  BACTERION — instrument console.
+
+  The page is a dark navy panel with hairline structure, not a stack of cards.
+  Two type families: Space Grotesk carries language, JetBrains Mono carries
+  every measured quantity and identifier, so you can tell at a glance whether
+  you are reading prose or data.
+
+  Colour is load-bearing, never decorative:
+    cyan    the system acting — live state, primary action, simulation-derived
+    blue    retrieved from literature
+    green   wet-lab-derived, which nothing in this system produces
+    amber   an assumption the model made for you
+    red     a failure
+  Chart marks use their own step (--mark), which sits in the OKLCH lightness
+  band that stays legible against this surface; the brighter UI cyan does not.
+*/
+
+@theme {
+  --color-ink: #05080f;
+  --color-panel: #0a0f1a;
+  --color-raised: #101827;
+  --color-line: #1b2436;
+  --color-line-strong: #2a364f;
+
+  --color-text: #e6edf7;
+  --color-muted: #8295ae;
+  --color-faint: #5b6b82;
+
+  --color-cyan: #22d3ee;
+  --color-cyan-dim: #0e7490;
+  --color-blue: #3b82f6;
+  --color-green: #34d399;
+  --color-amber: #f59e0b;
+  --color-red: #f43f5e;
+
+  --color-mark: #0e9eb8;
+
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, "SF Mono", monospace;
+}
+
+:root {
+  color-scheme: dark;
+  --rail: 2px;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv05";
+}
+
+/* Every measured quantity is tabular, so columns of numbers line up and a
+   changing value does not shift the layout around it. */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "zero";
+  letter-spacing: -0.01em;
+}
+
+a,
+button,
+[tabindex] {
+  outline-color: var(--color-cyan);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-cyan) 28%, transparent);
+}
+
+/* Hairline grid used behind the loop console: graph paper, faint enough to
+   read as texture and not as content. */
+.graph-paper {
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 28px 28px;
+}
+
+/* The one piece of non-user-triggered motion on the site: the station that is
+   currently executing. It marks live state and nothing else. */
+@keyframes station-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.station-live {
+  animation: station-live 1.1s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 33%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-cyan) 55%, transparent),
+    transparent
+  );
+  animation: sweep 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .station-live,
+  .sweep::after {
+    animation: none;
+  }
+  .station-live {
+    opacity: 1;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Recharts leaves a focus rectangle on its SVG wrapper; the surrounding
+   figure is what should take focus. */
+.recharts-wrapper:focus {
+  outline: none;
+}
+
+.recharts-cartesian-axis-tick text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--color-faint);
+}
