@@ -63,10 +63,23 @@ class SimulationAgentAdapter:
         )
 
         emitted_ids: list[str] = []
+        failures: list[str] = []
+        accepted: list[ExperimentResult] = []
         for res in results:
             # Enforce contract rule 9 & 10: simulation results are never wet-lab
             if not isinstance(res, ExperimentResult):
                 res = ExperimentResult.model_validate(res)
+
+            # A batch can mix good and failed members. A failed member carries no measurement, so it
+            # is logged as a failure and never stored as evidence; the good members are unaffected.
+            if res.status != "ok":
+                detail = res.error if res.error else "no error detail"
+                failures.append(f"{res.experiment_id}: {detail}")
+                state_mgr.record_experiment_failure(
+                    res.experiment_id, str(detail), source_agent=self.name
+                )
+                continue
+            accepted.append(res)
 
             object.__setattr__(res, "evidence_type", EvidenceType.SIMULATION)
             object.__setattr__(res, "validated_experimentally", False)
@@ -74,10 +87,15 @@ class SimulationAgentAdapter:
             if state_mgr.add_experiment_result(res, source_agent=self.name):
                 emitted_ids.append(res.result_id)
 
+        if failures and not accepted:
+            # Nothing usable came back: surface it as a failed dispatch rather than a silent success.
+            raise RuntimeError("Simulation produced no valid result: " + "; ".join(failures))
+
         return {
             "agent": self.name,
-            "status": "success",
+            "status": "partial" if failures else "success",
             "executed": len(specs_to_run),
+            "failed": len(failures),
             "output_ids": emitted_ids,
-            "results": [r.to_json_dict() for r in results],
+            "results": [r.to_json_dict() for r in accepted],
         }

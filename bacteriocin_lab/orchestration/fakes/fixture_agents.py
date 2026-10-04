@@ -9,6 +9,7 @@ from ..state import ResearchStateManager
 from ..types import (
     Candidate,
     Conditions,
+    Evidence,
     EvidenceType,
     ExperimentResult,
     ExperimentSpec,
@@ -36,8 +37,18 @@ class FakeEvidenceAgent:
         species = state.objective.species or "Listeria monocytogenes"
         ev_id = content_id("evidence", {"species": species, "idx": self.call_count})
 
-        # Add literature claim to knowledge gaps / evidence
+        # Record the literature claim as provenance-carrying evidence
         claim = f"Nisin and class IIa bacteriocins exhibit nanomolar activity against {species} in broth assays."
+        ResearchStateManager(state).add_evidence(
+            Evidence(
+                evidence_id=ev_id,
+                evidence_type="literature-derived",
+                claim=claim,
+                source="fixture-literature",
+                confidence=0.6,
+            ),
+            source_agent=self.name,
+        )
         if not state.knowledge_gaps:
             state.knowledge_gaps.append(
                 f"Inoculum effect curves across 1e5-1e9 CFU/mL for {species}"

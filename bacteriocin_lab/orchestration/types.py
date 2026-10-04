@@ -132,8 +132,8 @@ class Candidate(BaseModel):
     name: str = ""
     sequence: str | None = None
     source: str | None = None
-    score_total: float = 0.0
-    confidence: float = 0.0
+    score_total: float = Field(default=0.0, ge=0.0)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     features: dict[str, Any] = Field(default_factory=dict)
     falsified_if: str | None = None
     # Shared contract rule 9: Proposals only, unvalidated
@@ -151,8 +151,8 @@ class Hypothesis(BaseModel):
     statement: str
     prediction: str | None = None
     status: Literal["open", "supported", "contradicted", "weakened", "rejected"] = "open"
-    prior_plausibility: float = 0.5
-    posterior_probability: float = 0.5
+    prior_plausibility: float = Field(default=0.5, ge=0.0, le=1.0)
+    posterior_probability: float = Field(default=0.5, ge=0.0, le=1.0)
     discriminating_feature: str | None = None
     favourable_range: list[float] | None = None
     falsified_if: str | None = None
@@ -167,7 +167,7 @@ class Finding(BaseModel):
     finding_id: str
     statement: str
     status: Literal["supported", "contradicted", "weakened", "inconclusive"] = "inconclusive"
-    confidence: float = 0.0
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     candidate_ids: list[str] = Field(default_factory=list)
     hypothesis_ids: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
@@ -191,7 +191,7 @@ class Review(BaseModel):
     critique: str = ""
     recommendation: dict[str, Any] = Field(default_factory=dict)
     reviewer: str = "scientific_critic"
-    confidence: float = 1.0
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class ScientificEvent(BaseModel):
@@ -243,6 +243,9 @@ class ResearchState(BaseModel):
     model_config = _BASE_CONFIG
 
     objective: ResearchObjective = Field(default_factory=ResearchObjective)
+    # Provenance-carrying evidence (literature-derived, database-derived, ...). Simulation output lives in
+    # ``results`` and keeps its own evidence_type; the two are never merged or relabelled.
+    evidence: list[Evidence] = Field(default_factory=list)
     candidates: list[Candidate] = Field(default_factory=list)
     hypotheses: list[Hypothesis] = Field(default_factory=list)
     experiments: list[ExperimentSpec] = Field(default_factory=list)

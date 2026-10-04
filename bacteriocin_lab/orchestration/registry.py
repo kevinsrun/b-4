@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from .agent_adapters import (
     CandidateAgentAdapter,
@@ -50,21 +50,28 @@ class AgentRegistry:
     def register(self, role: str, agent: Any) -> None:
         self._agents[role] = agent
 
+    _ALIASES: ClassVar[dict[str, str]] = {
+        "literature_evidence": "evidence",
+        "literature": "evidence",
+        "candidate_generation": "candidate",
+        "candidate_agent": "candidate",
+        "experiment_planner": "planner",
+        "simulation_runner": "simulation",
+        "simulation_agent": "simulation",
+        "result_analysis": "analysis",
+        "scientific_critic": "critic",
+        "research_state": "knowledge",
+    }
+
+    def canonical_role(self, role: str) -> str:
+        return self._ALIASES.get(role, role)
+
+    def has(self, role: str) -> bool:
+        """True if an agent is registered for ``role`` (aliases accepted)."""
+        return self._agents.get(self.canonical_role(role)) is not None
+
     def get(self, role: str) -> Any:
-        # Support aliases
-        aliases = {
-            "literature_evidence": "evidence",
-            "literature": "evidence",
-            "candidate_generation": "candidate",
-            "candidate_agent": "candidate",
-            "experiment_planner": "planner",
-            "simulation_runner": "simulation",
-            "simulation_agent": "simulation",
-            "result_analysis": "analysis",
-            "scientific_critic": "critic",
-            "research_state": "knowledge",
-        }
-        canonical = aliases.get(role, role)
+        canonical = self.canonical_role(role)
         agent = self._agents.get(canonical)
         if agent is None:
             raise KeyError(f"No agent registered for role '{role}' (canonical: '{canonical}')")
@@ -72,7 +79,12 @@ class AgentRegistry:
 
     @classmethod
     def default(cls) -> AgentRegistry:
-        """Construct registry using real repository specialist agents and adapters."""
+        """Construct the registry used outside tests.
+
+        Evidence, candidate, planner and simulation call the real specialist agents. Analysis, critic
+        and knowledge are the orchestration layer's own built-in implementations, NOT the agents in
+        ``bacteriocin_lab.agents.analysis`` / ``.critic`` / ``.knowledge`` (see TECH_DEBT.md, item 1).
+        """
         return cls(
             evidence=LiteratureAgentAdapter(),
             candidate=CandidateAgentAdapter(),

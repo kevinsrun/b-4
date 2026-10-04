@@ -9,7 +9,7 @@ from typing import Any
 from .loop_guards import LoopGuards
 from .registry import AgentRegistry
 from .routing import Router
-from .state import ResearchStateManager
+from .state import ResearchStateManager, StateIntegrityError, check_state_integrity
 from .trace import TraceRecorder
 from .types import (
     DiscoveryResult,
@@ -145,6 +145,16 @@ class DiscoveryWorkflowEngine:
                 input_ids=input_ids,
             )
 
+            # A route to an agent that does not exist is a wiring error, not a transient failure:
+            # retrying cannot fix it, so fail immediately with the state untouched.
+            if not self.registry.has(route.next_agent):
+                msg = f"Routing error: no agent registered for route target '{route.next_agent}'"
+                trace.record_failure(trace_id, error=msg)
+                loop_guards.record_failure(state.iteration, route.next_agent)
+                errors.append(msg)
+                status = "failed"
+                break
+
             # Snapshot state before dispatch
             snapshot = state.clone()
 
@@ -160,6 +170,12 @@ class DiscoveryWorkflowEngine:
                         f"Agent '{route.next_agent}' returned malformed payload missing identifiers"
                     )
 
+                # Agents mutate state directly, so do not trust them: re-validate the whole state
+                # and resolve every reference before accepting anything the dispatch wrote.
+                problems = check_state_integrity(state)
+                if problems:
+                    raise StateIntegrityError(problems)
+
                 out_ids = result_payload.get("output_ids", [])
                 trace.record_success(trace_id, output_ids=out_ids)
                 loop_guards.record_success()
@@ -174,7 +190,7 @@ class DiscoveryWorkflowEngine:
 
                 error_msg = f"Agent '{route.next_agent}' failed: {exc}"
                 trace.record_failure(trace_id, error=str(exc))
-                loop_guards.record_failure()
+                loop_guards.record_failure(state.iteration, route.next_agent)
                 errors.append(error_msg)
 
                 should_stop_fail, fail_reason = loop_guards.should_terminate_failures()
