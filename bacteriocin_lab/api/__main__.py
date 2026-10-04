@@ -6,9 +6,12 @@ import argparse
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Serve the BACTERION HTTP API.")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    import os
+
+    default_host = os.environ.get("HOST", "127.0.0.1")
+    default_port = int(os.environ.get("PORT", "8000"))
+    parser.add_argument("--host", default=default_host)
+    parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument(
         "--origin",
         action="append",

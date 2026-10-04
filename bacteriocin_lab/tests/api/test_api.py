@@ -50,9 +50,12 @@ def _await_run(client: TestClient, run_id: str, timeout: float = 60.0) -> dict:
 
 class TestMeta:
     def test_health(self, client: TestClient) -> None:
-        body = client.get("/api/health").json()
-        assert body["status"] == "ok"
-        assert body["schema_version"]
+        for path in ("/health", "/api/health"):
+            resp = client.get(path)
+            assert resp.status_code == 200
+            body = resp.json()
+            assert body["status"] == "ok"
+            assert body["schema_version"]
 
     def test_agent_roster_covers_every_loop_role(self, client: TestClient) -> None:
         body = client.get("/api/agents").json()
