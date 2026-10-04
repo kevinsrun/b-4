@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, type ReactNode, useEffect, useState } from "react";
-import Image from "next/image";
 
 import { ApiError, api, type DiscoveryResponse } from "@/lib/api";
 
@@ -72,17 +71,7 @@ export function DiscoveryExperience() {
   return (
     <main className="mx-auto max-w-4xl px-4 pb-20 pt-16 sm:px-6">
       <section className="mx-auto max-w-3xl text-center">
-        <div className="mx-auto mb-7 aspect-[3.2/1] max-w-[28rem] overflow-hidden rounded-xl border border-cyan/15 bg-black shadow-[0_0_50px_rgba(34,211,238,0.06)]">
-          <Image
-            src="/branding/bactrogen-wordmark.png"
-            alt="BactroGen Research"
-            width={1600}
-            height={893}
-            className="h-full w-full object-cover object-center"
-            priority
-          />
-        </div>
-        <h1 className="mt-4 text-4xl font-medium tracking-[-0.035em] text-text sm:text-5xl">
+        <h1 className="text-4xl font-medium tracking-[-0.035em] text-text sm:text-5xl">
           What bacterium do you want to target?
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
