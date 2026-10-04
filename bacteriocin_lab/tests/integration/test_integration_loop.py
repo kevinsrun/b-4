@@ -112,8 +112,8 @@ def test_06_different_result_different_decision():
         return order[order.index("critic") + 1]
 
     assert after_first_critic(high) != after_first_critic(poor)
-    assert after_first_critic(poor) == "candidate", (
-        "a failed candidate must send the loop back to candidates"
+    assert after_first_critic(poor) == "knowledge", (
+        "a failed candidate must commit the rejection to knowledge before next candidate"
     )
     assert after_first_critic(high) == "evidence", (
         "a promising but untested-at-density result needs evidence"
