@@ -201,3 +201,20 @@ class TestKnowledge:
     def test_integrity_without_a_store_reports_rather_than_raises(self, client: TestClient) -> None:
         body = client.get("/api/knowledge/integrity").json()
         assert "decision" in body or "status" in body
+
+
+class TestTargetDesignAPI:
+    def test_design_target_endpoint(self, client: TestClient) -> None:
+        response = client.post(
+            "/api/design/target",
+            json={"target_organism": "Listeria monocytogenes", "seed": 42},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "target" in data
+        assert data["target"]["organism"] == "Listeria monocytogenes"
+        assert "recommendations" in data
+        assert len(data["recommendations"]) > 0
+        assert "best_current_candidate" in data
+        assert "future_production_concept" in data
+        assert data["future_production_concept"]["status"] == "requires_specialist_review"
