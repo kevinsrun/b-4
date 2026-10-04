@@ -377,7 +377,10 @@ def test_13_credential_redaction(
     caplog.set_level(logging.DEBUG)
     submit_txt = _read_fixture("blast_submit.txt")
 
+    captured_urls: list[str] = []
+
     def transport(url: str, headers: dict, timeout: float):
+        captured_urls.append(url)
         return 200, {}, submit_txt
 
     client = NcbiClient(config=config, transport=transport)
@@ -385,6 +388,7 @@ def test_13_credential_redaction(
 
     logged_text = caplog.text
     assert secret_key not in logged_text
+    assert all(secret_key not in url and "api_key=" not in url for url in captured_urls)
 
 
 # --------------------------------------------------------------------------
