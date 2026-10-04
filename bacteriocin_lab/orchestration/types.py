@@ -58,6 +58,7 @@ __all__ = [
     "Finding",
     "Hypothesis",
     "Measurement",
+    "OrchestrationError",
     "RecommendedNextAction",
     "ResearchObjective",
     "ResearchState",
@@ -223,6 +224,29 @@ class ScientificEvent(BaseModel):
     timestamp: str | None = None
 
 
+class OrchestrationError(BaseModel):
+    """Machine-readable failure classification retained alongside compatibility strings."""
+
+    model_config = _BASE_CONFIG
+
+    error_type: Literal[
+        "cycle_detected",
+        "visit_limit",
+        "route_validation",
+        "unknown_agent",
+        "invalid_agent_output",
+        "state_integrity",
+        "invariant_violation",
+        "backend_unavailable",
+        "agent_execution",
+        "failure_limit",
+        "unknown",
+    ] = "unknown"
+    message: str
+    retryable: bool = False
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
 class ExecutionTraceItem(BaseModel):
     """One traceable agent invocation record."""
 
@@ -236,6 +260,7 @@ class ExecutionTraceItem(BaseModel):
     routing_reason: str = ""
     status: Literal["success", "failure", "skipped"] = "success"
     error: str | None = None
+    error_info: OrchestrationError | None = None
     timestamp: str | None = None
 
 
@@ -273,9 +298,11 @@ class ResearchState(BaseModel):
     scientific_history: list[ScientificEvent] = Field(default_factory=list)
     tested_candidate_ids: list[str] = Field(default_factory=list)
     settled_candidate_ids: list[str] = Field(default_factory=list)
-    # Temporary bridge to the real Knowledge Agent's append-only state. Task B will replace the
-    # parallel orchestration state rather than carrying both representations.
+    # The real Knowledge Agent's shared state is the durable scientific projection. The list-based
+    # fields remain the workflow view for compatibility while this bridge is incrementally filled.
     knowledge_state: dict[str, Any] | None = None
+    resume_agent: str | None = None
+    resume_route: dict[str, Any] | None = None
 
     @property
     def all_results(self) -> list[ExperimentResult]:
@@ -313,7 +340,10 @@ class DiscoveryResult(BaseModel):
     final_state: dict[str, Any]
     execution_trace: list[dict[str, Any]]
     iterations_completed: int
+    # ``errors`` stays as human-readable compatibility text; ``error_details`` is authoritative
+    # for machine consumers and avoids forcing downstream clients to parse prose.
     errors: list[str] = Field(default_factory=list)
+    error_details: list[OrchestrationError] = Field(default_factory=list)
     summary: dict[str, Any] = Field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

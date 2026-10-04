@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from bacteriocin_lab.shared import ResearchState as KnowledgeResearchState
+
 from .types import (
     Candidate,
     Evidence,
@@ -305,6 +307,14 @@ def check_state_integrity(state: ResearchState) -> list[str]:
         first = str(exc).strip().splitlines()
         problems.append(f"state failed schema re-validation: {first[0] if first else exc}")
         return problems  # references are meaningless if the records themselves are invalid
+
+    if state.knowledge_state is not None:
+        try:
+            knowledge = KnowledgeResearchState.model_validate(state.knowledge_state)
+            if knowledge.event_count < 0:
+                problems.append("knowledge state has a negative event_count")
+        except Exception as exc:
+            problems.append(f"knowledge state failed schema validation: {exc}")
 
     def dupes(label: str, ids: list[str]) -> None:
         seen: set[str] = set()

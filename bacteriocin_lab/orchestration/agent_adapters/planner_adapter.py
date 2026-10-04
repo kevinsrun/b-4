@@ -43,6 +43,15 @@ class PlannerAgentAdapter:
             {
                 "hypothesis_id": h.hypothesis_id,
                 "statement": h.statement,
+                "template": h.expected_relationship.get("template")
+                if h.expected_relationship
+                else None,
+                "predicted_direction": h.predicted_direction,
+                "predicted_inhibition_fraction": h.predicted_inhibition_fraction,
+                "key_conditions": dict(h.key_conditions),
+                "tolerance": h.tolerance,
+                "discriminating_feature": h.discriminating_feature,
+                "favourable_range": h.favourable_range,
                 "prior_plausibility": h.prior_plausibility,
                 "status": h.status,
             }

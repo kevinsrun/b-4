@@ -108,6 +108,17 @@ def build_hyps(raw: List[Dict[str, Any]], warnings: List[str]) -> List[Hyp]:
     hyps = []
     for h in raw:
         t = h.get("template")
+        # Candidate generation historically emitted structured conditions without a planner
+        # template. Recover the smallest executable model deterministically instead of silently
+        # treating those hypotheses as null-like.
+        if not t:
+            conditions = h.get("key_conditions") or {}
+            if conditions.get("ph_range") is not None:
+                t = "ph_window"
+            elif conditions.get("target_cell_density") is not None:
+                t = "inoculum_effect"
+            elif conditions.get("mechanism_probe") is not None:
+                t = "receptor_specificity"
         known = t in FACTOR_MODELS or t in ABSOLUTE_MODELS
         if not known:
             warnings.append(f"Hypothesis {h['hypothesis_id']} has no prediction model (template={t!r}); "

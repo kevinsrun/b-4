@@ -253,21 +253,22 @@ class ModelTests(unittest.TestCase):
 
 class IntegrationWithCandidateAgentTest(unittest.TestCase):
     def test_consumes_candidate_agent_output(self):
-        try:
-            import candidate_agent
-        except ImportError:
-            self.skipTest('candidate_agent (separate package) not importable')
-        gen = candidate_agent.run_agent({"target": {"organism": "Listeria monocytogenes", "strain": "ATCC 19115"},
-                                         "desired_behavior": {"ph_range": [6.0, 7.5], "target_cell_density": 1e8,
-                                                              "temperature_c": 37},
-                                         "constraints": {"max_candidates": 4}})
+        from bacteriocin_lab.agents.candidate import generate_candidates
+
+        gen = generate_candidates({"target": {"organism": "Listeria monocytogenes", "strain": "ATCC 19115"},
+                                   "desired_behavior": {"ph_range": [6.0, 7.5], "target_cell_density": 1e8,
+                                                        "temperature_c": 37},
+                                   "constraints": {"max_candidates": 4}})
+        generated = gen["decision"]
         out = run_agent({"research_objective": {"target": {"species": "Listeria monocytogenes", "strain": "ATCC 19115"},
                                                 "desired_behavior": {"ph_range": [6.0, 7.5], "target_cell_density": 1e8}},
-                         "candidates": gen["candidates"], "hypotheses": gen["hypotheses"],
+                        "candidates": generated["candidates"], "hypotheses": [
+                            h for c in generated["candidates"] for h in c.get("hypotheses", [])
+                        ],
                          "previous_experiments": [], "budget": {"remaining_experiments": 20}})
         self.assertEqual(out["decision"]["status"], "propose_experiment")
-        self.assertIn(out["candidate_id"], [c["candidate_id"] for c in gen["candidates"]])
-        self.assertIn(out["hypothesis_id"], [h["hypothesis_id"] for h in gen["hypotheses"]] + [M.NULL_ID])
+        self.assertIn(out["candidate_id"], [c["candidate_id"] for c in generated["candidates"]])
+        self.assertIn(out["hypothesis_id"], [h["hypothesis_id"] for c in generated["candidates"] for h in c.get("hypotheses", [])] + [M.NULL_ID])
         self.assertFalse(any("no prediction model" in w for w in out["warnings"]))
 
 
