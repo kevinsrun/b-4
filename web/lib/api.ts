@@ -18,6 +18,7 @@ import type {
   RunEvent,
   RunSummary,
   Selftest,
+  TargetDesignResult,
 } from "./types";
 
 export class ApiError extends Error {
@@ -125,6 +126,23 @@ export const api = {
     max_results?: number;
     retrieve?: boolean;
   }) => request<LiteratureResponse>("/api/evidence", { method: "POST", body: JSON.stringify(body) }),
+
+  designTarget: (body: {
+    target_organism: string;
+    target_strain?: string | null;
+    context?: Record<string, unknown> | null;
+    desired_properties?: Record<string, unknown> | null;
+    max_known_candidates?: number;
+    max_natural_variants?: number;
+    max_designed_candidates?: number;
+    seed?: number | null;
+    known_threshold?: number;
+    natural_threshold?: number;
+  }) =>
+    request<TargetDesignResult>("/api/design/target", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   experiment: (body: { spec: Record<string, unknown>; candidate_registry?: Record<string, unknown> }) =>
     request<ExperimentResult>("/api/simulator/experiment", {

@@ -442,3 +442,148 @@ export interface CandidateEnvelope {
   warnings: string[];
   model_version?: string;
 }
+
+/* --- target-driven design -------------------------------------------------
+ *
+ * The designer escalates through three tiers and each tier carries a different
+ * kind of claim, so they are typed separately rather than flattened into one
+ * candidate shape. A known bacteriocin's sequence is literature-derived, a
+ * natural variant's is observed in a sequence database, and a designed one was
+ * generated — it is a proposal and nothing more. Every predicted number on all
+ * three, however, comes from the simulator.
+ */
+
+export type DesignTier = "known" | "natural_variant" | "computational_design";
+
+/** Predictions the simulator attaches to a candidate. Never observations. */
+export interface DesignSimulationMetrics {
+  predicted_inhibition?: number | null;
+  predicted_log10_reduction?: number | null;
+  predicted_mic_um?: number | null;
+  confidence?: number | null;
+}
+
+export interface DesignScoreComponents {
+  predicted_activity?: number;
+  target_match?: number;
+  environmental_robustness?: number;
+  evidence_quality?: number;
+  natural_support?: number;
+  novelty_value?: number;
+  uncertainty_penalty?: number;
+  unsupported_design_penalty?: number;
+  [key: string]: number | undefined;
+}
+
+export interface KnownDesignCandidate {
+  candidate_id: string;
+  name: string;
+  sequence: string;
+  bacteriocin_class?: string | null;
+  tier: "known";
+  score: number;
+  components: DesignScoreComponents;
+  provenance: string;
+  experimentally_validated: boolean;
+  evidence_count?: number | null;
+  known_targets?: string[];
+  simulation_metrics?: DesignSimulationMetrics;
+}
+
+export interface NaturalVariantCandidate {
+  candidate_id: string;
+  parent_candidate_id: string;
+  name: string;
+  sequence: string;
+  source?: string;
+  mutation?: string;
+  protein_position?: number;
+  reference_aa?: string;
+  alternate_aa?: string;
+  /** Accessions in which this residue is actually observed. */
+  observed_accessions?: string[];
+  tier: "natural_variant";
+  score: number;
+  components: DesignScoreComponents;
+  provenance: string;
+  experimentally_validated: boolean;
+  simulation_metrics?: DesignSimulationMetrics;
+}
+
+export interface DesignMutation {
+  position: number;
+  reference: string;
+  alternate: string;
+  origin: "natural_homolog" | "conservative_substitution" | "model_ranked_substitution" | string;
+  supporting_accessions?: string[];
+  rationale?: string | null;
+}
+
+export interface DesignedCandidate {
+  candidate_id: string;
+  parent_candidate_id: string;
+  sequence: string;
+  mutations: DesignMutation[];
+  design_class?: string;
+  rationale?: {
+    status?: string;
+    evidence_ids?: string[];
+    natural_variant_support?: string[];
+    expected_properties?: string[];
+  };
+  /** The schema pins these two; a design can never claim to be measured. */
+  provenance: "model-predicted";
+  experimentally_validated: false;
+  uncertainty?: { confidence?: number | null; components?: string[] };
+  score: number;
+  components: DesignScoreComponents;
+  generation?: number;
+  critic_verdict?: string;
+  critic_notes?: string[];
+  simulation_metrics?: DesignSimulationMetrics;
+}
+
+export interface DesignRecommendation {
+  tier: DesignTier;
+  name: string;
+  score: number;
+  predicted_inhibition: number;
+  confidence: string;
+  evidence_count?: number | null;
+  experimentally_validated: boolean;
+  candidate_id?: string | null;
+  mutations: string[];
+}
+
+export interface TargetDesignResult {
+  target: { organism: string; strain?: string | null; gram?: string | null };
+  known_candidates: KnownDesignCandidate[];
+  natural_variant_candidates: NaturalVariantCandidate[];
+  designed_candidates: DesignedCandidate[];
+  best_current_candidate?: (KnownDesignCandidate | NaturalVariantCandidate) | null;
+  evidence_summary: {
+    literature_candidates_screened?: number;
+    natural_variants_identified?: number;
+    computational_designs_generated?: number;
+    [key: string]: unknown;
+  };
+  uncertainties: string[];
+  recommended_next_experiment: {
+    experiment_type?: string;
+    candidate_id?: string;
+    purpose?: string;
+    suggested_concentrations_um?: number[];
+    recommended_assay?: string;
+    [key: string]: unknown;
+  };
+  limitations: string[];
+  provenance: Record<string, unknown>;
+  recommendations: DesignRecommendation[];
+  /** Explicitly non-operational: no wet-lab or engineering instructions. */
+  future_production_concept: {
+    status?: string;
+    candidate_peptide?: string;
+    producer_compatibility?: string;
+    notes?: string[];
+  };
+}
