@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 import { Nav } from "@/components/nav";
-import { StatusRail } from "@/components/status-rail";
 
 import "./globals.css";
 
@@ -35,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Nav />
-        <StatusRail />
         <main id="main">{children}</main>
         <footer className="mt-24 border-t border-line">
           <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-4 py-8 text-[12px] leading-relaxed text-faint sm:px-6">
@@ -46,9 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               an experimental result. Nothing shown here has been measured at a
               bench.
             </p>
-            <p className="num text-[11px] text-faint">
-              Orchestrated by Omnigent. The scientific system is the Python
-              package in this repository; this interface only reads it.
+            <p className="text-[11px] text-faint">
+              Computational predictions are presented with their uncertainty and require
+              experimental validation.
             </p>
           </div>
         </footer>

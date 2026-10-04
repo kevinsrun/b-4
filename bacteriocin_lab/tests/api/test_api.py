@@ -11,6 +11,7 @@ so it is covered by the evidence agent's tests with a stub transport.
 
 from __future__ import annotations
 
+import re
 import time
 
 import pytest
@@ -191,6 +192,56 @@ class TestRuns:
 
     def test_unknown_run_is_404(self, client: TestClient) -> None:
         assert client.get("/api/runs/nope").status_code == 404
+
+
+class TestPublicDiscovery:
+    def test_one_public_call_runs_the_complete_workflow_and_hides_internal_state(
+        self, client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # The public endpoint is intentionally synchronous and small, but the
+        # scientific work beneath it must still be the real seven-agent loop.
+        import bacteriocin_lab.api.app as api_app
+
+        original = api_app.run_discovery
+        seen_agents: list[str] = []
+
+        def observed_run_discovery(*args, **kwargs):
+            result = original(*args, **kwargs)
+            seen_agents.extend(step["agent"] for step in result.execution_trace)
+            return result
+
+        monkeypatch.setattr(api_app, "run_discovery", observed_run_discovery)
+        response = client.post(
+            "/api/discover",
+            json={
+                "prompt": (
+                    "Find the most promising bacteriocin for suppressing high-density "
+                    "Listeria monocytogenes."
+                )
+            },
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert {
+            "evidence",
+            "candidate",
+            "planner",
+            "simulation",
+            "analysis",
+            "critic",
+            "knowledge",
+        } <= set(seen_agents)
+        assert body["recommendation"]["name"]
+        assert body["predicted_effect"]["evidence_label"] == "Computational simulation"
+        assert body["next_experiment"]["summary"]
+        assert "changed pH" in body["adaptive_experiment"]["explanation"]
+
+        rendered = str(body)
+        assert not re.search(r"\b(?:run|cand|hyp|exp|res|find|rev|ev)[_-][0-9a-f]{6,}\b", rendered)
+        assert "simulation-derived" not in rendered
+        assert "trace_id" not in rendered
+        assert "None" not in rendered
 
 
 class TestKnowledge:
