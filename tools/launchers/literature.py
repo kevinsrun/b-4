@@ -14,13 +14,14 @@ import sys
 from pathlib import Path
 from typing import Annotated, Any
 
-_SRC = Path(__file__).resolve().parents[2] / "packages" / "b4_literature" / "src"
-if _SRC.is_dir() and str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
+_REPO = Path(__file__).resolve().parents[2]
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
 
-from b4_literature.agent import LiteratureEvidenceAgent  # noqa: E402
-from b4_literature.models import SourceDocument  # noqa: E402
 from pydantic import Field, ValidationError  # noqa: E402
+
+from bacteriocin_lab.agents.evidence.agent import LiteratureEvidenceAgent  # noqa: E402
+from bacteriocin_lab.agents.evidence.models import SourceDocument  # noqa: E402
 
 logging.basicConfig(
     level=os.environ.get("BACTERIOCIN_LOG_LEVEL", "WARNING"),

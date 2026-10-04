@@ -25,7 +25,7 @@ behind ``include_full_envelope``.
 
 Run standalone for a smoke test::
 
-    PYTHONPATH=src python3 integrations/omnigent/mcp_server.py --selftest
+    python3 tools/launchers/candidates.py --selftest
 """
 
 from __future__ import annotations
@@ -40,18 +40,13 @@ from typing import Annotated, Any, Literal
 
 # The bundle may be launched from anywhere, so locate the package relative to
 # this file rather than relying on the caller's cwd.
-_SRC = (
-    Path(__file__).resolve().parent.parent.parent
-    / "packages"
-    / "bacteriocin_discovery"
-    / "src"
-)
-if _SRC.is_dir() and str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
+_REPO = Path(__file__).resolve().parent.parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
 
 from pydantic import Field  # noqa: E402
 
-from bacteriocin_discovery.candidate_agent import (  # noqa: E402
+from bacteriocin_lab.agents.candidate import (  # noqa: E402
     AGENT_NAME,
     MODEL_VERSION,
     CandidateGenerationAgent,

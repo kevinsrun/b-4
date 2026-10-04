@@ -3,7 +3,7 @@
 Written for: the Omnigent orchestration owner and the other specialist-agent implementers.
 
 The shared contract was implemented as given, in
-[`contract.py`](../packages/bacteriocin_discovery/src/bacteriocin_discovery/contract.py).
+[`contract.py`](../bacteriocin_lab/shared/contract.py).
 Nothing below has been changed unilaterally. Each item is a request, with the
 workaround currently in place so the module runs without it.
 

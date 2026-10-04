@@ -19,7 +19,7 @@ Where the state lives: ``state_dir`` if given, else ``BACTERIOCIN_STATE_DIR``, e
 
 Run standalone for a smoke test::
 
-    PYTHONPATH=packages/knowledge_agent/src:shared:packages/bacteriocin_discovery/src \\
+    PYTHONPATH=. \\
         python3 tools/launchers/knowledge.py --selftest
 """
 
@@ -35,17 +35,13 @@ from pathlib import Path
 from typing import Annotated, Any
 
 REPO = Path(__file__).resolve().parent.parent.parent
-# The launcher may be started from anywhere, so locate the packages relative to this file.
-for _p in (
-    REPO / "packages" / "knowledge_agent" / "src",
-    REPO / "shared",
-    REPO / "packages" / "bacteriocin_discovery" / "src",
-):
-    if _p.is_dir() and str(_p) not in sys.path:
-        sys.path.insert(0, str(_p))
+# The launcher may be started from anywhere, so locate the package relative to this file.
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 
-from knowledge_agent import AGENT_NAME, MODEL_VERSION, KnowledgeAgent  # noqa: E402
 from pydantic import Field  # noqa: E402
+
+from bacteriocin_lab.agents.knowledge import AGENT_NAME, MODEL_VERSION, KnowledgeAgent  # noqa: E402
 
 # stdio is the MCP channel, so logs must never go to stdout.
 logging.basicConfig(

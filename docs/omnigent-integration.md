@@ -11,7 +11,7 @@ another agent. You own the loop; it answers one question.
 ## 1. Registering the tool
 
 ```python
-from bacteriocin_discovery.candidate_agent import generate_candidates
+from bacteriocin_lab.agents.candidate import generate_candidates
 
 # JSON in, JSON out. Never raises on bad input.
 omnigent.register_tool(
@@ -28,7 +28,7 @@ To inject a production knowledge source, bind it once:
 
 ```python
 from functools import partial
-from bacteriocin_discovery.candidate_agent import CandidateGenerationAgent
+from bacteriocin_lab.agents.candidate import CandidateGenerationAgent
 
 agent = CandidateGenerationAgent(knowledge_source=BactibaseSource(...))
 omnigent.register_tool(name="generate_candidates", fn=agent.run_envelope)
@@ -185,7 +185,7 @@ candidate is `validation_status: "unvalidated"`, and every
 Guard on it rather than trusting convention:
 
 ```python
-from bacteriocin_discovery.contract import Evidence
+from bacteriocin_lab.shared.contract import Evidence
 
 for item in (Evidence.model_validate(e) for e in response["evidence"]):
     assert not item.is_experimentally_validated

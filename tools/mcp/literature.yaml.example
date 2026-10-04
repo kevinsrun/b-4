@@ -15,7 +15,7 @@ args:
   - "/absolute/path/to/repo/tools/launchers/literature.py"
 
 env:
-  PYTHONPATH: "/absolute/path/to/repo/packages/b4_literature/src"
+  PYTHONPATH: "/absolute/path/to/repo"
   BACTERIOCIN_LOG_LEVEL: "WARNING"
 
 tools:

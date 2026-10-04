@@ -2,7 +2,7 @@
 """Launcher Omnigent spawns for the scientific critic.
 
 The server itself lives in the package, where it is importable and covered by
-``packages/critic_agent/tests``. This file only makes the checkout importable
+``bacteriocin_lab/tests/critic``. This file only makes the checkout importable
 and hands off, so the thing Omnigent runs is the thing the tests exercise.
 
 Generate the declaration that points here with::
@@ -20,14 +20,10 @@ from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[2]
-for path in (
-    REPO / "packages" / "critic_agent" / "src",
-    REPO / "packages" / "bacteriocin_discovery" / "src",
-):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 
-from critic_agent import (  # noqa: E402
+from bacteriocin_lab.agents.critic import (  # noqa: E402
     AGENT_NAME,
     CriticRequest,
     CriticReview,

@@ -105,15 +105,11 @@ class Server:
         )
 
 
-SHARED = REPO / "shared"
-
 SERVERS = [
     Server(
         name="critic",
         launcher="critic.py",
-        # The launcher puts bacteriocin_discovery (which owns the shared
-        # contract) on sys.path itself, so one entry here is enough.
-        pythonpath=REPO / "packages" / "critic_agent" / "src",
+        pythonpath=REPO,
         description=(
             "Scientific critic / safety agent. Reviews claims BEFORE the loop accepts\n"
             "  them: checks that conclusions follow from results, that simulated evidence\n"
@@ -128,7 +124,7 @@ SERVERS = [
     Server(
         name="literature",
         launcher="literature.py",
-        pythonpath=REPO / "packages" / "b4_literature" / "src",
+        pythonpath=REPO,
         description=(
             "Literature & Evidence Agent. Retrieves bounded literature metadata and\n"
             "  abstracts, then conservatively extracts experimental conditions,\n"
@@ -143,7 +139,7 @@ SERVERS = [
     Server(
         name="candidates",
         launcher="candidates.py",
-        pythonpath=REPO / "packages" / "bacteriocin_discovery" / "src",
+        pythonpath=REPO,
         description=(
             "Candidate Generation & Design Agent. Proposes ranked candidates and\n"
             "  falsifiable hypotheses. Proposals only -- never experimental evidence."
@@ -156,7 +152,7 @@ SERVERS = [
     Server(
         name="runner",
         launcher="runner.py",
-        pythonpath=REPO / "packages" / "bacteriocin_sim",
+        pythonpath=REPO,
         description=(
             "Computational simulation experiment backend. Predicts a continuous,\n"
             "  uncertainty-quantified antimicrobial response and reports which\n"
@@ -178,12 +174,7 @@ SERVERS = [
     Server(
         name="knowledge",
         launcher="knowledge.py",
-        pythonpath=(
-            REPO / "packages" / "knowledge_agent" / "src",
-            SHARED,
-            # The response envelope and ID helpers come from the existing shared contract.
-            REPO / "packages" / "bacteriocin_discovery" / "src",
-        ),
+        pythonpath=REPO,
         description=(
             "Knowledge / Research-State Agent. The persistent, append-only,\n"
             "  reconstructable scientific state: candidate and hypothesis registries\n"
@@ -259,7 +250,7 @@ def find_python(explicit: str | None) -> Path:
     raise SystemExit(
         "error: no interpreter found that can import mcp and pydantic.\n"
         f"tried:\n{tried}\n"
-        '  fix: uv pip install -e "packages/bacteriocin_sim[mcp]"  (then re-run)\n'
+        '  fix: uv pip install -e ".[mcp]"  (then re-run)\n'
         "  or:  --python /path/to/an/interpreter"
     )
 
