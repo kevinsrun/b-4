@@ -1,248 +1,148 @@
-# Bacteriocin discovery lab
+# BactroGen Research
 
-An autonomous bacteriocin-discovery loop, built as one Omnigent orchestrator
-over a set of specialist modules. Bacteriocins are antimicrobial peptides
-produced by bacteria (nisin, pediocin and relatives), studied as food
-preservatives and as antibiotic alternatives.
+**Autonomous AI for bacteriocin discovery, computational evaluation, and adaptive scientific experimentation.**
 
+BactroGen Research turns a biological target and a scientific question into a bounded, provenance-aware research loop. It connects literature and database evidence to candidate generation, in-silico experiments, critique, and the next most informative experiment.
+
+> **Hackathon status:** the local deterministic demo and the seven-agent Omnigent/MCP workflow are validated. A hosted judge URL is added here when the deployment handoff is complete.
+
+## Try it
+
+**Live app:** deployment URL pending final production handoff<br>
+**Local demo:** `http://127.0.0.1:3000/research`
+
+```text
+Find the most promising bacteriocin for suppressing high-density Listeria monocytogenes.
 ```
-evidence → hypotheses → candidate selection → experiment planning
-   ↑                                                      ↓
-   └──── state update ←── analysis ←── simulation ←────────┘
+
+The judge should see evidence retrieval, candidate ranking, a computational experiment, scientific critique, an adaptive next experiment, and one synthesized recommendation. Discover remains a one-prompt experience; the Advanced route exposes the research console when deeper inspection is useful.
+
+## Why this matters
+
+Antimicrobial resistance increases the need for targeted antimicrobial strategies. Bacteriocins are antimicrobial peptides produced by bacteria, but choosing the right peptide for the right target and condition is fragmented across papers, sequence databases, and modeling tools. BactroGen makes that investigation one auditable workflow. It does not claim clinical readiness or replace experimental validation.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User Prompt] --> O[Omnigent Orchestrator]
+    O --> E[Evidence Retrieval]
+    E --> C[Candidate Generation]
+    C --> P[Experiment Planner]
+    P --> S[Simulator]
+    S --> A[Result Analysis]
+    A --> R[Scientific Critic]
+    R --> K[Knowledge / Research State]
+    K --> P
 ```
 
-## Run it
+Externally this is one seamless scientific assistant. Internally it is seven specialist agents exchanging structured outputs through MCP tools and the shared research contract:
+
+1. **Evidence Retrieval** — retrieves and structures literature/database evidence with citations and missing fields.
+2. **Candidate Generation** — ranks bacteriocin proposals and records falsifiable hypotheses.
+3. **Experiment Planning** — chooses a bounded, information-seeking computational experiment.
+4. **Simulation** — predicts response under explicit conditions; it never produces wet-lab evidence.
+5. **Result Analysis** — compares results with hypotheses and prior iterations.
+6. **Scientific Critic** — checks support, calibration, uncertainty, and prohibited claims.
+7. **Knowledge / Research State** — preserves append-only history, transitions, open questions, and integrity checks.
+
+## Quickstart
+
+Requirements: Python 3.11+ and [`uv`](https://docs.astral.sh/uv/). Node.js is required for the optional web UI.
 
 ```bash
-pip install -e ".[dev,mcp]"      # or: uv sync --all-extras   (one package, editable)
-pytest                           # whole suite, including the end-to-end integration tests
-python -m bacteriocin_lab        # the deterministic end-to-end demo (fixture agents, offline)
+git clone https://github.com/kevinsrun/b-4.git
+cd b-4
+uv sync --all-extras
+./scripts/run_demo.sh
 ```
+
+Open `http://127.0.0.1:3000/research`. The launcher starts the API on port 8000 and the Next.js UI on port 3000 in deterministic local mode. Stop both services with Ctrl-C.
+
+For the package-only deterministic loop:
 
 ```bash
-uv sync                  # one package, editable
-python3 install.py       # generate the MCP declarations (machine-specific paths)
-python3 scripts/run_omnigent.py  # run the single Omnigent orchestrator
+uv run python -m bacteriocin_lab
 ```
+
+To generate machine-specific Omnigent MCP declarations and run the orchestrator:
 
 ```bash
-pytest                                                         # all tests
-python3 bacteriocin_lab/tests/tools/test_literature_protocol.py  # 14 protocol checks
-python3 bacteriocin_lab/tests/tools/test_runner_protocol.py      # 17 protocol checks
-python3 bacteriocin_lab/tests/tools/test_candidates_protocol.py  # 23 protocol checks
+uv run python install.py
+uv run python scripts/run_omnigent.py
 ```
 
-<<<<<<< Updated upstream
-## How the agents in `bacteriocin_lab/agents/` reach Omnigent
+Live NCBI/BLAST paths are opt-in. Configure only the variables described in [`.env.example`](.env.example); never commit a credential. Local BLAST+ is preferred when a database and `blastp` are configured, while remote NCBI requests are bounded and may time out.
 
-`config.yaml` does not import Python. Omnigent sees two different kinds of thing:
+## Technical stack
 
-- **MCP tools** (the Python agents). Each is declared in `tools/mcp/<name>.yaml`, which Omnigent
-  discovers on its own; `config.yaml` does not list them. Those files hold machine-specific absolute
-  paths, so they are **generated, not committed**: until you run `python3 install.py` Omnigent sees
-  none of them. `install.py` writes one per server:
+- Python package with Pydantic schemas and deterministic orchestration
+- Omnigent orchestration with MCP tool servers
+- FastAPI/uvicorn HTTP layer for the web UI
+- Next.js/React frontend in `web/`
+- Literature, PubMed/NCBI, protein retrieval, and optional BLAST/local sequence-search adapters
+- pytest for behavioral and protocol tests
 
-  | server | package agent | tools the model gets |
-  |---|---|---|
-  | `literature` | `agents.evidence` | `literature_evidence` |
-  | `candidates` | `agents.candidate` | `generate_candidates`, `describe_agent` |
-  | `experiment_planner` | `agents.planner` | `plan_experiment`, `describe`, `get_schema` |
-  | `runner` | `agents.simulator` | `run_experiment(s)`, `run_agent`, `capabilities`, `selftest`, ... |
-  | `result_analysis` | `agents.analysis` | `analyze`, `describe`, `get_schema` |
-  | `critic` | `agents.critic` | `review_claims`, `run_agent`, `describe`, `get_schema` |
-  | `knowledge` | `agents.knowledge` | state registration, history and integrity tools |
+## Scientific rigor and provenance
 
-- **Sub-agents** (`config.yaml` -> `tools.agents`): prompt-only LLM agents under `agents/`
-  (`planner`, `insight`, `analysis`). They share names with the Python agents but are not them.
+The system keeps these evidence categories separate:
+
+- **Published evidence** — measurements and author interpretations extracted from literature.
+- **Database evidence** — records, accessions, and sequence-homology context.
+- **Computational simulation** — in-silico predictions under explicit conditions.
+- **Model prediction** — candidate rankings, hypotheses, and narrative interpretation.
+- **Experimental evidence** — only present when real wet-lab measurements are supplied.
+
+Simulation is not wet-lab validation. Literature evidence is not confirmation for a particular candidate and context. BLAST similarity is not proof of antimicrobial efficacy, and no BLAST hit is not proof of novelty. Designed variants are computational hypotheses requiring experimental validation.
+
+## Validated system status
+
+The current main branch has been validated with:
+
+- **822 passed, 5 skipped** in the full deterministic suite (827 collected)
+- build: **PASS**
+- deterministic two-iteration adaptive loop: **PASS**
+- seven real specialist agents: **confirmed**
+- state-integrity verification: **PASS**
+- bounded live NCBI smoke: **PASS**
+- external Omnigent/MCP harness: all seven tools visible
+- remote BLAST: handled safely as an external-service timeout when the bounded queue exceeds its limit
+
+These results demonstrate a reproducible research workflow, not biological efficacy.
+
+## Repository map
+
+```text
+bacteriocin_lab/
+  shared/          schemas, provenance, IDs, configuration
+  agents/          evidence, candidates, planner, simulator, analysis, critic, knowledge
+  orchestration/   adaptive workflow, routing, Omnigent adapters
+  adapters/        simulation and external-operation boundaries
+  api/             FastAPI HTTP layer for the web UI
+  evaluation/      demo scenarios and benchmark inputs
+  tests/           unit, integration, API, and MCP protocol tests
+agents/            Omnigent prompt/sub-agent declarations
+tools/             MCP launchers and generated declaration examples
+web/               Next.js/React Discover and Advanced console
+scripts/           demo, Omnigent, and maintenance launchers
+docs/              contracts and integration notes
+```
+
+## Limitations
+
+- Computational predictions require experimental validation.
+- The simulator is not a substitute for wet-lab experiments.
+- Remote BLAST queue latency is unpredictable; local BLAST+ is preferred.
+- NCBI and Omnigent live integrations depend on operator credentials and network availability.
+- Designed variants are hypotheses, not validated therapies.
+- The public demo uses bounded deterministic fixtures unless live retrieval is explicitly enabled.
+
+## Development checks
 
 ```bash
-pip install -e ".[mcp]"   # the servers need the MCP SDK
-python3 install.py        # generate tools/mcp/*.yaml  (re-run after moving the repo)
-python3 install.py --check
-omnigent run .
+uv run pytest -q
+uv run ruff check .
+(cd web && npm ci && npm run typecheck && npm run build)
 ```
 
-=======
-### BACTERION — the web interface
-
-Two processes: the HTTP layer over this package, and the front end that reads
-it. Both are optional; the loop runs without either.
-
-```bash
-uv sync --extra web          # fastapi + uvicorn
-uv run bacterion-api         # http://127.0.0.1:8000
-
-cd web && npm install
-npm run dev                  # http://localhost:3000
-```
-
-`web/` proxies `/api/*` to the Python server, so the browser talks to one
-origin; point it elsewhere with `BACTERION_API_URL`. The front end holds no
-scientific data of its own — candidates, sequences, predictions and state all
-come from the agents over HTTP — and it labels every figure it shows with the
-kind of claim it is.
-
->>>>>>> Stashed changes
-## Layout
-
-```
-config.yaml              THE orchestrator — the one bundle Omnigent runs
-AGENTS.md                its prompt
-agents/                  Omnigent reasoning steps (prompts only), auto-discovered as sub-agents
-  planner/               hypotheses → concrete ExperimentSpecs
-  insight/               evidence → falsifiable hypotheses
-  analysis/              results → what was actually learned
-tools/
-  mcp/                   MCP declarations (GENERATED by install.py, gitignored)
-  launchers/             the scripts Omnigent spawns
-bacteriocin_lab/         the Python package (one install)
-  shared/                schemas, contract, enums, ids, config — imports no agent
-  agents/                evidence, candidate, planner, simulator, analysis, knowledge, critic
-  adapters/              experiment backends: simulation, wet-lab stub
-  orchestration/         workflow, routing, Omnigent adapter, agent adapters, fakes
-  evaluation/            demo scenarios and example inputs
-  api/                   HTTP layer for the web UI — forwards, never decides
-  tests/                 one folder per area, plus tools/ for MCP protocol tests
-web/                     BACTERION front end (Next.js); reads the API, owns no science
-scripts/                 run_omnigent.py and maintenance scripts
-install.py               generates every MCP declaration
-docs/                    contract notes and integration reference
-```
-
-## Two kinds of specialist, and the difference matters
-
-**Deterministic backends are MCP tools.** Same input, same output, no model
-call. `bacteriocin_sim` is a pure function (`run_experiment(spec) -> result`);
-the candidate generator is a pure function of its request plus an injected
-knowledge source. Giving either an LLM loop would cost a model call and
-destroy the reproducibility they are built to guarantee.
-
-**Reasoning steps are sub-agents.** `planner`, `insight` and `analysis`
-genuinely decide things, so they are Omnigent sub-agents under `agents/`,
-discovered automatically and listed in `config.yaml`'s `tools.agents`.
-
-| specialist | kind | produces |
-|---|---|---|
-| `literature` | MCP tool | structured literature-derived evidence with provenance |
-| `candidates` | MCP tool | ranked candidates + falsifiable hypotheses — **proposals only** |
-| `runner` | MCP tool | continuous, uncertainty-quantified predictions — **simulation-derived only** |
-| `planner` | sub-agent | `ExperimentSpec`s |
-| `insight` | sub-agent | hypotheses worth testing |
-| `analysis` | sub-agent | updated belief, what remains unresolved |
-
-## Why the MCP declarations are generated
-
-Omnigent expands `${VAR}` in an MCP server's `env` block but **not** in
-`command` or `args` — its parser documents those as literals. So a declaration
-cannot reference the interpreter through an environment variable; the paths
-have to be written out, which makes them machine-specific. `install.py`
-resolves them; `tools/mcp/*.yaml` is gitignored and only the `.example`
-placeholders are committed.
-
-```bash
-python3 install.py --check                        # verify present and current
-python3 install.py --python /path/to/python       # pin an interpreter
-python3 install.py --knowledge-path curated.json  # curated data for candidates
-```
-
-Both MCP SDK majors work: Omnigent 0.16 bundles mcp 1.30 (`FastMCP`), a fresh
-install resolves 2.x (`MCPServer`), and both servers detect which is present.
-
-Use `scripts/run_omnigent.py` rather than `omnigent run .`. Omnigent 0.16
-archives every file under the supplied agent directory and rejects the Python
-symlinks in a normal `.venv`. The launcher stages only `config.yaml`,
-`AGENTS.md`, sub-agent declarations, and the generated MCP declarations, then
-forwards any remaining arguments to `omnigent run`. The servers still execute
-from this checkout through the absolute paths generated by `install.py`.
-
-## Provenance discipline
-
-The three backends make different kinds of claim, and the orchestrator must
-never merge them:
-
-- The literature agent produces **literature-derived evidence**. A measured
-  value stays distinct from an author's interpretation, and automated
-  extraction is not independent verification.
-- The candidate agent produces **proposals**. Never evidence of activity.
-- The simulator produces **simulation-derived predictions** — hypotheses to
-  be tested, never observations. Its schema *rejects* `wet-lab-derived`
-  provenance and *rejects* `validated_experimentally=True`.
-
-Neither is validated, confirmed, or demonstrated. The simulator's priors are
-coarse and uncalibrated against any dataset, so a confident-looking number can
-still be wrong by a decade.
-
-## Per-module detail
-
-- [`agents/simulator`](bacteriocin_lab/agents/simulator/README.md) —
-  the forward model: potency, Langmuir availability, coupled ODE kinetics,
-  the uncertainty budget. [`simulator-contract.md`](docs/agents/simulator-contract.md)
-  records conformance and proposed schema extensions.
-- [`agents/candidate`](bacteriocin_lab/agents/candidate/README.md) —
-  candidate scoring, diversity, hypothesis generation.
-- [`agents/evidence`](bacteriocin_lab/agents/evidence/README.md) —
-  bounded retrieval, conservative extraction, provenance, and evidence schemas.
-- [`agents/planner`](bacteriocin_lab/agents/planner/README.md) —
-  deterministic active-learning experiment selection and budget-aware planning.
-- [`docs/`](docs/) — the shared contract and agent-team reference.
-
-## Local BLAST+ Setup
-
-The system includes a low-latency local BLAST+ execution backend with automatic fallback to the remote NCBI BLAST URL API.
-
-### 1. Install NCBI BLAST+
-
-On macOS:
-
-```bash
-brew install blast
-```
-
-On Ubuntu / Debian:
-
-```bash
-sudo apt update && sudo apt install ncbi-blast+
-```
-
-Verify binary installation:
-
-```bash
-blastp -version
-```
-
-### 2. Build a Local Database
-
-Create a local database using `makeblastdb` or the `build_local_blast_db` helper:
-
-```bash
-makeblastdb \
-  -in bacteriocins.fasta \
-  -dbtype prot \
-  -out ./data/blast/bacteriocins
-```
-
-### 3. Configure Environment
-
-In `.env`:
-
-```bash
-BLAST_BACKEND=auto
-BLASTP_EXECUTABLE=blastp
-BLAST_LOCAL_BACTERIOCIN_DB=./data/blast/bacteriocins
-```
-
-When `BLAST_BACKEND=auto`, the system routes similarity queries to local `blastp` if available for the target database, and seamlessly falls back to remote NCBI BLAST otherwise.
-
-## Natural Genomic Variant Discovery
-
-The system includes a dedicated genomic variant discovery pipeline (`bacteriocin_lab/agents/variant`) for identifying natural sequence variations across bacteriocin homologs.
-
-### Capabilities
-
-1. **Homolog Discovery**: Finds sequence homologs using local BLAST+ or remote NCBI BLASTP.
-2. **Multiple Sequence Alignment (MSA)**: Aligns homologous sequences via an extensible backend abstraction (`MafftBackend`, `ClustalOmegaBackend`, `FixtureAlignmentBackend`, `AutoAlignmentBackend`).
-3. **Ungapped Coordinate Anchoring**: Maps substitutions (e.g. `F8Y`), insertions (e.g. `ins5QQ`), and deletions (e.g. `del6_7`) relative to biological ungapped reference coordinates, regardless of alignment gaps.
-4. **CDS & Codon Mapping**: Derives codon-level changes (`missense`, `synonymous`, `stop_gain`) and verifies nucleotide coding sequences against translation; gracefully handles protein-only records without fabricating nucleotide annotations.
-5. **Calibrated Scoring & Hypotheses**: Computes natural frequency (`observed_count / homolog_count`) and conservation scores, producing deterministic variant priority scores and falsifiable functional effect hypotheses.
-6. **Agent Integration & Safeguards**: Directly integrates with `CandidateGenerationAgent` to propose candidate variants (`origin="modified"`, `validation_status="unvalidated"`). Exposes the `discover_candidate_variants` MCP tool to Omnigent with query budgets (`MAX_VARIANT_HOMOLOGS=50`, `MAX_VARIANTS_PER_CANDIDATE=10`). Strictly enforces provenance (`database-derived`)—variants and hypotheses are never claimed as experimentally validated.
-
+The repository intentionally keeps the scientific claim boundary explicit: proposals and predictions are never silently promoted to observations or clinical conclusions.

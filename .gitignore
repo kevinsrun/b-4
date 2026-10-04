@@ -1,6 +1,9 @@
 __pycache__/
 *.DS_Store
 *.py[cod]
+*.log
+*.tmp
+*.cache
 .pytest_cache/
 *.egg-info/
 build/
@@ -8,6 +11,11 @@ dist/
 .venv/
 venv/
 .codex-tmp/
+
+# Local credentials and environment files.
+.env
+.env.*
+!.env.example
 
 # Local Claude Code settings
 .claude/settings.local.json
