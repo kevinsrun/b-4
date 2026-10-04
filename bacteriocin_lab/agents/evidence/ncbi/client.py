@@ -85,14 +85,19 @@ class NcbiClient:
 
     def _build_url_and_params(self, endpoint: str, params: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         full_params = dict(params)
-        if self.config.tool and "tool" not in full_params:
-            full_params["tool"] = self.config.tool
-        if self.config.email and "email" not in full_params:
-            full_params["email"] = self.config.email
-        if self.config.api_key and "api_key" not in full_params:
-            full_params["api_key"] = self.config.api_key
+        absolute_endpoint = endpoint.startswith("http://") or endpoint.startswith("https://")
+        # NCBI_API_KEY is an E-utilities credential, not a BLAST queue credential.  Absolute
+        # endpoints (currently the BLAST URL API) receive only parameters explicitly supplied by
+        # their caller so the key cannot cross that service boundary accidentally.
+        if not absolute_endpoint:
+            if self.config.tool and "tool" not in full_params:
+                full_params["tool"] = self.config.tool
+            if self.config.email and "email" not in full_params:
+                full_params["email"] = self.config.email
+            if self.config.api_key and "api_key" not in full_params:
+                full_params["api_key"] = self.config.api_key
 
-        if endpoint.startswith("http://") or endpoint.startswith("https://"):
+        if absolute_endpoint:
             base = endpoint
             encoded_query = urlencode(full_params)
             sep = "&" if "?" in base else "?"
