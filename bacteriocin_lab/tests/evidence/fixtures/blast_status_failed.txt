@@ -1,0 +1,8 @@
+<!-- QBlastInfoBegin
+    Status = FAILED
+QBlastInfoEnd -->
+<html>
+<body>
+<p>Search failed due to internal server error or invalid query.</p>
+</body>
+</html>

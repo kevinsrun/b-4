@@ -1,0 +1,8 @@
+<!-- QBlastInfoBegin
+    Status = UNKNOWN
+QBlastInfoEnd -->
+<html>
+<body>
+<p>Search RID not found or expired.</p>
+</body>
+</html>

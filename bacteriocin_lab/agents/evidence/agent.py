@@ -392,3 +392,21 @@ class LiteratureEvidenceAgent:
         if not terms:
             terms.append(f'"{subject}" bacteriocin antimicrobial assay')
         return terms[:5]
+
+    def check_sequence_similarity(
+        self,
+        sequence: str,
+        candidate_id: str | None = None,
+        database: str = "nr",
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Perform BLAST sequence similarity search for a candidate sequence."""
+        from .ncbi.blast import blastp
+
+        return blastp(
+            sequence=sequence,
+            candidate_id=candidate_id,
+            database=database,
+            client=self.ncbi_client,
+            **kwargs,
+        )

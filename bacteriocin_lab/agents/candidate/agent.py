@@ -65,12 +65,37 @@ class CandidateGenerationAgent:
     its request and the injected source.
     """
 
-    def __init__(self, knowledge_source: KnowledgeSource | None = None):
+    def __init__(
+        self,
+        knowledge_source: KnowledgeSource | None = None,
+        ncbi_client: Any | None = None,
+    ):
         self._knowledge = knowledge_source if knowledge_source is not None else default_knowledge_source()
+        self._ncbi_client = ncbi_client
 
     # ------------------------------------------------------------------
     # Public entry points
     # ------------------------------------------------------------------
+
+    def check_candidate_similarity(
+        self,
+        candidate_id: str,
+        sequence: str,
+        database: str = "nr",
+        client: Any | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Check sequence similarity and novelty of a candidate using NCBI BLAST."""
+        from bacteriocin_lab.agents.evidence.ncbi import blastp
+
+        c = client or self._ncbi_client
+        return blastp(
+            sequence=sequence,
+            candidate_id=candidate_id,
+            database=database,
+            client=c,
+            **kwargs,
+        )
 
     def run(self, request: CandidateRequest) -> CandidateGenerationResult:
         """Produce ranked candidates for one request."""
