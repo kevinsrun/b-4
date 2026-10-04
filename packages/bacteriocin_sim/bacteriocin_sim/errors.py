@@ -59,3 +59,25 @@ class SimulationError(BacteriocinSimError):
     """The forward model failed numerically."""
 
     code = "simulation_error"
+
+
+class InvariantViolationError(BacteriocinSimError):
+    """Parameter overrides violate directional biophysical invariants."""
+
+    code = "invariant_violation"
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        failed_invariants: list[str] | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        merged_details = dict(details or {})
+        if failed_invariants is not None:
+            merged_details["failed_invariants"] = failed_invariants
+        super().__init__(message, details=merged_details)
+        self.failed_invariants: list[str] = list(
+            failed_invariants or merged_details.get("failed_invariants", [])
+        )
+

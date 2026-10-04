@@ -62,9 +62,28 @@ class SimulationAdapter(ExperimentAdapter):
         *,
         parameter_overrides: dict[str, Any] | None = None,
         candidate_registry: dict[str, CandidateSpec] | None = None,
+        validate_immediately: bool = False,
     ) -> None:
+        self.parameter_overrides = parameter_overrides
         self.store = ParameterStore.from_overrides(parameter_overrides)
         self.candidate_registry = candidate_registry or {}
+        if validate_immediately and parameter_overrides:
+            self._ensure_validated()
+
+    def _ensure_validated(self) -> None:
+        """Validate parameter overrides against directional invariants before producing results."""
+        from ..validation import validate_parameter_configuration
+
+        validate_parameter_configuration(
+            parameter_overrides=self.parameter_overrides,
+            store=self.store,
+            model_version=self.model_version,
+        )
+
+    def run_batch(self, specs: list[ExperimentSpec]) -> list[ExperimentResult]:
+        """Execute several experiments, validating parameter configuration first."""
+        self._ensure_validated()
+        return super().run_batch(specs)
 
     # ------------------------------------------------------------------
     # capability declaration
@@ -133,6 +152,7 @@ class SimulationAdapter(ExperimentAdapter):
 
     def run(self, spec: ExperimentSpec) -> ExperimentResult:
         """Simulate one experiment."""
+        self._ensure_validated()
         self._check_domain(spec)
         ctx = self._build_context(spec)
         _, measurement, trace = self._evaluate(ctx, full=True)

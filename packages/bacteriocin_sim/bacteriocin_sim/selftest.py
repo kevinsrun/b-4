@@ -11,9 +11,14 @@ the pytest suite, so the invariants are checked in CI and in the field.
 
 from __future__ import annotations
 
+import contextvars
 from typing import Any, Callable
 
 from .api import run_experiment
+
+_CURRENT_PARAMETER_OVERRIDES: contextvars.ContextVar[dict[str, Any] | None] = (
+    contextvars.ContextVar("_CURRENT_PARAMETER_OVERRIDES", default=None)
+)
 
 NISIN_A = "ITSISLCTPGCKTGALMGCNMKTATCHCSIHVSK"
 PEDIOCIN_PA1 = "KYYGNGVTCGKHSCSVDWGKATTCIINNGAMAWATGGHQGNHKC"
@@ -48,13 +53,20 @@ def spec(**overrides: Any) -> dict[str, Any]:
 
 
 def inhibition(**overrides: Any) -> float:
-    result = run_experiment(spec(**overrides))
+    result = run_experiment(
+        spec(**overrides),
+        parameter_overrides=_CURRENT_PARAMETER_OVERRIDES.get(),
+    )
     return float(result.measurement.predicted_inhibition_fraction or 0.0)
 
 
 def mic(**overrides: Any) -> float:
-    result = run_experiment(spec(**overrides))
+    result = run_experiment(
+        spec(**overrides),
+        parameter_overrides=_CURRENT_PARAMETER_OVERRIDES.get(),
+    )
     return float(result.measurement.predicted_mic_um or 0.0)
+
 
 
 def _conditions(**kwargs: Any) -> dict[str, Any]:
@@ -220,8 +232,9 @@ def _time() -> tuple[bool, str]:
 
 @check("determinism")
 def _determinism() -> tuple[bool, str]:
-    a = run_experiment(spec()).to_json_dict()
-    b = run_experiment(spec()).to_json_dict()
+    param_ov = _CURRENT_PARAMETER_OVERRIDES.get()
+    a = run_experiment(spec(), parameter_overrides=param_ov).to_json_dict()
+    b = run_experiment(spec(), parameter_overrides=param_ov).to_json_dict()
     a.pop("created_at", None)
     b.pop("created_at", None)
     return a == b, "two identical runs produced identical results (excluding timestamp)"
@@ -273,6 +286,7 @@ def _uncertainty() -> tuple[bool, str]:
     Both axes are load-bearing. A sweep over dose alone at 6 h also passes
     against the broken model. Do not narrow this grid.
     """
+    param_ov = _CURRENT_PARAMETER_OVERRIDES.get()
     violations: list[str] = []
     n_points = 0
     for hours in _UNCERTAINTY_HOURS:
@@ -284,11 +298,12 @@ def _uncertainty() -> tuple[bool, str]:
                         "bacteriocin_concentration": {"value": dose, "unit": "uM"},
                         "incubation_time": hours,
                     }
-                )
+                ),
+                parameter_overrides=param_ov,
             )
             blind_spec = _blind_spec(dose)
             blind_spec["conditions"]["incubation_time"] = hours
-            blind = run_experiment(blind_spec)
+            blind = run_experiment(blind_spec, parameter_overrides=param_ov)
             a = informed.measurement.sigma_logit_inhibition or 0.0
             b = blind.measurement.sigma_logit_inhibition or 0.0
             if b < a:
@@ -310,7 +325,8 @@ def _uncertainty() -> tuple[bool, str]:
 
 @check("never_claims_experimental_validation")
 def _provenance() -> tuple[bool, str]:
-    result = run_experiment(spec())
+    param_ov = _CURRENT_PARAMETER_OVERRIDES.get()
+    result = run_experiment(spec(), parameter_overrides=param_ov)
     ok = (
         result.evidence_type.value == "simulation-derived"
         and result.validated_experimentally is False
@@ -319,7 +335,7 @@ def _provenance() -> tuple[bool, str]:
     return ok, f"evidence_type={result.evidence_type.value}, warnings carry the caveat"
 
 
-def run_selftest() -> dict[str, Any]:
+def run_selftest(parameter_overrides: dict[str, Any] | None = None) -> dict[str, Any]:
     """Run every invariant check and return a JSON-compatible report.
 
     Each check gets a ``status``:
@@ -337,45 +353,50 @@ def run_selftest() -> dict[str, Any]:
         plainly: somebody repaired the model and this entry should be retired
         from :data:`KNOWN_FAILURES`.
     """
-    checks: list[dict[str, Any]] = []
-    for name, fn in CHECKS.items():
-        try:
-            passed, detail = fn()
-        except Exception as exc:  # a crash is a failure
-            passed, detail = False, f"raised {type(exc).__name__}: {exc}"
-        known = KNOWN_FAILURES.get(name)
-        if known is None:
-            status = "pass" if passed else "fail"
-        else:
-            status = "unexpectedly_fixed" if passed else "known_failure"
-        entry: dict[str, Any] = {
-            "check": name,
-            "passed": bool(passed),
-            "status": status,
-            "detail": detail,
-        }
-        if known is not None:
-            entry["known_failure_reason"] = known
-        checks.append(entry)
+    token = _CURRENT_PARAMETER_OVERRIDES.set(parameter_overrides)
+    try:
+        checks: list[dict[str, Any]] = []
+        for name, fn in CHECKS.items():
+            try:
+                passed, detail = fn()
+            except Exception as exc:  # a crash is a failure
+                passed, detail = False, f"raised {type(exc).__name__}: {exc}"
+            known = KNOWN_FAILURES.get(name)
+            if known is None:
+                status = "pass" if passed else "fail"
+            else:
+                status = "unexpectedly_fixed" if passed else "known_failure"
+            entry: dict[str, Any] = {
+                "check": name,
+                "passed": bool(passed),
+                "status": status,
+                "detail": detail,
+            }
+            if known is not None:
+                entry["known_failure_reason"] = known
+            checks.append(entry)
 
-    n_known = sum(1 for c in checks if c["status"] == "known_failure")
-    n_fixed = sum(1 for c in checks if c["status"] == "unexpectedly_fixed")
-    n_failed = sum(1 for c in checks if c["status"] == "fail")
-    report: dict[str, Any] = {
-        "passed": n_failed == 0,
-        "n_checks": len(checks),
-        "n_failed": n_failed,
-        "n_known_failures": n_known,
-        "checks": checks,
-    }
-    if n_known:
-        report["note"] = (
-            f"{n_known} invariant(s) are known to be violated: open defects in the "
-            f"model, not wrong tests. See each check's known_failure_reason."
-        )
-    if n_fixed:
-        report["n_unexpectedly_fixed"] = n_fixed
-        report["note_fixed"] = (
-            f"{n_fixed} known failure(s) now pass -- retire them from KNOWN_FAILURES."
-        )
-    return report
+        n_known = sum(1 for c in checks if c["status"] == "known_failure")
+        n_fixed = sum(1 for c in checks if c["status"] == "unexpectedly_fixed")
+        n_failed = sum(1 for c in checks if c["status"] == "fail")
+        report: dict[str, Any] = {
+            "passed": n_failed == 0,
+            "n_checks": len(checks),
+            "n_failed": n_failed,
+            "n_known_failures": n_known,
+            "checks": checks,
+        }
+        if n_known:
+            report["note"] = (
+                f"{n_known} invariant(s) are known to be violated: open defects in the "
+                f"model, not wrong tests. See each check's known_failure_reason."
+            )
+        if n_fixed:
+            report["n_unexpectedly_fixed"] = n_fixed
+            report["note_fixed"] = (
+                f"{n_fixed} known failure(s) now pass -- retire them from KNOWN_FAILURES."
+            )
+        return report
+    finally:
+        _CURRENT_PARAMETER_OVERRIDES.reset(token)
+

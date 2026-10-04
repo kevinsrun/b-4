@@ -45,11 +45,12 @@ from .adapters import (  # noqa: E402
     SimulationAdapter,
     WetLabAdapter,
 )
-from .agent import SimulationBackendAgent, run_agent  # noqa: E402
+from .agent import SimulationAgent, SimulationBackendAgent, run_agent  # noqa: E402
 from .api import coerce_spec, run_experiment, run_experiments  # noqa: E402
 from .errors import (  # noqa: E402
     BackendUnavailableError,
     BacteriocinSimError,
+    InvariantViolationError,
     SimulationError,
     SpecValidationError,
     UnknownBackendError,
@@ -97,8 +98,10 @@ __all__ = [
     "ExperimentResult",
     "ExperimentSpec",
     "GrowthPhase",
+    "InvariantViolationError",
     "Measurement",
     "SimulationAdapter",
+    "SimulationAgent",
     "SimulationBackendAgent",
     "SimulationError",
     "SpecValidationError",
