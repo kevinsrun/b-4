@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, type ReactNode, useEffect, useState } from "react";
+import Image from "next/image";
 
 import { ApiError, api, type DiscoveryResponse } from "@/lib/api";
 
@@ -71,13 +72,21 @@ export function DiscoveryExperience() {
   return (
     <main className="mx-auto max-w-4xl px-4 pb-20 pt-16 sm:px-6">
       <section className="mx-auto max-w-3xl text-center">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">BACTERION</p>
+        <div className="mx-auto mb-7 aspect-[3.2/1] max-w-[28rem] overflow-hidden rounded-xl border border-cyan/15 bg-black shadow-[0_0_50px_rgba(34,211,238,0.06)]">
+          <Image
+            src="/branding/bactrogen-wordmark.png"
+            alt="BactroGen Research"
+            width={1600}
+            height={893}
+            className="h-full w-full object-cover object-center"
+            priority
+          />
+        </div>
         <h1 className="mt-4 text-4xl font-medium tracking-[-0.035em] text-text sm:text-5xl">
           What bacterium do you want to target?
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
-          Ask one scientific question. BACTERION gathers evidence, evaluates candidates, tests
-          computational predictions, and returns one bounded recommendation.
+          Discover, evaluate, and computationally design bacteriocin candidates with autonomous scientific AI.
         </p>
       </section>
 
@@ -110,7 +119,7 @@ export function DiscoveryExperience() {
             disabled={running}
             className="border border-cyan/60 bg-cyan/12 px-4 py-2 text-[13px] font-medium text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-wait disabled:border-line disabled:bg-transparent disabled:text-faint"
           >
-            {running ? "Discovering…" : "Discover bacteriocin"}
+            {running ? "Discovering…" : "Discover Bacteriocin"}
           </button>
         </div>
       </form>

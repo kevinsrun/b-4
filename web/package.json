@@ -1,8 +1,8 @@
 {
-  "name": "bacterion-web",
+  "name": "bactrogen-research-web",
   "version": "0.1.0",
   "private": true,
-  "description": "BACTERION — web front end for the autonomous bacteriocin-discovery lab.",
+  "description": "BactroGen Research — autonomous AI for bacteriocin discovery and computational antimicrobial design.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

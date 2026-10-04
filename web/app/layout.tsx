@@ -18,9 +18,19 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bacterion — autonomous bacteriocin discovery",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: "BactroGen Research",
   description:
-    "An autonomous lab where specialist agents investigate bacteriocins, run simulated experiments, learn from the results and choose the next experiment.",
+    "Autonomous AI for bacteriocin discovery and computational antimicrobial design.",
+  icons: {
+    icon: "/branding/bactrogen-favicon.png",
+    apple: "/branding/bactrogen-mark.png",
+  },
+  openGraph: {
+    title: "BactroGen Research",
+    description: "Autonomous AI for bacteriocin discovery and computational antimicrobial design.",
+    images: ["/branding/bactrogen-wordmark.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="mt-24 border-t border-line">
           <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-4 py-8 text-[12px] leading-relaxed text-faint sm:px-6">
             <p className="max-w-[72ch]">
-              Bacterion reports three kinds of claim and never merges them:
+              BactroGen Research reports three kinds of claim and never merges them:
               evidence extracted from the literature, candidates proposed for
               testing, and predictions produced by a simulator. None of them is
               an experimental result. Nothing shown here has been measured at a

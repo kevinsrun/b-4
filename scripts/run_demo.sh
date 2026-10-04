@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch the local-only, screen-recording BACTERION demo.
+# Launch the local-only, screen-recording BactroGen Research demo.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,7 +16,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 if curl --silent --fail "$API_URL" >/dev/null || curl --silent --fail "$WEB_URL" >/dev/null; then
-  echo "A BACTERION demo service is already using port 8000 or 3000." >&2
+  echo "A BactroGen Research demo service is already using port 8000 or 3000." >&2
   echo "Stop that demo first, then re-run this command for a clean recording session." >&2
   exit 1
 fi
@@ -35,7 +35,7 @@ WEB_PID=$!
 for _ in $(seq 1 50); do
   if curl --silent --fail "$API_URL" >/dev/null && curl --silent --fail "$WEB_URL" >/dev/null; then
     echo
-    echo "BACTERION demo ready: $WEB_URL"
+    echo "BactroGen Research demo ready: $WEB_URL"
     echo "Local-only deterministic mode: remote BLAST is not used."
     echo "Press Ctrl-C after recording to stop both local services."
     wait
