@@ -97,6 +97,45 @@ class CandidateGenerationAgent:
             **kwargs,
         )
 
+    def verify_candidate_sequences(
+        self,
+        records: list[Any] | None = None,
+        fetch_reference: Any | None = None,
+        blast: Any | None = None,
+        annotate_novelty: bool = False,
+    ) -> dict[str, Any]:
+        """Check stored sequences against their primary database records.
+
+        Deliberately **not** called from :meth:`run`. ``run`` is a pure function
+        of its request and the named knowledge source, and the research state is
+        replayed from an append-only log; a live database lookup inside it would
+        break both. The result of this pass is provenance, recorded alongside a
+        candidate, and it never enters ``score_components``.
+
+        With ``annotate_novelty`` the pass also BLASTs each sequence and attaches
+        the heuristic novelty summary. That answers "is this already a known
+        protein", which is useful for a generated variant with no accession, and
+        is not a substitute for the exact comparison above.
+        """
+        from .verification import verify_candidates
+
+        if records is None:
+            records = list(self._knowledge.records())
+
+        blast_fn = blast
+        if blast_fn is None and annotate_novelty:
+            from bacteriocin_lab.agents.evidence.ncbi import summarize_blast_similarity
+
+            def blast_fn(sequence: str) -> dict[str, Any]:  # type: ignore[misc]
+                return summarize_blast_similarity(
+                    self.check_candidate_similarity(candidate_id=None, sequence=sequence)
+                )
+
+        result = verify_candidates(records, fetch_reference=fetch_reference, blast=blast_fn)
+        result["knowledge_source"] = self._knowledge.source_name
+        result["model_version"] = MODEL_VERSION
+        return result
+
     def run(self, request: CandidateRequest) -> CandidateGenerationResult:
         """Produce ranked candidates for one request."""
         warnings: list[str] = []
