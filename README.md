@@ -1,148 +1,256 @@
-# BactroGen Research
+# BactroGen
 
-**Autonomous AI for bacteriocin discovery, computational evaluation, and adaptive scientific experimentation.**
+An autonomous, multi-agent computational platform for target-driven bacteriocin discovery, sequence design, mechanistic simulation, and adaptive experimental planning.
 
-BactroGen Research turns a biological target and a scientific question into a bounded, provenance-aware research loop. It connects literature and database evidence to candidate generation, in-silico experiments, critique, and the next most informative experiment.
+## Why I Built It
 
-> **Hackathon status:** the local deterministic demo and the seven-agent Omnigent/MCP workflow are validated. A hosted judge URL is added here when the deployment handoff is complete.
+BactroGen originated from a hackathon challenge proposing a six-agent multi-agent framework for bacteriocin research. In assessing the problem, I found the original scope insufficient for translational peptide discovery: six agents operating in a flat loop could retrieve papers and propose candidates, but lacked sequence-level variant discovery, post-translational modification (PTM) modeling, conservative design safeguards, and closed-loop experimental recalibration.
 
-## Try it
+I expanded the system into a nine-agent architecture with dual orchestration (deterministic in-process execution and Omnigent MCP multi-agent protocol). The core iterative discovery cycle is driven by seven specialized agents, while two specialized sequence-level agents—Variant Discovery and Computational Design—expand the workflow from high-level candidate selection into sequence-level design, RiPP/PTM constraint modeling, and active-learning experimental planning.
 
-**Live app:** deployment URL pending final production handoff<br>
-**Local demo:** `http://127.0.0.1:3000/research`
+## What It Does
 
-```text
-Find the most promising bacteriocin for suppressing high-density Listeria monocytogenes.
-```
+BactroGen automates the iterative hypothesis-and-testing cycle for narrow-spectrum antimicrobial peptide discovery:
 
-The judge should see evidence retrieval, candidate ranking, a computational experiment, scientific critique, an adaptive next experiment, and one synthesized recommendation. Discover remains a one-prompt experience; the Advanced route exposes the research console when deeper inspection is useful.
-
-## Why this matters
-
-Antimicrobial resistance increases the need for targeted antimicrobial strategies. Bacteriocins are antimicrobial peptides produced by bacteria, but choosing the right peptide for the right target and condition is fragmented across papers, sequence databases, and modeling tools. BactroGen makes that investigation one auditable workflow. It does not claim clinical readiness or replace experimental validation.
+1. **Accepts a bacterial target and objective** (e.g., suppressing high-density *Listeria monocytogenes* at neutral pH).
+2. **Retrieves structured evidence** from Europe PMC and NCBI (PubMed, PMC, Protein) with explicit citation provenance and contradiction tracking.
+3. **Screens and ranks candidates** across a three-tier escalation ladder: known characterized bacteriocins first, natural database variants second, and *de novo* computational designs only when known rungs fall short.
+4. **Discovers and characterizes sequence variants** via local or remote BLAST+ homology search and multiple sequence alignment.
+5. **Performs mechanistic simulation** of candidate inhibition kinetics (Hill dose-response, inoculum effect, pH and temperature sensitivities) and reports predictions alongside explicit aleatoric and epistemic uncertainty.
+6. **Critiques computational claims** through an adversarial scientific critic that rejects ungrounded extrapolations or missing citations before state acceptance.
+7. **Formulates the next most informative experiment** using Bayesian Upper Confidence Bound (UCB) active learning, selecting conditions and microdilution ranges that maximize information gain.
 
 ## Architecture
 
+The system features dual orchestration: a deterministic, fully reproducible Python engine (`DiscoveryWorkflowEngine`) with cycle guards and state integrity validation, and an external multi-agent deployment via the Model Context Protocol (MCP) for Omnigent.
+
 ```mermaid
-flowchart LR
-    U[User Prompt] --> O[Omnigent Orchestrator]
-    O --> E[Evidence Retrieval]
-    E --> C[Candidate Generation]
-    C --> P[Experiment Planner]
-    P --> S[Simulator]
-    S --> A[Result Analysis]
-    A --> R[Scientific Critic]
-    R --> K[Knowledge / Research State]
-    K --> P
+flowchart TD
+    subgraph Input ["1. Target Input"]
+        Target["User Prompt & Bacterial Target<br/>(Species, Gram status, Density, pH)"]
+    end
+
+    subgraph Literature ["2. Biological Evidence"]
+        EvidenceAgent["Literature & Evidence Agent<br/>(Europe PMC + NCBI E-Utilities)"]
+        PubMedDB[("PubMed / PMC / NCBI Protein")]
+        EvidenceAgent <--> PubMedDB
+    end
+
+    subgraph Discovery ["3. Candidate Evaluation & Design"]
+        CandidateAgent["Candidate Generation Agent<br/>(Gram accessibility, novelty decay)"]
+        VariantAgent["Variant Discovery Agent<br/>(BLAST+ homology, indels/SNPs)"]
+        DesignAgent["Computational Design Agent<br/>(Motif protection, PTMs, UCB scoring)"]
+    end
+
+    subgraph SimulationLoop ["4. Adaptive Testing & Critique Loop"]
+        PlannerAgent["Experiment Planner Agent<br/>(1-variable-at-a-time discrimination)"]
+        SimAgent["Mechanistic Simulator<br/>(Hill kinetics, inoculum effect, uncertainty)"]
+        AnalysisAgent["Result Analysis Agent<br/>(Hypothesis support/refutation)"]
+        CriticAgent["Scientific Critic Agent<br/>(Adversarial rules, claim rejection)"]
+        KnowledgeAgent["Research State Agent<br/>(Append-only log, hash-chain integrity)"]
+        
+        PlannerAgent --> SimAgent
+        SimAgent --> AnalysisAgent
+        AnalysisAgent --> CriticAgent
+        CriticAgent --> KnowledgeAgent
+        KnowledgeAgent -.->|"Adapt next condition"| PlannerAgent
+    end
+
+    subgraph Interface ["5. Lab Boundary"]
+        WetLabSeam["Wet-Lab Adapter Seam<br/>(Declared ExperimentAdapter contract)"]
+        ActiveRecalib["Closed-Loop Recalibration<br/>(Bayesian active learning update)"]
+    end
+
+    Target --> EvidenceAgent
+    EvidenceAgent --> CandidateAgent
+    CandidateAgent --> VariantAgent
+    VariantAgent --> DesignAgent
+    DesignAgent --> PlannerAgent
+    CriticAgent -.->|"Formulate dilution assay"| ActiveRecalib
+    ActiveRecalib -.->|"Future physical execution"| WetLabSeam
 ```
 
-Externally this is one seamless scientific assistant. Internally it is seven specialist agents exchanging structured outputs through MCP tools and the shared research contract:
+### Specialist Agent Responsibilities
 
-1. **Evidence Retrieval** — retrieves and structures literature/database evidence with citations and missing fields.
-2. **Candidate Generation** — ranks bacteriocin proposals and records falsifiable hypotheses.
-3. **Experiment Planning** — chooses a bounded, information-seeking computational experiment.
-4. **Simulation** — predicts response under explicit conditions; it never produces wet-lab evidence.
-5. **Result Analysis** — compares results with hypotheses and prior iterations.
-6. **Scientific Critic** — checks support, calibration, uncertainty, and prohibited claims.
-7. **Knowledge / Research State** — preserves append-only history, transitions, open questions, and integrity checks.
+| Agent | Scope & Function | Transports / Boundaries |
+|---|---|---|
+| **Literature & Evidence** | Retrieves and structures abstracts from Europe PMC and NCBI (PubMed/Protein); extracts experimental conditions, measured units, contradictions, and evidence gaps. | In-process Python, MCP tool (`literature.py`) |
+| **Candidate Generation** | Filters by target envelope (Gram-positive vs. Gram-negative), applies novelty decay across iterations, formulates falsifiable mechanism hypotheses. | In-process Python, MCP tool (`candidates.py`) |
+| **Variant Discovery** | Extracts observed natural amino-acid substitutions, indels, and CDS mutations from homolog alignments; quantifies residue conservation without inventing sequences. | In-process Python, MCP tool (`candidates.py`) |
+| **Computational Design** | Generates candidate variants with conservative physicochemical substitutions while strictly protecting essential motifs (Pediocin box `KYYGNGV`, Cysteines); models PTM/RiPP maturation constraints. | In-process Python, `/api/design/target` |
+| **Experiment Planner** | Selects computational assay conditions that maximally discriminate competing hypotheses by varying one parameter at a time. | In-process Python, sub-agent |
+| **Mechanistic Simulator** | Solves forward inhibition kinetics, Hill dose-response, and environmental sensitivity curves; reports predicted MIC/IC50 with aleatoric and epistemic uncertainty. | In-process Python, MCP tool (`runner.py`) |
+| **Result Analysis** | Determines whether simulated outcomes support, weaken, or fail to distinguish active hypotheses; compares findings across iterations. | In-process Python, sub-agent |
+| **Scientific Critic** | Adversarial referee that blocks claims lacking citations, flags excessive confidence, and halts ungrounded leaps before state commitment. | In-process Python, MCP tool (`critic.py`) |
+| **Research State / Knowledge** | Maintains an append-only JSON event log, tracks open scientific questions, and enforces SHA-256 hash-chain state integrity. | In-process Python, MCP tool (`knowledge.py`) |
 
-## Quickstart
+## Beyond the Original Challenge
 
-Requirements: Python 3.11+ and [`uv`](https://docs.astral.sh/uv/). Node.js is required for the optional web UI.
+The original hackathon prompt outlined six agents executing a basic conversational discovery loop. I made several substantive architectural expansions:
 
+1. **Target-to-Bacteriocin 3-Tier Escalation Ladder**: Rather than immediately prompting an LLM to generate synthetic peptides, BactroGen enforces a strict biological hierarchy:
+   - *Tier 1: Known characterized bacteriocins* (preferred; grounded in literature).
+   - *Tier 2: Naturally occurring sequence variants* (observed in NCBI databases with accession provenance).
+   - *Tier 3: Computational de novo designs* (reached only when known and natural candidates fail predicted efficacy thresholds).
+2. **NCBI E-Utilities and Local/Remote BLAST+ Architecture**: Added full bioinformatics infrastructure—`NcbiClient` with token-bucket rate limiting (3 req/s public, 10 req/s authenticated), parameter redaction, PubMed/Protein ESearch/EFetch/ESummary parsing, and hybrid BLAST execution (local `blastp` with `-outfmt 6` tabular parsing or remote NCBI QBlast with timeout guards).
+3. **Post-Translational Modification (PTM) & RiPP Modeling**: Ribosomally synthesized and post-translationally modified peptides (RiPPs, like Class I lantibiotics and lasso peptides) fail in linear sequence generators. BactroGen identifies putative modification sites (dehydrated Ser/Thr, lanthionine thioether rings, macrolactams, disulfide bridges) and applies structural uncertainty penalties to unmodeled 3D topologies.
+4. **Physicochemical Sequence Constraint Engine**: Protects structural cysteines and conserved functional motifs (e.g., Class IIa Pediocin box `KYYGNGV`), restricting substitutions to physicochemical conservative pairs (e.g., Arg/Lys, Asp/Glu, Phe/Tyr).
+5. **Bayesian Active Learning & Recalibration**: Integrated an Upper Confidence Bound (UCB) acquisition function ($\text{Acquisition} = \text{Score} + \kappa \cdot \sigma_{\text{epistemic}}$) that balances predicted efficacy with uncertainty, formulates 8-point geometric broth microdilution dilution series, and provides algorithmic recalibration (`recalibrate_and_rerank`).
+6. **14 Directional Biology Invariants**: Built an automated verification harness (`selftest.py`) enforcing fundamental biological principles (e.g., monotonic dose-response, inoculum effect where higher cell density requires higher peptide concentration, denaturation at extreme pH/temperature).
+7. **Comprehensive Web Platform**: Built a 10-page Next.js research console featuring 6 interactive specialist tools, dose-response sweep visualizations, and a live benchmark dashboard.
+
+## Scientific Workflow
+
+```text
+Scientific Question / Bacterial Target
+  │
+  ▼
+[Literature & Biological Data Retrieval]
+  ├─ Europe PMC API (abstracts, experimental conditions)
+  └─ NCBI E-Utilities (PubMed EFetch XML, NCBI Protein ESummary)
+  │
+  ▼
+[Homology Search & Sequence Analysis]
+  ├─ Local BLAST+ (blastp outfmt 6) or remote QBlast URL API
+  └─ Alignment & Variant Extraction (substitutions, indels, CDS mapping)
+  │
+  ▼
+[Candidate Evaluation & Hierarchical Design]
+  ├─ Known bacteriocins scored for target envelope (Gram-positive / Gram-negative)
+  ├─ Natural variants mined from database homologs
+  └─ Computational sequence optimization (motif preservation, PTM profiling)
+  │
+  ▼
+[Mechanistic Simulation & Uncertainty Estimation]
+  ├─ Forward ODE / Hill dose-response modeling
+  ├─ Environmental factors (pH, temperature, inoculum cell density)
+  └─ Separation of aleatoric vs. epistemic uncertainty
+  │
+  ▼
+[Adversarial Critique & Research Memory]
+  ├─ Scientific Critic enforces citation and calibration rules
+  └─ Knowledge Agent records append-only hash-chained event log
+  │
+  ▼
+[Active Learning Validation Interface]
+  ├─ UCB acquisition function selects most informative assay
+  ├─ Formulates 8-point geometric broth microdilution series
+  └─ Closed-loop algorithmic recalibration (recalibrate_and_rerank)
+```
+
+## Evidence, Predictions, and Validation
+
+To preserve strict scientific integrity, BactroGen defines distinct evidence categories in its data contracts and user interface, strictly forbidding promotion across boundaries without experimental proof:
+
+* **Published Evidence (`literature-derived`)**: Measurements and author conclusions extracted directly from peer-reviewed literature.
+* **Database Evidence (`database-derived`)**: Accessions, sequences, and alignment metrics retrieved from NCBI Protein or BLAST.
+* **Computational Simulation (`simulation-derived`)**: *In-silico* forward model predictions under defined pH, temperature, and inoculum conditions.
+* **Model Prediction (`model-prediction`)**: Algorithmic rankings, candidate proposals, and design hypotheses generated by agents.
+* **Wet-Lab Evidence (`wet-lab-derived`)**: Empirical bench measurements. Reserved exclusively for physical laboratory data.
+
+> **Scientific Boundary**: Computational predictions are hypotheses, not experimental observations. A low simulated MIC or high predicted inhibition does not constitute biological proof of efficacy, and a sequence generated by the design agent has not been clinically or experimentally validated.
+
+## Experimental Feedback / Lab Integration
+
+BactroGen is architected to bridge computational discovery and experimental wet-lab validation:
+
+* **What exists now (Implemented)**:
+  - **`recalibrate_and_rerank`**: An algorithmic closed-loop recalibration engine in `bacteriocin_lab/agents/design/active_learning.py`. When an empirical observation (`ActivityObservation`) is provided, it updates the `ActivityCalibrator`, re-anchors candidate predictions, and reranks candidate hypotheses.
+  - **Structured Assay Formulation**: The active learning engine automatically formulates actionable 8-point geometric dilution series (e.g., $0.125\times$ to $16\times$ predicted MIC) designed for standard 96-well broth microdilution assays.
+  - **`WetLabAdapter` Seam**: A declared, discoverable architectural interface (`bacteriocin_lab/adapters/wetlab.py`) implementing the `ExperimentAdapter` contract.
+* **What is future work / prototype**:
+  - The `WetLabAdapter` currently reports `available=False` and raises `BackendUnavailableError`.
+  - **No physical lab-equipment drivers** (such as Tecan, Hamilton, Opentrons, or microplate readers) are connected in this repository.
+  - The closed-loop feedback engine currently operates on simulated or manually inputted test observations; automated bidirectional robotic execution remains an architectural boundary.
+
+## Live Demo
+
+Hosted research application: **[https://web-kappa-seven-35.vercel.app/research](https://web-kappa-seven-35.vercel.app/research)**
+
+The web interface exposes:
+* **Discover (`/research`)**: One-prompt end-to-end multi-agent discovery campaign.
+* **Designer (`/design`)**: Target-to-bacteriocin hierarchical design ladder with PTM profiles and calibration curves.
+* **Simulator (`/experiments`)**: Mechanistic simulation with interactive dose-response curves and sensitivity sweeps.
+* **Candidates (`/candidates`)**: Candidate explorer with falsifiable hypotheses and novelty tracking.
+* **Evidence (`/evidence`)**: Literature search with provenance attribution and citation extraction.
+* **Advanced (`/advanced`)**: Direct launchers for all 12 underlying scientific subsystems.
+* **Benchmarks (`/benchmarks`)**: Real-time KPI dashboard reflecting deterministic benchmark runs.
+* **Methodology (`/methodology`)**: Formal documentation of evidence classification and provenance rules.
+
+## Current Limitations
+
+1. **Computational Predictions Require Wet-Lab Validation**: All potency, MIC, and inhibition figures generated by the simulator are mathematical models based on simplified biochemical priors. They cannot replace *in vitro* broth microdilution or animal models.
+2. **Coarse Prior Calibration**: Mechanistic simulation priors are generalized and uncalibrated against high-throughput empirical datasets; predictions can deviate significantly in non-standard media or unmodeled bacterial strains.
+3. **PTM Maturation Bottlenecks**: While the PTM engine flags RiPP dependence and penalizes structural uncertainty, linear sequence generation cannot predict whether heterologous host machinery will successfully express, dehydrate, or cyclize complex lantibiotic/lasso rings.
+4. **Network and Service Latencies**: Live NCBI E-Utilities and Europe PMC queries depend on external API availability and strict rate limits (3–10 req/s). Remote NCBI QBlast queries are subject to NCBI queue delays and may time out; local BLAST+ installation is strongly recommended for production workflows.
+5. **Absence of Physical Hardware Integration**: Automated physical pipetting and plate-reader ingestion are architectural interface seams (`WetLabAdapter`), not deployed hardware integrations.
+
+## Validated System Status
+
+The test suite enforces deterministic reproducibility and biological consistency:
+
+* Full regression test suite: **822 passed, 5 skipped** (827 total tests in `pytest`).
+* Simulator biology self-test: **14 directional invariants passed** (`python -m bacteriocin_sim selftest`).
+* Full multi-agent deterministic loop: **PASS** (verified through iteration 2 and state integrity checks).
+* Synthetic variant-calling gold standard: **100% precision and 100% recall** on substitution/indel extraction.
+* Loop efficiency benchmark: **22.5× experiment reduction** (2 adaptive experiments vs. 45-point static screening grid).
+
+## Running Locally
+
+### Prerequisites
+* Python 3.11+
+* [`uv`](https://docs.astral.sh/uv/) (recommended package and venv manager)
+* Node.js 18+ (for the optional Next.js web interface)
+* Optional: Local NCBI BLAST+ (`blastp`) installed on `PATH` for offline homology search
+
+### 1. Clone and Install
 ```bash
 git clone https://github.com/kevinsrun/b-4.git
 cd b-4
 uv sync --all-extras
-./scripts/run_demo.sh
 ```
 
-Open `http://127.0.0.1:3000/research`. The launcher starts the API on port 8000 and the Next.js UI on port 3000 in deterministic local mode. Stop both services with Ctrl-C.
+### 2. Run the Full Demo (API + Web Frontend)
+```bash
+./scripts/run_demo.sh
+```
+Opens `http://127.0.0.1:3000/research`. The launcher runs the FastAPI backend on port 8000 and Next.js on port 3000 in local deterministic mode. Press `Ctrl-C` to terminate both services.
 
-For the package-only deterministic loop:
-
+### 3. Run the Deterministic Python Loop
 ```bash
 uv run python -m bacteriocin_lab
 ```
 
-To generate machine-specific Omnigent MCP declarations and run the orchestrator:
-
+### 4. Run with Omnigent MCP Multi-Agent Harness
+Generate machine-specific MCP declarations and run the Omnigent orchestrator:
 ```bash
 uv run python install.py
 uv run python scripts/run_omnigent.py
 ```
 
-Live NCBI/BLAST paths are opt-in. Configure only the variables described in [`.env.example`](.env.example); never commit a credential. Local BLAST+ is preferred when a database and `blastp` are configured, while remote NCBI requests are bounded and may time out.
-
-## Technical stack
-
-- Python package with Pydantic schemas and deterministic orchestration
-- Omnigent orchestration with MCP tool servers
-- FastAPI/uvicorn HTTP layer for the web UI
-- Next.js/React frontend in `web/`
-- Literature, PubMed/NCBI, protein retrieval, and optional BLAST/local sequence-search adapters
-- pytest for behavioral and protocol tests
-
-## Scientific rigor and provenance
-
-The system keeps these evidence categories separate:
-
-- **Published evidence** — measurements and author interpretations extracted from literature.
-- **Database evidence** — records, accessions, and sequence-homology context.
-- **Computational simulation** — in-silico predictions under explicit conditions.
-- **Model prediction** — candidate rankings, hypotheses, and narrative interpretation.
-- **Experimental evidence** — only present when real wet-lab measurements are supplied.
-
-Simulation is not wet-lab validation. Literature evidence is not confirmation for a particular candidate and context. BLAST similarity is not proof of antimicrobial efficacy, and no BLAST hit is not proof of novelty. Designed variants are computational hypotheses requiring experimental validation.
-
-## Validated system status
-
-The current main branch has been validated with:
-
-- **822 passed, 5 skipped** in the full deterministic suite (827 collected)
-- build: **PASS**
-- deterministic two-iteration adaptive loop: **PASS**
-- seven real specialist agents: **confirmed**
-- state-integrity verification: **PASS**
-- bounded live NCBI smoke: **PASS**
-- external Omnigent/MCP harness: all seven tools visible
-- remote BLAST: handled safely as an external-service timeout when the bounded queue exceeds its limit
-
-These results demonstrate a reproducible research workflow, not biological efficacy.
-
-## Repository map
-
-```text
-bacteriocin_lab/
-  shared/          schemas, provenance, IDs, configuration
-  agents/          evidence, candidates, planner, simulator, analysis, critic, knowledge
-  orchestration/   adaptive workflow, routing, Omnigent adapters
-  adapters/        simulation and external-operation boundaries
-  api/             FastAPI HTTP layer for the web UI
-  evaluation/      demo scenarios and benchmark inputs
-  tests/           unit, integration, API, and MCP protocol tests
-agents/            Omnigent prompt/sub-agent declarations
-tools/             MCP launchers and generated declaration examples
-web/               Next.js/React Discover and Advanced console
-scripts/           demo, Omnigent, and maintenance launchers
-docs/              contracts and integration notes
-```
-
-## Limitations
-
-- Computational predictions require experimental validation.
-- The simulator is not a substitute for wet-lab experiments.
-- Remote BLAST queue latency is unpredictable; local BLAST+ is preferred.
-- NCBI and Omnigent live integrations depend on operator credentials and network availability.
-- Designed variants are hypotheses, not validated therapies.
-- The public demo uses bounded deterministic fixtures unless live retrieval is explicitly enabled.
-
-## Development checks
-
+### 5. Verification and Quality Checks
 ```bash
+# Run full test suite (822 passed, 5 skipped)
 uv run pytest -q
+
+# Run biological invariant self-test
+uv run python -m bacteriocin_lab.agents.simulator.selftest
+
+# Run benchmark suite
+uv run python -m benchmarks.run_all
+
+# Run linting
 uv run ruff check .
+
+# Build web frontend
 (cd web && npm ci && npm run typecheck && npm run build)
 ```
 
-The repository intentionally keeps the scientific claim boundary explicit: proposals and predictions are never silently promoted to observations or clinical conclusions.
+## Technical Stack
+
+* **Core Platform**: Python 3.11+, Pydantic v2 schemas and validation contracts, `uv` packaging.
+* **Bioinformatics**: NCBI E-Utilities (ESearch, EFetch, ESummary), Europe PMC API, NCBI BLAST+ (`blastp`), BioPython/custom alignment parsers.
+* **Agent Framework & Protocols**: Model Context Protocol (MCP) tool servers (`FastMCP` / `MCPServer`), Omnigent multi-agent harness, in-process deterministic state graph with cycle guards.
+* **Modeling & Active Learning**: Hill equation dose-response kinetics, Bayesian Upper Confidence Bound (UCB) acquisition, PTM classification engine.
+* **Web & API Layer**: FastAPI, Uvicorn, Next.js 15 (App Router), React 19, Tailwind CSS, Recharts.
+* **Quality Assurance**: `pytest` (827 collected tests), `ruff`, directional biological invariant harness (`selftest.py`).
