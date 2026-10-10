@@ -244,6 +244,7 @@ def create_app(
     *,
     allow_origins: list[str] | None = None,
     allow_origin_regex: str | None = None,
+    amp_service: Any | None = None,
 ) -> FastAPI:
     import os
 
@@ -534,9 +535,11 @@ def create_app(
 
     from .sequencing import router as sequencing_router
     from .projects import router as projects_router
+    from .amp import install_amp_routes
 
     app.include_router(sequencing_router)
     app.include_router(projects_router)
+    install_amp_routes(app, service=amp_service)
 
     return app
 
