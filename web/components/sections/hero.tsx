@@ -54,8 +54,8 @@ export function Hero({
             >
               {busy ? "Discovery running…" : "Run discovery"}
             </Button>
-            <LinkButton href="#loop" variant="secondary" size="md">
-              Explore the lab
+            <LinkButton href="/amp" variant="secondary" size="md">
+              AMP Predictor & DRAMP →
             </LinkButton>
           </div>
 

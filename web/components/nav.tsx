@@ -16,6 +16,7 @@ import { LinkButton, useRipple } from "@/components/interactive";
  */
 const PRIMARY = [
   { href: "/research", label: "Discover" },
+  { href: "/amp", label: "AMP Lab" },
   { href: "/candidates", label: "Candidates" },
   { href: "/experiments", label: "Simulator" },
   { href: "/evidence", label: "Evidence" },
