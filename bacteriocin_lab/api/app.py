@@ -532,6 +532,10 @@ def create_app(
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
 
+    from .sequencing import router as sequencing_router
+
+    app.include_router(sequencing_router)
+
     return app
 
 

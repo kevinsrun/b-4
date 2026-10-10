@@ -8,6 +8,7 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+.venv
 .venv/
 venv/
 .codex-tmp/
@@ -43,7 +44,10 @@ data/blast/
 
 # Web front end (web/): dependencies and build output.
 node_modules/
+web/node_modules
+web/node_modules/
 .next/
+web/.next/
 next-env.d.ts
 .tsbuildinfo
 *.tsbuildinfo
