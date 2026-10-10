@@ -130,14 +130,14 @@ export function AdvancedConsole() {
     <main className="mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6">
       <header className="max-w-3xl">
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">Advanced</p>
-        <h1 className="mt-3 text-4xl font-medium tracking-[-0.035em] text-text">Scientific research console</h1>
+        <h1 className="display display-lg mt-4 text-balance text-cyan">Scientific research console</h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
           Access the individual specialist tools driving the discovery system, or inspect the 12 scientific subsystems behind the autonomous loop.
         </p>
       </header>
 
       {/* Direct Interactive Tools Launcher */}
-      <section className="mt-8 border border-cyan/40 bg-cyan/5 p-6">
+      <section className="mt-8 rounded-[5px] border border-sage-deep bg-sage-soft p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-cyan">Interactive Specialist Tools</p>
@@ -224,7 +224,7 @@ export function AdvancedConsole() {
         {SECTIONS.map((section) => <ConsoleCard key={section.number} section={section} />)}
       </section>
 
-      <section className="mt-4 border border-cyan/30 bg-cyan/5 p-5">
+      <section className="mt-4 rounded-[5px] border border-sage-deep bg-sage-soft p-5">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-cyan">Adaptive loop</p>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-text">
           <span>Evidence</span><span className="text-cyan">→</span><span>Candidates</span><span className="text-cyan">→</span><span>Computational experiment</span><span className="text-cyan">→</span><span>Scientific review</span><span className="text-cyan">→</span><span>Next experiment</span>
@@ -284,7 +284,7 @@ function ConsoleCard({ section }: { section: ConsoleSection }) {
   }
 
   return (
-    <section className="border border-line bg-panel p-5">
+    <section className="rounded-[4px] border border-line bg-panel p-5">
       {inner}
     </section>
   );

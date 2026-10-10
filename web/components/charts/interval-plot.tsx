@@ -16,8 +16,9 @@
 import { fixed, sig } from "@/lib/format";
 import type { ExperimentResult } from "@/lib/types";
 import { Provenance } from "@/components/provenance";
+import { RevealOnView } from "@/components/feedback";
 
-const MARK = "#0e9eb8";
+const MARK = "#5c7a52";
 
 export interface IntervalRow {
   id: string;
@@ -77,6 +78,10 @@ export function IntervalPlot({
   const zeroAt = pos(0);
 
   return (
+    <RevealOnView>
+    {/* The figure fades up the first time it is seen. Only opacity and a 6px
+        offset animate — the scales, ticks and marks are final from the first
+        frame, so no value is ever shown at a position it does not hold. */}
     <figure className="m-0">
       <div className="relative">
         <ul className="divide-y divide-line/70" role="list">
@@ -133,7 +138,7 @@ export function IntervalPlot({
                         style={{
                           left: `${pos(row.value!)}%`,
                           backgroundColor: MARK,
-                          borderColor: "#0a0f1a",
+                          borderColor: "#fcfaf5",
                         }}
                         title={`log₁₀ reduction ${fixed(row.value, 2)} ± ${fixed(row.spread, 2)}`}
                       />
@@ -174,7 +179,7 @@ export function IntervalPlot({
         <span className="inline-flex items-center gap-1.5">
           <span
             className="h-[9px] w-[9px] rounded-full border-2"
-            style={{ backgroundColor: MARK, borderColor: "#0a0f1a" }}
+            style={{ backgroundColor: MARK, borderColor: "#fcfaf5" }}
           />
           point estimate
         </span>
@@ -182,5 +187,6 @@ export function IntervalPlot({
         <Provenance kind="simulation" />
       </figcaption>
     </figure>
+    </RevealOnView>
   );
 }

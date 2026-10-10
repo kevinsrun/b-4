@@ -22,6 +22,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ProvenanceGraphPanel } from "@/components/provenance-graph-panel";
 import { Empty, Failure, Field, Id, Panel, Status } from "@/components/ui";
 import { api } from "@/lib/api";
 import { plain, titleCase } from "@/lib/format";
@@ -67,7 +68,7 @@ export default function KnowledgePage() {
   return (
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
-        <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+        <h1 className="display display-lg text-balance text-cyan">
           Research state
         </h1>
         <p className="mt-3 max-w-[70ch] text-[14px] leading-relaxed text-muted">
@@ -118,7 +119,7 @@ export default function KnowledgePage() {
                   value={stateDir}
                   onChange={(event) => setStateDir(event.target.value)}
                   placeholder="defaults to BACTERIOCIN_STATE_DIR"
-                  className="num mt-1 block w-72 border border-line bg-ink px-2 py-1.5 text-[12px] text-text placeholder:text-faint/60 focus:border-cyan/50 focus:outline-none"
+                  className="num mt-1 block w-72 border border-line bg-ink px-2 py-1.5 text-[12px] text-text placeholder:text-faint/60 rounded-[3px] transition-colors focus:border-cyan"
                 />
               </div>
               <button
@@ -148,6 +149,8 @@ export default function KnowledgePage() {
         {envelope && !agentError && operation === "summary" && (
           <SummaryView summary={(decision?.result ?? {}) as KnowledgeSummary} />
         )}
+
+        {operation === "summary" && <ProvenanceGraphPanel />}
 
         {envelope && !agentError && operation !== "summary" && (
           <Panel title={titleCase(operation.replace(/-/g, " "))}>
@@ -180,7 +183,7 @@ export default function KnowledgePage() {
         )}
 
         {busy && !envelope && (
-          <div className="border border-line bg-panel">
+          <div className="rounded-[4px] border border-line bg-panel">
             <Empty>Reading the event log…</Empty>
           </div>
         )}

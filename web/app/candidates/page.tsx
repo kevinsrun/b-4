@@ -20,6 +20,7 @@ import { Empty, Failure, Field, Id, Meter, Panel, Uncertainties } from "@/compon
 import { api } from "@/lib/api";
 import { fixed, plain, residueClass, sig, titleCase } from "@/lib/format";
 import type { CandidateEnvelope, CandidateProposal } from "@/lib/types";
+import { CopyButton } from "@/components/feedback";
 
 const TARGETS = [
   { species: "Listeria monocytogenes", gram: "positive" as const },
@@ -64,7 +65,7 @@ export default function CandidatesPage() {
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+          <h1 className="display display-lg text-balance text-cyan">
             Candidates
           </h1>
           <Provenance kind="proposal" />
@@ -134,7 +135,7 @@ export default function CandidatesPage() {
         {error && <Failure message={error} />}
 
         {busy && !proposals.length && (
-          <div className="border border-line bg-panel">
+          <div className="rounded-[4px] border border-line bg-panel">
             <Empty>Scoring candidates…</Empty>
           </div>
         )}
@@ -195,7 +196,7 @@ function ProposalCard({ proposal, rank }: { proposal: CandidateProposal; rank: n
   const failureModes = (proposal.expected_failure_modes as string[] | undefined) ?? [];
 
   return (
-    <article className="border border-line bg-panel">
+    <article className="rounded-[4px] border border-line bg-panel">
       <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line px-4 py-3">
         <span className="num text-[11px] text-cyan/70">{String(rank).padStart(2, "0")}</span>
         <h2 className="text-[15px] font-medium text-text">{titleCase(proposal.name)}</h2>
@@ -274,7 +275,7 @@ function ProposalCard({ proposal, rank }: { proposal: CandidateProposal; rank: n
 
           {proposal.sequence && (
             <div>
-              <div className="flex items-baseline gap-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
                 <span className="text-[11px] text-faint">sequence</span>
                 <span className="num text-[10.5px] text-faint">
                   {proposal.sequence.length} residues
@@ -284,6 +285,7 @@ function ProposalCard({ proposal, rank }: { proposal: CandidateProposal; rank: n
                   <span className="text-red">acidic</span>{" "}
                   <span className="text-amber">cysteine</span>
                 </span>
+                <CopyButton value={proposal.sequence} label="Copy" />
               </div>
               <p className="num mt-1 break-all text-[11.5px] leading-[1.7] tracking-tight">
                 {proposal.sequence.split("").map((residue, i) => (

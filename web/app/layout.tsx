@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { DM_Serif_Display, Inter, JetBrains_Mono } from "next/font/google";
 
 import { Nav } from "@/components/nav";
+import { SiteFooter } from "@/components/site-footer";
 
 import "./globals.css";
 
-const grotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-grotesk",
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const serif = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-serif-dm",
   display: "swap",
 });
 
@@ -24,7 +32,7 @@ export const metadata: Metadata = {
     "Autonomous AI for bacteriocin discovery and computational antimicrobial design.",
   icons: {
     icon: "/branding/bactrogen-favicon.png",
-    apple: "/branding/bactrogen-mark.png",
+    apple: "/branding/apple-icon.png",
   },
   openGraph: {
     title: "BactroGen Research",
@@ -35,31 +43,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${mono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-ink text-text antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-cyan focus:bg-panel focus:px-3 focus:py-2 focus:text-[13px]"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-[3px] focus:border focus:border-cyan focus:bg-panel focus:px-3 focus:py-2 focus:text-[13px] focus:text-text"
         >
           Skip to content
         </a>
         <Nav />
         <main id="main">{children}</main>
-        <footer className="mt-24 border-t border-line">
-          <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-4 py-8 text-[12px] leading-relaxed text-faint sm:px-6">
-            <p className="max-w-[72ch]">
-              BactroGen Research reports three kinds of claim and never merges them:
-              evidence extracted from the literature, candidates proposed for
-              testing, and predictions produced by a simulator. None of them is
-              an experimental result. Nothing shown here has been measured at a
-              bench.
-            </p>
-            <p className="text-[11px] text-faint">
-              Computational predictions are presented with their uncertainty and require
-              experimental validation.
-            </p>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

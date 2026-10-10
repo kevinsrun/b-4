@@ -13,6 +13,7 @@
 import { useId, useState } from "react";
 
 import type { RunRequestBody } from "@/lib/api";
+import { Button } from "@/components/interactive";
 
 const PRESETS: { label: string; body: RunRequestBody }[] = [
   {
@@ -80,7 +81,7 @@ export function RunLauncher({
         e.preventDefault();
         onStart(body);
       }}
-      className="border border-line bg-panel"
+      className="rounded-[4px] border border-line bg-panel"
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-line px-4 py-2.5">
         <h3 className="mr-2 text-[13px] font-medium text-text">Objective</h3>
@@ -111,7 +112,7 @@ export function RunLauncher({
             maxLength={500}
             required
             minLength={3}
-            className="mt-1 w-full resize-none border border-line bg-ink px-2.5 py-2 text-[13px] leading-snug text-text placeholder:text-faint focus:border-cyan/60 focus:outline-none"
+            className="mt-1 w-full resize-none border border-line bg-ink px-2.5 py-2 text-[13px] leading-snug text-text placeholder:text-faint rounded-[3px] transition-colors focus:border-cyan"
           />
         </label>
 
@@ -122,7 +123,7 @@ export function RunLauncher({
               value={body.species}
               onChange={(e) => set("species", e.target.value)}
               required
-              className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[13px] text-text focus:border-cyan/60 focus:outline-none"
+              className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[13px] text-text rounded-[3px] transition-colors focus:border-cyan"
             />
           </label>
 
@@ -192,13 +193,14 @@ export function RunLauncher({
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3">
-        <button
+        <Button
           type="submit"
           disabled={busy}
-          className="border border-cyan/60 bg-cyan/12 px-4 py-2 text-[13px] text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-faint"
+          variant="primary"
+          size="md"
         >
           {busy ? "Running…" : "Run discovery"}
-        </button>
+        </Button>
         <p className="num text-[11px] leading-tight text-faint">
           seed {body.seed ?? "none"} — same objective, same seed, same run
         </p>

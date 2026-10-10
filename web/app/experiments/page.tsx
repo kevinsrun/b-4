@@ -19,6 +19,8 @@ import { Empty, Failure, Field, Id, Panel } from "@/components/ui";
 import { api } from "@/lib/api";
 import { humanizeFactor, sig } from "@/lib/format";
 import type { ExperimentResult, KnowledgeRecord } from "@/lib/types";
+import { Button } from "@/components/interactive";
+import { CopyButton } from "@/components/feedback";
 
 interface Reference {
   id: string;
@@ -182,7 +184,7 @@ export default function ExperimentsPage() {
   return (
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
-        <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+        <h1 className="display display-lg text-balance text-cyan">
           Experiments
         </h1>
         <p className="mt-3 max-w-[66ch] text-[14px] leading-relaxed text-muted">
@@ -242,18 +244,19 @@ export default function ExperimentsPage() {
                   <p className="num mt-1 text-[11px] text-faint">loading…</p>
                 )}
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => void sweep()}
                 disabled={busy || !reference}
-                className="border border-cyan/60 bg-cyan/12 px-4 py-2.5 text-[13.5px] text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-faint"
+                variant="primary"
+                size="md"
               >
                 {state === "probing"
                   ? "Finding the MIC…"
                   : state === "sweeping"
                     ? "Running 8 experiments…"
                     : "Run dose sweep"}
-              </button>
+              </Button>
             </div>
           </div>
         </Panel>
@@ -261,7 +264,7 @@ export default function ExperimentsPage() {
         {error && <Failure message={error} />}
 
         {!results.length && !busy && !error && (
-          <div className="border border-line bg-panel">
+          <div className="rounded-[4px] border border-line bg-panel">
             <Empty>
               Pick a candidate and run the sweep. Eight simulated experiments
               around its predicted MIC, with the uncertainty on each.
@@ -456,6 +459,11 @@ function Chooser({
 /** Residues coloured by class: basic, acidic, cysteine, hydrophobic. */
 function Sequence({ sequence }: { sequence: string }) {
   return (
+    <>
+    <div className="mt-1.5 flex items-center justify-between gap-2">
+      <span className="num text-[10.5px] text-faint">{sequence.length} residues</span>
+      <CopyButton value={sequence} label="Copy" />
+    </div>
     <p className="num mt-1 text-[11px] leading-[1.6] tracking-tight">
       {sequence.split("").map((residue, i) => (
         <span
@@ -474,5 +482,6 @@ function Sequence({ sequence }: { sequence: string }) {
         </span>
       ))}
     </p>
+    </>
   );
 }

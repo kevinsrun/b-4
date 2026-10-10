@@ -17,8 +17,9 @@
 
 import { factorUnit, humanizeFactor, sig } from "@/lib/format";
 import type { ImportantFactor } from "@/lib/types";
+import { RevealOnView } from "@/components/feedback";
 
-const MARK = "#0e9eb8";
+const MARK = "#5c7a52";
 
 export function FactorSensitivity({
   factors,
@@ -36,6 +37,10 @@ export function FactorSensitivity({
   const scale = Math.max(...shown.map((f) => Math.abs(f.sensitivity))) || 1;
 
   return (
+    <RevealOnView>
+    {/* The figure fades up the first time it is seen. Only opacity and a 6px
+        offset animate — the scales, ticks and marks are final from the first
+        frame, so no value is ever shown at a position it does not hold. */}
     <figure className="m-0">
       <ul className="space-y-[7px]">
         {shown.map((factor) => {
@@ -100,5 +105,6 @@ export function FactorSensitivity({
         <span className="text-amber">assumed: the spec left this out</span>
       </figcaption>
     </figure>
+    </RevealOnView>
   );
 }

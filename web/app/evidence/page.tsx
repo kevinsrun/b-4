@@ -21,6 +21,7 @@ import { Empty, Failure, Field, Id, Meter, Panel } from "@/components/ui";
 import { api } from "@/lib/api";
 import { fixed, humanizeFactor, sig } from "@/lib/format";
 import type { EvidenceRecord, LiteratureResponse, NormalizedQuantity } from "@/lib/types";
+import { Button } from "@/components/interactive";
 
 const EXAMPLES = [
   {
@@ -66,7 +67,7 @@ export default function EvidencePage() {
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+          <h1 className="display display-lg text-balance text-cyan">
             Evidence
           </h1>
           <Provenance kind="literature" />
@@ -107,17 +108,19 @@ export default function EvidencePage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") void search();
                   }}
-                  className="mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[13px] text-text focus:border-cyan/60 focus:outline-none"
+                  className="mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[13px] text-text rounded-[3px] transition-colors focus:border-cyan"
                 />
               </label>
-              <button
+              <Button
                 type="button"
                 onClick={() => void search()}
                 disabled={busy}
-                className="self-end border border-cyan/60 bg-cyan/12 px-4 py-2 text-[13px] text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-faint"
+                variant="primary"
+                size="md"
+                className="self-end"
               >
                 {busy ? "Searching…" : "Search literature"}
-              </button>
+              </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
@@ -125,7 +128,7 @@ export default function EvidencePage() {
                 <input
                   value={query.bacteriocin ?? ""}
                   onChange={(e) => setQuery({ ...query, bacteriocin: e.target.value })}
-                  className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[12.5px] text-text focus:border-cyan/60 focus:outline-none"
+                  className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[12.5px] text-text rounded-[3px] transition-colors focus:border-cyan"
                 />
               </label>
               <label className="block">
@@ -133,7 +136,7 @@ export default function EvidencePage() {
                 <input
                   value={query.target_organism ?? ""}
                   onChange={(e) => setQuery({ ...query, target_organism: e.target.value })}
-                  className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[12.5px] text-text focus:border-cyan/60 focus:outline-none"
+                  className="num mt-1 w-full border border-line bg-ink px-2.5 py-2 text-[12.5px] text-text rounded-[3px] transition-colors focus:border-cyan"
                 />
               </label>
             </div>
@@ -168,7 +171,7 @@ export default function EvidencePage() {
         )}
 
         {response && response.evidence.length === 0 && (
-          <div className="border border-line bg-panel">
+          <div className="rounded-[4px] border border-line bg-panel">
             <Empty>
               The agent read {String(considered ?? "several")} abstracts and
               could not extract a defensible record from any of them. That is
@@ -245,7 +248,7 @@ function EvidenceCard({ record }: { record: EvidenceRecord }) {
   );
 
   return (
-    <article className="border border-line bg-panel">
+    <article className="rounded-[4px] border border-line bg-panel">
       <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5 border-b border-line px-4 py-3">
         <h2 className="min-w-0 max-w-[70ch] flex-1 text-[13.5px] leading-snug text-text">
           {source.title ?? "Untitled source"}

@@ -39,7 +39,7 @@ export function ResearchStateSection({ run }: { run: RunView }) {
       }
     >
       {!hypotheses.length ? (
-        <div className="border border-line bg-panel">
+        <div className="rounded-[4px] border border-line bg-panel">
           <Empty>
             {run.status === "running"
               ? "Hypotheses appear as the candidate agent proposes them."

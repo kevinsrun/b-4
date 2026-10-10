@@ -4,6 +4,7 @@ import { LoopConsole } from "@/components/loop-console";
 import { Provenance } from "@/components/provenance";
 import type { AgentRole, RunDigest } from "@/lib/types";
 import type { StationState } from "@/lib/use-run";
+import { Button, LinkButton } from "@/components/interactive";
 
 /**
  * The hero opens on the loop, running. The headline makes a claim and the panel
@@ -33,7 +34,7 @@ export function Hero({
           <p className="num text-[11px] uppercase tracking-[0.2em] text-cyan/85">
             Autonomous bacteriocin discovery
           </p>
-          <h1 className="mt-5 text-balance text-[44px] font-medium leading-[0.98] tracking-[-0.03em] text-text sm:text-[60px] lg:text-[68px]">
+          <h1 className="display display-xl mt-6 text-balance text-cyan">
             AI that learns what to test next.
           </h1>
           <p className="mt-6 max-w-[56ch] text-[15.5px] leading-relaxed text-muted">
@@ -44,20 +45,18 @@ export function Hero({
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <button
+            <Button
               type="button"
               onClick={onRun}
               disabled={busy}
-              className="border border-cyan/60 bg-cyan/12 px-5 py-2.5 text-[14px] text-cyan transition-colors hover:bg-cyan/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-faint"
+              variant="primary"
+              size="md"
             >
               {busy ? "Discovery running…" : "Run discovery"}
-            </button>
-            <a
-              href="#loop"
-              className="border border-line px-5 py-2.5 text-[14px] text-muted transition-colors hover:border-line-strong hover:text-text"
-            >
+            </Button>
+            <LinkButton href="#loop" variant="secondary" size="md">
               Explore the lab
-            </a>
+            </LinkButton>
           </div>
 
           {/* The honesty note belongs next to the button that produces numbers,
