@@ -51,7 +51,7 @@ export function Results({ run }: { run: RunView }) {
       aside={<Provenance kind="simulation" />}
     >
       {!results.length ? (
-        <div className="border border-line bg-panel">
+        <div className="rounded-[4px] border border-line bg-panel">
           <Empty>
             {run.status === "running"
               ? "The simulator has not returned yet. Predictions appear here as the loop produces them."

@@ -21,6 +21,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { CopyButton } from "@/components/feedback";
 import { Provenance, ProvenanceLegend } from "@/components/provenance";
 import { Empty, Failure, Field, Hairline, Id, Meter, Panel, Status, Uncertainties } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -116,7 +117,7 @@ export default function DesignPage() {
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+          <h1 className="display display-lg text-balance text-cyan">
             Design
           </h1>
           <Provenance kind="proposal" />
@@ -162,7 +163,7 @@ export default function DesignPage() {
                 value={strain}
                 onChange={(event) => setStrain(event.target.value)}
                 placeholder="e.g. EGD-e"
-                className="num mt-1 block w-36 border border-line bg-ink px-2 py-1.5 text-[12px] text-text placeholder:text-faint/60 focus:border-cyan/50 focus:outline-none"
+                className="num mt-1 block w-36 border border-line bg-ink px-2 py-1.5 text-[12px] text-text placeholder:text-faint/60 rounded-[3px] transition-colors focus:border-cyan"
               />
             </div>
 
@@ -195,7 +196,7 @@ export default function DesignPage() {
         {error && <Failure message={error} />}
 
         {busy && !result && (
-          <div className="border border-line bg-panel">
+          <div className="rounded-[4px] border border-line bg-panel">
             <Empty>Climbing the ladder — screening literature, then variants…</Empty>
           </div>
         )}
@@ -500,9 +501,10 @@ function Recommendations({ items }: { items: DesignRecommendation[] }) {
 function Sequence({ sequence }: { sequence: string }) {
   return (
     <div>
-      <div className="flex items-baseline gap-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
         <span className="text-[11px] text-faint">sequence</span>
         <span className="num text-[10.5px] text-faint">{sequence.length} residues</span>
+        <CopyButton value={sequence} label="Copy" className="ml-auto" />
       </div>
       <p className="num mt-1 break-all text-[11.5px] leading-[1.7] tracking-tight">
         {sequence.split("").map((residue, i) => (

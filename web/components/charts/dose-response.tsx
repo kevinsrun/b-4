@@ -27,10 +27,11 @@ import {
 } from "recharts";
 
 import { sig } from "@/lib/format";
+import { RevealOnView } from "@/components/feedback";
 
-const MARK = "#0e9eb8";
-const GRID = "#1b2436";
-const AXIS = "#5b6b82";
+const MARK = "#5c7a52";
+const GRID = "#ddd5c4";
+const AXIS = "#737568";
 
 export interface DosePoint {
   dose: number;
@@ -61,6 +62,10 @@ export function DoseResponse({
   const ticks = points.map((p) => p.dose);
 
   return (
+    <RevealOnView>
+    {/* The figure fades up the first time it is seen. Only opacity and a 6px
+        offset animate — the scales, ticks and marks are final from the first
+        frame, so no value is ever shown at a position it does not hold. */}
     <figure className="m-0">
       <figcaption className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[12.5px] text-text">{label}</span>
@@ -131,8 +136,8 @@ export function DoseResponse({
               dataKey="inhibition"
               stroke={MARK}
               strokeWidth={2}
-              dot={{ r: 3, fill: MARK, stroke: "#0a0f1a", strokeWidth: 2 }}
-              activeDot={{ r: 5, fill: MARK, stroke: "#0a0f1a", strokeWidth: 2 }}
+              dot={{ r: 3, fill: MARK, stroke: "#fcfaf5", strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: MARK, stroke: "#fcfaf5", strokeWidth: 2 }}
               isAnimationActive={false}
               connectNulls
             />
@@ -140,6 +145,7 @@ export function DoseResponse({
         </ResponsiveContainer>
       </div>
     </figure>
+    </RevealOnView>
   );
 }
 

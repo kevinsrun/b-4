@@ -22,14 +22,14 @@ export function Section({
 }) {
   return (
     <section id={id} className="border-t border-line">
-      <div className={`mx-auto px-4 py-14 sm:px-6 ${wide ? "max-w-[1180px]" : "max-w-[1180px]"}`}>
-        <header className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className={`mx-auto px-4 py-16 sm:px-6 sm:py-20 ${wide ? "max-w-[1180px]" : "max-w-[1180px]"}`}>
+        <header className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-[46ch]">
-            <h2 className="text-balance text-[26px] font-medium leading-[1.15] tracking-[-0.015em] text-text sm:text-[30px]">
+            <h2 className="display display-lg text-balance text-cyan">
               {heading}
             </h2>
             {standfirst && (
-              <p className="mt-3 max-w-[58ch] text-[14px] leading-relaxed text-muted">{standfirst}</p>
+              <p className="mt-4 max-w-[58ch] text-[14.5px] leading-relaxed text-muted">{standfirst}</p>
             )}
           </div>
           {aside && <div className="shrink-0">{aside}</div>}

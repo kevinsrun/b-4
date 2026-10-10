@@ -6,6 +6,8 @@
 
 import type { ReactNode } from "react";
 
+import { AmbientMolecules } from "@/components/feedback";
+
 export function Panel({
   title,
   aside,
@@ -20,10 +22,10 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={`border border-line bg-panel ${className}`}>
+    <section className={`rounded-[4px] border border-line bg-panel shadow-[var(--shadow-sm)] ${className}`}>
       {(title || aside) && (
-        <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-2.5">
-          <h3 className="text-[13px] font-medium tracking-tight text-text">{title}</h3>
+        <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3">
+          <h3 className="text-[13.5px] font-semibold tracking-tight text-text">{title}</h3>
           {aside}
         </header>
       )}
@@ -53,7 +55,7 @@ export function Field({
   return (
     <div className="min-w-0">
       <div className="text-[11.5px] leading-tight text-faint">{label}</div>
-      <div className={`num mt-1 text-[15px] leading-none ${toneClass}`}>{value}</div>
+      <div className={`num mt-1 text-[15.5px] leading-none ${toneClass}`}>{value}</div>
       {hint && <div className="mt-1 text-[11px] leading-tight text-faint">{hint}</div>}
     </div>
   );
@@ -64,7 +66,7 @@ export function Id({ children, title }: { children: ReactNode; title?: string })
   return (
     <code
       title={title ?? (typeof children === "string" ? children : undefined)}
-      className="num rounded-[2px] bg-raised px-1 py-[1px] text-[11px] text-muted"
+      className="num rounded-[3px] border border-line bg-raised/70 px-1.5 py-[2px] text-[11px] text-muted"
     >
       {children}
     </code>
@@ -72,28 +74,28 @@ export function Id({ children, title }: { children: ReactNode; title?: string })
 }
 
 const STATUS_TONES: Record<string, string> = {
-  supported: "border-green/45 text-green bg-green/8",
-  approved: "border-green/45 text-green bg-green/8",
-  pass: "border-green/45 text-green bg-green/8",
-  open: "border-cyan/40 text-cyan bg-cyan/8",
-  running: "border-cyan/40 text-cyan bg-cyan/8",
-  weakened: "border-amber/45 text-amber bg-amber/8",
-  inconclusive: "border-faint/50 text-muted bg-transparent",
-  needs_more_evidence: "border-amber/45 text-amber bg-amber/8",
-  known_failure: "border-amber/45 text-amber bg-amber/8",
-  contradicted: "border-red/45 text-red bg-red/8",
-  rejected: "border-red/45 text-red bg-red/8",
-  failed: "border-red/45 text-red bg-red/8",
-  failure: "border-red/45 text-red bg-red/8",
-  fail: "border-red/45 text-red bg-red/8",
-  error: "border-red/45 text-red bg-red/8",
+  supported: "border-green/50 text-green bg-green/12",
+  approved: "border-green/50 text-green bg-green/12",
+  pass: "border-green/50 text-green bg-green/12",
+  open: "border-cyan/45 text-cyan bg-cyan/10",
+  running: "border-cyan/45 text-cyan bg-cyan/10",
+  weakened: "border-amber/50 text-amber bg-amber/12",
+  inconclusive: "border-line-strong text-muted bg-raised/50",
+  needs_more_evidence: "border-amber/50 text-amber bg-amber/12",
+  known_failure: "border-amber/50 text-amber bg-amber/12",
+  contradicted: "border-red/50 text-red bg-red/12",
+  rejected: "border-red/50 text-red bg-red/12",
+  failed: "border-red/50 text-red bg-red/12",
+  failure: "border-red/50 text-red bg-red/12",
+  fail: "border-red/50 text-red bg-red/12",
+  error: "border-red/50 text-red bg-red/12",
 };
 
 export function Status({ status, className = "" }: { status: string; className?: string }) {
   const tone = STATUS_TONES[status] ?? "border-line-strong text-muted bg-transparent";
   return (
     <span
-      className={`num inline-flex shrink-0 items-center border px-1.5 py-[2px] text-[10px] leading-none ${tone} ${className}`}
+      className={`num inline-flex shrink-0 items-center rounded-[3px] border px-1.5 py-[3px] text-[10px] leading-none ${tone} ${className}`}
     >
       {status.replace(/_/g, " ")}
     </span>
@@ -106,15 +108,20 @@ export function Status({ status, className = "" }: { status: string; className?:
  */
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    <p className="max-w-[60ch] px-4 py-8 text-[13px] leading-relaxed text-faint sm:px-5">
-      {children}
-    </p>
+    <div className="relative overflow-hidden">
+      {/* Decorative, aria-hidden, and stopped entirely under reduced motion.
+          It gives an empty panel something to be rather than a blank box. */}
+      <AmbientMolecules className="absolute inset-y-0 right-0 h-full w-[46%] opacity-55" />
+      <p className="relative max-w-[60ch] px-4 py-10 text-[13px] leading-relaxed text-faint sm:px-5">
+        {children}
+      </p>
+    </div>
   );
 }
 
 export function Failure({ message }: { message: string }) {
   return (
-    <div className="border border-red/35 bg-red/6 px-4 py-3">
+    <div className="rounded-[4px] border border-red/40 bg-red/10 px-4 py-3">
       <p className="text-[13px] leading-snug text-red">{message}</p>
     </div>
   );
@@ -141,8 +148,11 @@ export function Meter({
       aria-valuemax={1}
       aria-label={label}
     >
-      <div className="h-[3px] w-full min-w-10 bg-raised">
-        {safe !== null && <div className={`h-full ${bar}`} style={{ width: `${safe * 100}%` }} />}
+      <div className="h-[5px] w-full min-w-10 overflow-hidden rounded-full bg-raised">
+        {safe !== null && <div
+          className={`h-full rounded-full ${bar} transition-[width] duration-500 ease-[var(--ease)]`}
+          style={{ width: `${safe * 100}%` }}
+        />}
       </div>
       <span className="num shrink-0 text-[11px] text-muted">
         {safe === null ? "—" : safe.toFixed(2)}
@@ -178,14 +188,14 @@ export function Uncertainties({ items }: { items: (UncertaintyRecord | string)[]
         const severity = item.severity ?? "";
         const tone =
           severity === "high"
-            ? "border-amber/50 text-amber"
+            ? "border-amber/50 bg-amber/10 text-amber"
             : severity === "medium"
               ? "border-line-strong text-muted"
               : "border-line text-faint";
         return (
           <li key={i} className="flex gap-3">
             <span
-              className={`num mt-[2px] h-fit shrink-0 border px-1.5 py-[2px] text-[10px] leading-none ${tone}`}
+              className={`num mt-[2px] h-fit shrink-0 rounded-[3px] border px-1.5 py-[3px] text-[10px] leading-none ${tone}`}
               title={`severity: ${severity || "unstated"}`}
             >
               {item.kind}

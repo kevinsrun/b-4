@@ -35,7 +35,7 @@ export default function AgentsPage() {
   return (
     <>
       <header className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
-        <h1 className="text-[32px] font-medium leading-[1.1] tracking-[-0.02em] text-text sm:text-[38px]">
+        <h1 className="display display-lg text-balance text-cyan">
           Agents
         </h1>
         <p className="mt-3 max-w-[66ch] text-[14px] leading-relaxed text-muted">
@@ -105,7 +105,7 @@ export default function AgentsPage() {
               </ul>
             </>
           ) : (
-            <div className="border border-line bg-panel">
+            <div className="rounded-[4px] border border-line bg-panel">
               <Empty>Running the invariants…</Empty>
             </div>
           )}

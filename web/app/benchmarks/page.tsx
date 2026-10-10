@@ -70,7 +70,7 @@ export default function BenchmarksPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">Benchmarks</p>
           <Provenance kind="proposal" />
         </div>
-        <h1 className="mt-3 text-4xl font-medium tracking-[-0.035em] text-text">System performance & validation</h1>
+        <h1 className="display display-lg mt-4 text-balance text-cyan">System performance & validation</h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
           Deterministic benchmark suite measuring retrieval recovery, variant precision, search latency, and autonomous loop adaptivity.
         </p>
@@ -107,7 +107,7 @@ export default function BenchmarksPage() {
       </section>
 
       {/* Navigation Quick Links */}
-      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-cyan/35 bg-cyan/5 p-5">
+      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[5px] border border-sage-deep bg-sage-soft p-5">
         <div>
           <h3 className="text-[14px] font-medium text-text">Explore the specialized modules</h3>
           <p className="text-[12.5px] text-muted">Run live queries against the tested subsystems directly.</p>

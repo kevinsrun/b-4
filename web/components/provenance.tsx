@@ -19,23 +19,23 @@ const KINDS: Record<Kind, { label: string; title: string; className: string }> =
     label: "literature-derived",
     title:
       "Retrieved and structured from published abstracts, with citations. Automated extraction is not independent verification.",
-    className: "border-blue/45 text-blue bg-blue/8",
+    className: "border-blue/50 text-blue bg-blue/10",
   },
   proposal: {
     label: "proposal",
     title: "A candidate the design agent put forward. Not evidence of activity.",
-    className: "border-dashed border-faint/60 text-muted bg-transparent",
+    className: "border-dashed border-line-strong text-muted bg-raised/40",
   },
   simulation: {
     label: "simulation-derived",
     title:
       "Predicted by the simulator — a hypothesis to test, never an observation. Its priors are coarse and uncalibrated, so a confident number can be wrong by a decade.",
-    className: "border-cyan/45 text-cyan bg-cyan/8",
+    className: "border-cyan/45 text-cyan bg-cyan/10",
   },
   wetlab: {
     label: "wet-lab-derived",
     title: "Measured at the bench. Nothing in this system produces it.",
-    className: "border-green/45 text-green bg-green/8",
+    className: "border-green/50 text-green bg-green/12",
   },
 };
 
@@ -67,7 +67,7 @@ export function Provenance({
   return (
     <span
       title={spec.title}
-      className={`num inline-flex shrink-0 items-center border px-1.5 py-[2px] text-[10px] leading-none tracking-tight ${spec.className} ${className}`}
+      className={`num inline-flex shrink-0 items-center rounded-[3px] border px-1.5 py-[3px] text-[10px] leading-none tracking-tight ${spec.className} ${className}`}
     >
       {spec.label}
     </span>
@@ -81,7 +81,7 @@ export function ProvenanceLegend({ className = "" }: { className?: string }) {
       {(["literature", "proposal", "simulation", "wetlab"] as Kind[]).map((kind) => (
         <div key={kind} className="flex max-w-[22rem] items-start gap-2">
           <Provenance kind={kind} className="mt-[3px]" />
-          <dd className="text-[12.5px] leading-snug text-faint">
+          <dd className="text-[12.5px] leading-snug text-muted">
             {kind === "wetlab" ? (
               <>Measured at the bench. Nothing here produces it.</>
             ) : kind === "literature" ? (

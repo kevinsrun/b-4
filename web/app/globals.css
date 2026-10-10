@@ -1,61 +1,89 @@
 @import "tailwindcss";
 
 /*
-  BactroGen Research — instrument console.
+  BactroGen Research — vanilla-and-sage research platform.
 
-  The page is a dark navy panel with hairline structure, not a stack of cards.
-  Two type families: Space Grotesk carries language, JetBrains Mono carries
-  every measured quantity and identifier, so you can tell at a glance whether
+  The page is a warm vanilla field holding cream panels separated by hairlines,
+  not a stack of floating cards. Three type families: DM Serif Display carries
+  editorial headings, Inter carries interface language, JetBrains Mono carries
+  every measured quantity and identifier — so you can tell at a glance whether
   you are reading prose or data.
 
   Colour is load-bearing, never decorative:
-    cyan    the system acting — live state, primary action, simulation-derived
-    blue    retrieved from literature
+    forest  the system acting — live state, primary action, simulation-derived
+    ocean   retrieved from literature
     green   wet-lab-derived, which nothing in this system produces
-    amber   an assumption the model made for you
-    red     a failure
-  Chart marks use their own step (--mark), which sits in the OKLCH lightness
-  band that stays legible against this surface; the brighter UI cyan does not.
+    ochre   an assumption the model made for you
+    brick   a failure
+  Chart marks use their own step (--mark), which stays legible against cream;
+  the deep forest used for UI text goes muddy at chart-stroke weight.
+
+  Every token below is checked for WCAG AA against the surface it is used on.
+  Sage is a *fill* colour only — text on sage is always deep forest, never the
+  reverse.
 */
 
 @theme {
-  --color-ink: #05080f;
-  --color-panel: #0a0f1a;
-  --color-raised: #101827;
-  --color-line: #1b2436;
-  --color-line-strong: #2a364f;
+  /* Surfaces, lightest-on-top: vanilla page, cream panel, secondary cream. */
+  --color-ink: #f6f1e7;
+  --color-panel: #fcfaf5;
+  --color-raised: #e9e1cf;
+  --color-line: #ddd5c4;
+  --color-line-strong: #c3b9a3;
 
-  --color-text: #e6edf7;
-  --color-muted: #8295ae;
-  --color-faint: #5b6b82;
+  /* Text. Checked against the three surfaces it sits on — vanilla, cream and
+     secondary cream. faint is the floor: 5.1 / 5.5 / 4.6, so even 11px labels
+     on the densest panel clear AA. */
+  --color-text: #263624;
+  --color-muted: #4f5248;
+  --color-faint: #636559;
 
-  --color-cyan: #22d3ee;
-  --color-cyan-dim: #0e7490;
-  --color-blue: #3b82f6;
-  --color-green: #34d399;
-  --color-amber: #f59e0b;
-  --color-red: #f43f5e;
+  /* The identity accent. Named `cyan` for continuity with the component API;
+     it is deep forest green, and it is what "the system acting" looks like. */
+  --color-cyan: #344735;
+  --color-cyan-dim: #8aa36f;
+  --color-blue: #3c6e91;
+  --color-green: #287045;
+  --color-amber: #8a5f28;
+  --color-red: #a33b34;
 
-  --color-mark: #0e9eb8;
+  /* Sage: the primary-button fill and subtle highlight. Never a text colour. */
+  --color-sage: #c8d7a8;
+  --color-sage-soft: #dde5cd;
+  --color-sage-deep: #b4c790;
 
-  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --color-mark: #5c7a52;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-dm), ui-serif, Georgia, serif;
   --font-mono: var(--font-mono-jb), ui-monospace, "SF Mono", monospace;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --rail: 2px;
-  --background: #05080f;
-  --surface: #0a0f1a;
-  --surface-elevated: #101827;
-  --primary: #22d3ee;
-  --secondary: #6d4bc3;
-  --text-primary: #f5f7fb;
-  --text-secondary: #8295ae;
-  --border: #1b2436;
-  --success: #34d399;
-  --warning: #f59e0b;
-  --danger: #f43f5e;
+  --background: #f6f1e7;
+  --surface: #fcfaf5;
+  --surface-elevated: #e9e1cf;
+  --primary: #344735;
+  --primary-fill: #c8d7a8;
+  --text-primary: #263624;
+  --text-secondary: #4f5248;
+  --border: #ddd5c4;
+  --success: #287045;
+  --warning: #8a5f28;
+  --danger: #a33b34;
+
+  /* One timing scale, so every transition on the site agrees with the others. */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --t-fast: 120ms;
+  --t-base: 190ms;
+  --t-slow: 320ms;
+
+  /* Shadows are warm and shallow — vanilla takes a cool grey shadow badly. */
+  --shadow-sm: 0 1px 2px rgba(60, 50, 30, 0.05);
+  --shadow-md: 0 2px 6px rgba(60, 50, 30, 0.06), 0 1px 2px rgba(60, 50, 30, 0.04);
+  --shadow-lg: 0 10px 28px rgba(60, 50, 30, 0.09), 0 2px 6px rgba(60, 50, 30, 0.05);
 }
 
 * {
@@ -67,7 +95,29 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "ss01", "cv05";
+  text-rendering: optimizeLegibility;
+}
+
+/* Editorial headings. The serif is used for display sizes only — below about
+   22px DM Serif Display loses its contrast and reads as a mistake. */
+.display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+}
+
+/* Fluid display sizes, so headings scale with the viewport instead of
+   stepping at breakpoints. */
+.display-xl {
+  font-size: clamp(2.5rem, 1.6rem + 4.2vw, 4.25rem);
+}
+.display-lg {
+  font-size: clamp(2rem, 1.45rem + 2.4vw, 3rem);
+}
+.display-md {
+  font-size: clamp(1.5rem, 1.25rem + 1.1vw, 1.95rem);
+  line-height: 1.12;
 }
 
 /* Every measured quantity is tabular, so columns of numbers line up and a
@@ -79,19 +129,32 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* An eyebrow: the small uppercase label above a heading. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
 a,
 button,
 [tabindex] {
   outline-color: var(--color-cyan);
 }
 
+/* One focus style for the whole product. Forest on vanilla clears AA against
+   both the page and every panel fill, and the offset keeps it off the glyphs. */
 :focus-visible {
   outline: 2px solid var(--color-cyan);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-cyan) 28%, transparent);
+  background: color-mix(in srgb, var(--color-sage) 70%, transparent);
+  color: var(--color-text);
 }
 
 /* Hairline grid used behind the loop console: graph paper, faint enough to
@@ -99,19 +162,108 @@ button,
 .graph-paper {
   background-image: linear-gradient(
       to right,
-      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+      color-mix(in srgb, var(--color-line) 70%, transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--color-line) 55%, transparent) 1px,
+      color-mix(in srgb, var(--color-line) 70%, transparent) 1px,
       transparent 1px
     );
   background-size: 28px 28px;
 }
 
-/* The one piece of non-user-triggered motion on the site: the station that is
-   currently executing. It marks live state and nothing else. */
+/* ---------------------------------------------------------------------------
+   Radial ripple
+   ---------------------------------------------------------------------------
+   A Material-style ripple, damped for a research tool: translucent forest,
+   one expansion, no bounce, finished in 460ms. The host element clips it, so
+   the ripple always takes the host's own border radius.
+
+   The span is positioned and sized in JS from the pointer location (see
+   components/interactive.tsx); everything else lives here. */
+.ripple-host {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  transform: scale(0);
+  background: currentColor;
+  opacity: 0.22;
+  animation: ripple-expand 460ms var(--ease) forwards;
+}
+
+@keyframes ripple-expand {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Press feedback: a slight settle, not a bounce. */
+.pressable {
+  transition:
+    transform var(--t-fast) var(--ease),
+    background-color var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    color var(--t-base) var(--ease);
+}
+
+.pressable:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Cards that respond to the pointer. Elevation change is small and the border
+   does most of the work — hover is never the only signal that these are live. */
+.liftable {
+  transition:
+    transform var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    background-color var(--t-base) var(--ease);
+}
+
+.liftable:hover {
+  border-color: var(--color-line-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------------------------------------------------------------------------
+   Scientific data reveal
+   ---------------------------------------------------------------------------
+   Results fade up a few pixels when they arrive, once, so a table that has just
+   been computed reads as new rather than as having always been there. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: reveal 380ms var(--ease) both;
+}
+
+/* Staggering is capped at six steps; past that the last rows feel broken. */
+.reveal-1 { animation-delay: 40ms; }
+.reveal-2 { animation-delay: 80ms; }
+.reveal-3 { animation-delay: 120ms; }
+.reveal-4 { animation-delay: 160ms; }
+.reveal-5 { animation-delay: 200ms; }
+.reveal-6 { animation-delay: 240ms; }
+
+/* The station that is currently executing. It marks live state and nothing
+   else — this and the sweep are the only non-user-triggered motion here. */
 @keyframes station-live {
   0%,
   100% {
@@ -143,19 +295,67 @@ button,
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--color-cyan) 55%, transparent),
+    color-mix(in srgb, var(--color-cyan) 40%, transparent),
     transparent
   );
   animation: sweep 1.6s linear infinite;
 }
 
+/* Decorative molecular illustrations only. A node drifts a couple of pixels
+   and a bond brightens; nothing here depicts a real conformational change, and
+   it must not be read as one. */
+@keyframes molecule-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--dx, 2px), var(--dy, -2px));
+  }
+}
+
+@keyframes bond-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.molecule-node {
+  animation: molecule-drift 9s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.molecule-bond {
+  animation: bond-pulse 7s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .station-live,
-  .sweep::after {
+  .sweep::after,
+  .molecule-node,
+  .molecule-bond,
+  .reveal,
+  .ripple {
     animation: none;
   }
-  .station-live {
+  .station-live,
+  .molecule-bond {
     opacity: 1;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .ripple {
+    display: none;
+  }
+  .pressable:active:not(:disabled) {
+    transform: none;
   }
   *,
   *::before,
@@ -174,4 +374,95 @@ button,
   font-family: var(--font-mono);
   font-size: 10px;
   fill: var(--color-faint);
+}
+
+/* Scrollbars, so the horizontal scroll on wide research tables reads as part
+   of the page rather than as an OS artefact. */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border: 2px solid var(--color-ink);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-line-strong);
+  }
+}
+
+/* Native controls take the identity colour rather than the OS blue, so a range
+   thumb, a checkbox and a radio agree with everything drawn around them. */
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"],
+progress {
+  accent-color: var(--color-cyan);
+}
+
+input[type="range"] {
+  cursor: pointer;
+}
+
+/* Placeholder text clears AA on both vanilla and cream. */
+::placeholder {
+  color: var(--color-faint);
+  opacity: 1;
+}
+
+/* Research tables: tabular figures, a quiet header rail, and a hover row that
+   helps the eye track across a wide table without implying the row is a link. */
+table {
+  border-collapse: collapse;
+}
+
+thead th {
+  font-weight: 600;
+  text-align: left;
+  color: var(--color-muted);
+}
+
+tbody tr {
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+tbody tr:hover {
+  background-color: color-mix(in srgb, var(--color-raised) 45%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Arrival highlight
+   ---------------------------------------------------------------------------
+   One pass of a brighter border when a computed result first appears. It marks
+   that the card is new — it carries no meaning about the result itself, and it
+   runs once rather than pulsing, so nothing on screen keeps demanding
+   attention after it has been read. */
+@keyframes card-arrive {
+  0% {
+    border-color: var(--color-line);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-cyan) 22%, transparent);
+  }
+  35% {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-cyan) 14%, transparent);
+  }
+  100% {
+    border-color: var(--color-sage-deep);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.card-arrive {
+  animation: card-arrive 1100ms var(--ease) 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-arrive {
+    animation: none;
+  }
 }
