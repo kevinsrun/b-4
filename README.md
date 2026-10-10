@@ -165,7 +165,7 @@ BactroGen is architected to bridge computational discovery and experimental wet-
 
 ## Live Demo
 
-Hosted research application: **[https://web-kappa-seven-35.vercel.app/research](https://web-kappa-seven-35.vercel.app/research)**
+Hosted research application: **[https://b4-rho-nine.vercel.app/](https://b4-rho-nine.vercel.app/)**
 
 The web interface exposes:
 * **Discover (`/research`)**: One-prompt end-to-end multi-agent discovery campaign.
