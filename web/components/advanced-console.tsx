@@ -202,6 +202,20 @@ export function AdvancedConsole() {
             <span className="mt-4 text-[12px] font-medium text-cyan">View research state →</span>
           </Link>
           <Link
+            href="/amp"
+            className="group flex flex-col justify-between border border-cyan/40 bg-panel p-4 transition-colors hover:border-cyan hover:bg-raised"
+          >
+            <div>
+              <div className="flex items-center justify-between text-[11px] text-cyan">
+                <span>Inference Engine</span>
+                <span className="num bg-cyan/15 px-1.5 py-0.2 rounded-xs">Verified 1.1.0</span>
+              </div>
+              <div className="mt-1 text-[15px] font-medium text-text group-hover:text-cyan">AMP Predictor & DRAMP Explorer</div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted">ampir, amPEPpy multi-model classification, batch jobs & 20,270 reference DRAMP entries</p>
+            </div>
+            <span className="mt-4 text-[12px] font-medium text-cyan">Open AMP research workspace →</span>
+          </Link>
+          <Link
             href="/agents"
             className="group flex flex-col justify-between border border-line bg-panel p-4 transition-colors hover:border-cyan/60 hover:bg-raised"
           >
