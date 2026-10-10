@@ -16,16 +16,20 @@ import { LinkButton, useRipple } from "@/components/interactive";
  */
 const PRIMARY = [
   { href: "/research", label: "Discover" },
+  { href: "/projects", label: "Projects" },
   { href: "/sequencing", label: "Sequencing" },
   { href: "/amp", label: "AMP Lab" },
-  { href: "/candidates", label: "Candidates" },
-  { href: "/experiments", label: "Simulator" },
+  { href: "/dramp", label: "DRAMP" },
+  { href: "/crispr", label: "CRISPR" },
   { href: "/evidence", label: "Evidence" },
-  { href: "/methodology", label: "Methodology" },
 ];
 
 const MORE = [
+  { href: "/settings", label: "Settings & Integrations", hint: "Instruments, model health & data stores" },
+  { href: "/candidates", label: "Candidates", hint: "Discovered bacteriocin candidates" },
+  { href: "/experiments", label: "Simulator", hint: "In silico assay simulator" },
   { href: "/design", label: "Designer", hint: "Sequence design workspace" },
+  { href: "/methodology", label: "Methodology", hint: "Computational protocol details" },
   { href: "/knowledge", label: "Research state", hint: "Hypotheses and the event log" },
   { href: "/agents", label: "Agents", hint: "The specialists and their contracts" },
   { href: "/advanced", label: "Advanced console", hint: "Direct tool access" },

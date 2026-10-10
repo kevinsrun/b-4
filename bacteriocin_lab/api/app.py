@@ -533,8 +533,10 @@ def create_app(
         )
 
     from .sequencing import router as sequencing_router
+    from .projects import router as projects_router
 
     app.include_router(sequencing_router)
+    app.include_router(projects_router)
 
     return app
 
