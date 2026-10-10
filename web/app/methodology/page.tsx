@@ -1,15 +1,6 @@
-import Image from "next/image";
-
 export default function MethodologyPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-20 pt-14 sm:px-6">
-      <Image
-        src="/branding/bactrogen-wordmark.png"
-        alt="BactroGen Research"
-        width={720}
-        height={402}
-        className="mb-8 h-auto w-full max-w-[22rem] rounded-lg bg-black object-cover"
-      />
       <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-cyan">Methodology</p>
       <h1 className="display display-lg mt-4 text-balance text-cyan">Scientific boundaries</h1>
       <div className="mt-8 space-y-5 text-[14px] leading-relaxed text-muted">
